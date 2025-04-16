@@ -1,0 +1,56 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+InvoiceManager: Streamlining Payment Collection
+InvoiceManager is a specialized web application designed to solve the persistent problem of late invoice payments that many businesses face. This application provides a comprehensive solution for tracking, managing, and following up on unpaid invoices.
+Core Problem Solved
+Late or missed payments create cash flow issues for businesses of all sizes. The manual process of tracking payment status, calculating overdue periods, and sending follow-up communications is time-consuming and prone to human error. InvoiceManager centralizes and automates these processes to ensure timely payments with minimal effort.
+Key Features
+Invoice Management
+
+Create and store detailed invoice records with essential information:
+
+Client details (name, contact information, billing address)
+Invoice amounts and itemized breakdowns
+Due dates and payment terms
+Custom notes and reference numbers
+
+
+
+Dashboard Overview
+
+At-a-glance visualization of payment statuses across all invoices
+Color-coded indicators showing on-time, approaching due date, and overdue invoices
+Sorting and filtering capabilities to quickly identify problematic accounts
+Overdue metrics showing exactly how many days an invoice is past due
+
+Automated Follow-up System
+
+Pre-designed email templates with escalating tones:
+
+Soft reminders for recently overdue invoices
+Firm requests for moderately late payments
+Hard demands for significantly overdue invoices
+Final notice templates for severely delinquent accounts
+
+
+Dynamic placeholders that automatically populate with relevant client information, invoice numbers, amounts, and due dates
+One-click sending functionality that eliminates the need to draft individual emails
+
+Client Management
+
+Client profiles with payment history and behavior patterns
+Average days-to-payment metrics
+Communication logs recording all payment-related interactions
+
+User Experience
+
+Intuitive interface requiring minimal training
+Quick-action buttons for common tasks
+Notification system alerting users to approaching due dates
+Mobile-responsive design for on-the-go invoice management
+
+InvoiceManager transforms the accounts receivable process from a reactive, time-consuming burden into a proactive, streamlined workflow that improves cash flow and reduces the administrative overhead associated with payment collection.

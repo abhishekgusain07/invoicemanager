@@ -102,20 +102,20 @@ const SolutionBadge = ({ icon, text }: { icon: React.ReactNode, text: string }  
 const SolutionSection = () => {
   // Data for the comparison items
   const comparisonData = [
-    { icon: <RocketIcon />, label: 'Launch Time', value: '1 day', comparison: 'vs. 4-6 weeks traditional development' },
-    { icon: <CodeIcon />, label: 'Code to Write', value: '90% less', comparison: 'Focus on your unique features' },
-    { icon: <ClockIcon />, label: 'Development Time', value: '75% faster', comparison: 'Ship features, not infrastructure' },
-    { icon: <ShieldIcon />, label: 'Security Features', value: 'Built-in', comparison: 'Auth, permissions, data protection' },
-    { icon: <DatabaseIcon />, label: 'Database Setup', value: 'Instant', comparison: 'Pre-configured Neon PostgreSQL' },
-    { icon: <BarChartIcon />, label: 'Analytics Integration', value: 'Ready', comparison: 'PostHog & Sentry pre-configured' },
+    { icon: <RocketIcon />, label: 'Payment Time', value: '62% faster', comparison: 'Get paid in days, not weeks or months' },
+    { icon: <ClockIcon />, label: 'Admin Hours', value: '15+ hrs saved', comparison: 'Per week on invoice management tasks' },
+    { icon: <CodeIcon />, label: 'Follow-up Emails', value: 'Automated', comparison: 'No more manual reminder emails' },
+    { icon: <ShieldIcon />, label: 'Payment Visibility', value: '100%', comparison: 'Complete overview of all invoice statuses' },
+    { icon: <DatabaseIcon />, label: 'Client Records', value: 'Centralized', comparison: 'All payment history in one place' },
+    { icon: <BarChartIcon />, label: 'Cash Flow', value: 'Improved', comparison: 'More predictable revenue streams' },
   ];
 
   // Data for the badges
   const badgeData = [
-    { icon: <LockIcon className="mr-1 h-3.5 w-3.5" />, text: 'Complete Auth System' },
-    { icon: <CreditCardIcon className="mr-1 h-3.5 w-3.5" />, text: 'Stripe Payments Ready' },
-    { icon: <DatabaseIcon className="mr-1 h-3.5 w-3.5" />, text: 'Serverless Database' },
-    { icon: <BarChartIcon className="mr-1 h-3.5 w-3.5" />, text: 'Built-in Analytics' },
+    { icon: <LockIcon className="mr-1 h-3.5 w-3.5" />, text: 'Dashboard Overview' },
+    { icon: <CreditCardIcon className="mr-1 h-3.5 w-3.5" />, text: 'Automated Reminders' },
+    { icon: <DatabaseIcon className="mr-1 h-3.5 w-3.5" />, text: 'Client Profiles' },
+    { icon: <BarChartIcon className="mr-1 h-3.5 w-3.5" />, text: 'Payment Analytics' },
   ];
 
 
@@ -131,10 +131,10 @@ const SolutionSection = () => {
         <div className="mb-8 flex flex-col items-center justify-center space-y-4 text-center">
           <div className="mb-2 text-sm font-medium tracking-wider uppercase">SOLUTION</div>
           <h2 className="text-3xl font-bold tracking-tighter text-green-600 sm:text-4xl md:text-5xl">
-            Launch Your SaaS Faster Than Ever
+            Transform Your Invoice Collections
           </h2>
           <p className="text-muted-foreground max-w-[800px] md:text-xl/relaxed">
-            Everything you need to build, launch, and scale your SaaS product without starting from scratch.
+            InvoiceManager streamlines payment tracking, automates follow-ups, and gives you complete visibility into your accounts receivable.
           </p>
         </div>
 

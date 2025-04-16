@@ -82,7 +82,7 @@ const Footer = () => {
       <div className="mx-auto max-w-5xl px-6">
         {/* Homepage Link */}
         <a aria-label="go home" className="mx-auto block size-fit font-semibold" href="/">
-          PrintMoney Template
+          invoicemanager Template
         </a>
 
         {/* Navigation Links */}

@@ -151,40 +151,40 @@ const ProblemSection = () => {
   // Data for the problem cards
   const problems = [
     {
-      icon: <CodeIcon />,
-      title: 'Boilerplate Burden',
-      description:
-        'Spending weeks setting up authentication, database connections, and basic UI components before building actual features.',
-    },
-    {
       icon: <ClockIcon />,
-      title: 'Time-to-Market Delays',
+      title: 'Late Payments',
       description:
-        'Missing critical launch windows while configuring payment providers, user authentication, and analytics from scratch.',
-    },
-    {
-      icon: <ShieldIcon />,
-      title: 'Security Concerns',
-      description:
-        'Implementing proper auth flows, data protection, and user permissions is complex and easy to get wrong.',
+        'Businesses suffer from cash flow issues when clients consistently pay invoices weeks or months after due dates.',
     },
     {
       icon: <BugIcon />,
-      title: 'Integration Headaches',
+      title: 'Manual Tracking',
       description:
-        'Wasting days debugging mismatched libraries, version conflicts, and incompatible tools in your tech stack.',
+        'Tracking payment status across dozens or hundreds of invoices manually leads to errors and missed follow-ups.',
     },
     {
       icon: <CreditCardIcon />,
-      title: 'Payment Processing Pain',
+      title: 'Inconsistent Follow-ups',
       description:
-        'Struggling with Stripe integration, subscription management, and handling the complexity of billing systems.',
+        'Without a system, payment reminders are often forgotten, inconsistent, or too aggressive, damaging client relationships.',
     },
     {
       icon: <BarChartIcon />,
-      title: 'Analytics Blind Spots',
+      title: 'No Payment Visibility',
       description:
-        'Launching without proper tracking, user behavior insights, or performance monitoring in place.',
+        'Lack of clear metrics on payment patterns makes it impossible to identify and address problematic accounts.',
+    },
+    {
+      icon: <ShieldIcon />,
+      title: 'Disorganized Records',
+      description:
+        'Scattered invoice records across emails, spreadsheets, and paper files create confusion and compliance risks.',
+    },
+    {
+      icon: <CodeIcon />,
+      title: 'Time-Consuming Admin',
+      description:
+        'Administrative staff waste hours each week manually creating reminders and updating payment statuses.',
     },
   ];
 
@@ -199,10 +199,10 @@ const ProblemSection = () => {
             CHALLENGES
           </div>
           <h2 className="text-3xl font-bold tracking-tighter text-red-400 sm:text-4xl md:text-5xl">
-            Building SaaS Apps Shouldn't Be Hard
+            Late Payments Shouldn't Hurt Your Business
           </h2>
           <p className="text-muted-foreground max-w-[800px] md:text-xl/relaxed">
-            Most developers spend too much time on repetitive setup instead of building what makes their product unique.
+            Many businesses struggle with inconsistent cash flow due to delayed invoice payments and inefficient collection processes.
           </p>
         </div>
         <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-xl py-6">

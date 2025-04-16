@@ -15,12 +15,12 @@ export default function Home() {
   
   const showAnnouncement = true;
   const announcement = {
-    message: "Check out our new",
+    message: "New feature:",
     link: {
-      text: "RAG-as-a-Service API Platform",
-      url: "https://example.com"
+      text: "Automated Payment Reminders",
+      url: "#automated-reminders"
     },
-    emoji: "🚀"
+    emoji: "💰"
   };
 
   const features: Array<{
@@ -30,40 +30,40 @@ export default function Home() {
     icon?: LucideIcon;
   }> = [
     {
-      title: "Authentication",
+      title: "Invoice Management",
       description:
-        "Complete auth system with email, social login, magic links, and MFA support for secure user management.",
-      link: "#auth",
+        "Create and store detailed invoice records with client details, amounts, due dates, and custom notes.",
+      link: "#invoice-management",
     },
     {
-      title: "Payments",
+      title: "Dashboard Overview",
       description:
-        "Stripe integration with subscription management, pricing tiers, and billing portal for smooth revenue collection.",
-      link: "#payments",
+        "At-a-glance visualization with color-coded indicators showing on-time, approaching due date, and overdue invoices.",
+      link: "#dashboard",
     },
     {
-      title: "Analytics",
+      title: "Automated Follow-ups",
       description:
-        "Built-in analytics with PostHog and error tracking with Sentry to monitor user behavior and application health.",
+        "Pre-designed email templates with escalating tones from soft reminders to final notices with dynamic client information.",
+      link: "#follow-ups",
+    },
+    {
+      title: "Client Management",
+      description:
+        "Detailed client profiles with payment history, behavior patterns, and communication logs for all payment interactions.",
+      link: "#client-management",
+    },
+    {
+      title: "Payment Analytics",
+      description:
+        "Track average days-to-payment metrics and identify problematic accounts to improve your cash flow management.",
       link: "#analytics",
     },
     {
-      title: "Database",
+      title: "Mobile Responsive",
       description:
-        "Serverless PostgreSQL with Neon and Drizzle ORM for type-safe database operations with automatic scaling.",
-      link: "#database",
-    },
-    {
-      title: "UI Components",
-      description:
-        "Beautiful, accessible UI components built with Radix UI and styled with Tailwind CSS for rapid development.",
-      link: "#ui",
-    },
-    {
-      title: "Deployment",
-      description:
-        "Optimized for deployment on Vercel with continuous integration and automatic preview deployments.",
-      link: "#deployment",
+        "Manage your invoices on the go with a fully responsive design that works on desktop, tablet, and mobile devices.",
+      link: "#responsive",
     },
   ];
 
@@ -79,24 +79,22 @@ export default function Home() {
         {/* Hero Section */}
         <section className="pt-8 pb-8 px-4 md:px-8 lg:px-16 flex flex-col items-center text-center">
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-200 leading-tight">
-            Ship Your SaaS <br />
-            <span className="inline-block mt-1 mb-2">Blazingly Fast</span>
+            Get Paid Faster <br />
+            <span className="inline-block mt-1 mb-2">Every Time</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mb-6">
-            Everything you need, ready to launch.
+            Streamline your payment collection and end late invoice headaches.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link href="/dashboard" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-md font-medium text-lg shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
-              Get Started
+              Start Managing Invoices
             </Link>
           </div>
         </section>
-        
-        <TechnologyUsed />
         {/* Features Section */}
         <section id="features" className="py-16 px-4 md:px-8 lg:px-16 bg-secondary/20">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-16">Everything You Need</h2>
+            <h2 className="text-3xl font-bold text-center mb-16">Powerful Invoice Management</h2>
             <HoverEffect items={features} />
           </div>
         </section>
@@ -113,12 +111,12 @@ export default function Home() {
         {/* CTA Section */}
         <section className="py-16 px-4 md:px-8 lg:px-16 bg-primary/5">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-6">Ready to Get Started?</h2>
+            <h2 className="text-3xl font-bold mb-6">Ready to Improve Your Cash Flow?</h2>
             <p className="text-xl text-muted-foreground mb-8">
-              Launch your SaaS in record time with our production-ready template.
+              Transform invoice collection from a time-consuming burden into a streamlined workflow.
             </p>
             <Link href="/sign-up" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-md font-medium inline-block">
-              Start Building Now
+              Start Your Free Trial
             </Link>
           </div>
         </section>

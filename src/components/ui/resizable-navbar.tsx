@@ -245,7 +245,7 @@ export const NavbarLogo = () => {
       />
       
       <div className="font-sans">
-        <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-black">PrintMoney</span>
+        <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-black">invoicemanager</span>
       </div>
     </Link>
   );
