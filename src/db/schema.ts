@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, boolean, decimal, pgEnum } from "drizzle-orm/pg-core";
 			
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -47,8 +47,34 @@ export const verification = pgTable("verification", {
 	updatedAt: timestamp('updated_at')
 });
 
+// Define invoice status enum
+export const invoiceStatusEnum = pgEnum('invoice_status', [
+	'pending',
+	'paid',
+	'overdue',
+	'cancelled',
+	'draft',
+	'partially_paid'
+]);
 
-
+// Invoice Manager schema
+export const clientInvoices = pgTable("client_invoices", {
+	id: text("id").primaryKey(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	clientName: text("client_name").notNull(),
+	clientEmail: text("client_email").notNull(),
+	invoiceNumber: text("invoice_number").notNull(),
+	amount: decimal("amount").notNull(),
+	currency: text("currency").notNull(),
+	issueDate: timestamp("issue_date").notNull(),
+	dueDate: timestamp("due_date").notNull(),
+	description: text("description"),
+	additionalNotes: text("additional_notes"),
+	status: invoiceStatusEnum("status").notNull().default("pending"),
+	paymentDate: timestamp("payment_date"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
 
 export const subscriptions = pgTable("subscriptions", {
 	id: text("id").primaryKey(),
@@ -64,7 +90,7 @@ export const subscriptions = pgTable("subscriptions", {
 	userId: text("user_id"),
   });
   
-  export const subscriptionPlans = pgTable("subscriptions_plans", {
+export const subscriptionPlans = pgTable("subscriptions_plans", {
 	id: text("id").primaryKey(),
 	createdTime: timestamp("created_time").defaultNow(),
 	planId: text("plan_id"),
@@ -75,7 +101,7 @@ export const subscriptions = pgTable("subscriptions", {
 	interval: text("interval"),
   });
   
-  export const invoices = pgTable("invoices", {
+export const invoices = pgTable("invoices", {
 	id: text("id").primaryKey(),
 	createdTime: timestamp("created_time").defaultNow(),
 	invoiceId: text("invoice_id"),
@@ -87,7 +113,6 @@ export const subscriptions = pgTable("subscriptions", {
 	email: text("email"),
 	userId: text("user_id"),
   });
-
 
 export const feedback = pgTable("feedback", {
 	id: text("id").primaryKey(),

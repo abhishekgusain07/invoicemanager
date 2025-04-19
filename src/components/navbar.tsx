@@ -79,6 +79,11 @@ export function NavbarDemo({
     }
   };
 
+  const handleLogin = () => {
+    // Using window.location for immediate navigation
+    window.location.href = "/sign-in";
+  };
+
   // Render avatar skeleton during loading
   const renderAuthUI = () => {
     if (isLoading) {
@@ -129,7 +134,7 @@ export function NavbarDemo({
     }
     
     return (
-      <NavbarButton variant="secondary" onClick={() => router.push("/sign-in")}>Login</NavbarButton>
+      <NavbarButton variant="secondary" onClick={handleLogin}>Login</NavbarButton>
     );
   };
 

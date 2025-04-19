@@ -10,10 +10,24 @@ import TechnologyUsed from "./components/techused";
 import Announcement from "./components/announcement";
 import { HoverEffect } from "@/components/ui/card-hover-effect";
 import type { LucideIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   
-  const showAnnouncement = true;
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  
+  useEffect(() => {
+    const announcementDismissed = localStorage.getItem('announcement_dismissed');
+    if (!announcementDismissed) {
+      setShowAnnouncement(true);
+    }
+  }, []);
+  
+  const handleAnnouncementDismiss = () => {
+    // Store the dismissal in localStorage so it stays dismissed on refresh
+    localStorage.setItem('announcement_dismissed', 'true');
+    setShowAnnouncement(false);
+  };
   const announcement = {
     message: "New feature:",
     link: {
@@ -74,6 +88,7 @@ export default function Home() {
         message={announcement.message}
         link={announcement.link}
         emoji={announcement.emoji}
+        onDismiss={handleAnnouncementDismiss}
       />
       <NavbarDemo>
         {/* Hero Section */}
