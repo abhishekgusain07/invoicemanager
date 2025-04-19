@@ -1,4 +1,4 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+import { BellDotIcon, Calendar, CircleHelp, FileText, Home, Inbox, LayoutDashboard, Search, Settings, Settings2 } from "lucide-react"
 
 import {
   Sidebar,
@@ -14,29 +14,29 @@ import {
 // Menu items.
 const items = [
   {
-    title: "Home",
-    url: "#",
-    icon: Home,
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
   },
   {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
+    title: "Invoices",
+    url: "/invoices",
+    icon: FileText,
   },
   {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
+    title: "Templates",
+    url: "/templates",
+    icon: BellDotIcon,
   },
   {
-    title: "Search",
-    url: "#",
-    icon: Search,
+    title: "Setting",
+    url: "/setting",
+    icon: Settings2,
   },
   {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
+    title: "Help and Support",
+    url: "/help",
+    icon: CircleHelp,
   },
 ]
 
