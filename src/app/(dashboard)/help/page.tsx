@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   HelpCircleIcon, MailIcon, BookOpenIcon, CompassIcon, 
   ChevronDownIcon, ChevronRightIcon, SearchIcon, ArrowRightIcon,
@@ -12,6 +13,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+
+const tabVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" }
+  },
+  exit: {
+    opacity: 0,
+    y: -10,
+    transition: { duration: 0.2 }
+  }
+};
 
 const Help = () => {
   const [activeTab, setActiveTab] = useState("getting-started");
@@ -166,221 +181,259 @@ const Help = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Getting Started Tab */}
-          <TabsContent value="getting-started" className="space-y-8">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="space-y-6">
-                <div className="bg-card rounded-lg border p-6">
-                  <h2 className="text-xl font-semibold mb-4">Quick Start Guide</h2>
-                  
-                  <div className="space-y-8">
-                    {gettingStartedSteps.map((step, index) => (
-                      <div key={index} className="flex gap-4">
-                        <div className="flex-shrink-0">
-                          <div className="flex h-8 w-8 rounded-full bg-primary text-primary-foreground items-center justify-center">
-                            {index + 1}
-                          </div>
+          <AnimatePresence mode="wait">
+            {activeTab === "getting-started" && (
+              <motion.div
+                key="getting-started"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={tabVariants}
+              >
+                <TabsContent value="getting-started" className="space-y-8" forceMount>
+                  <div className="grid gap-6 lg:grid-cols-2">
+                    <div className="space-y-6">
+                      <div className="bg-card rounded-lg border p-6">
+                        <h2 className="text-xl font-semibold mb-4">Quick Start Guide</h2>
+                        
+                        <div className="space-y-8">
+                          {gettingStartedSteps.map((step, index) => (
+                            <div key={index} className="flex gap-4">
+                              <div className="flex-shrink-0">
+                                <div className="flex h-8 w-8 rounded-full bg-primary text-primary-foreground items-center justify-center">
+                                  {index + 1}
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <h3 className="font-medium">{step.title}</h3>
+                                <p className="text-sm text-muted-foreground">{step.description}</p>
+                                <Button variant="link" asChild className="p-0 h-auto">
+                                  <a href={step.link}>
+                                    Learn more <ArrowRightIcon className="ml-1 h-3 w-3" />
+                                  </a>
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="space-y-1">
-                          <h3 className="font-medium">{step.title}</h3>
-                          <p className="text-sm text-muted-foreground">{step.description}</p>
-                          <Button variant="link" asChild className="p-0 h-auto">
-                            <a href={step.link}>
+                      </div>
+                    </div>
+                    <div>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Video Tutorial</CardTitle>
+                          <CardDescription>
+                            Watch our quick introduction to get started with Invoice Manager
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="aspect-video bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-100/80 to-purple-100/80 dark:from-blue-950/50 dark:to-purple-950/50"></div>
+                            <PlayCircleIcon className="h-16 w-16 text-primary z-10" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                </TabsContent>
+              </motion.div>
+            )}
+
+            {activeTab === "features" && (
+              <motion.div
+                key="features"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={tabVariants}
+              >
+                <TabsContent value="features" forceMount>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {features.map((feature) => (
+                      <Card key={feature.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center gap-2">
+                            {feature.icon}
+                            <CardTitle>{feature.title}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pb-2">
+                          <CardDescription className="text-sm mb-4">
+                            {feature.description}
+                          </CardDescription>
+                        </CardContent>
+                        <CardFooter className="pt-0">
+                          <Button variant="link" asChild className="pl-0">
+                            <a href={feature.link}>
                               Learn more <ArrowRightIcon className="ml-1 h-3 w-3" />
                             </a>
                           </Button>
-                        </div>
-                      </div>
+                        </CardFooter>
+                      </Card>
                     ))}
                   </div>
-                </div>
-              </div>
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Video Tutorial</CardTitle>
-                    <CardDescription>
-                      Watch our quick introduction to get started with Invoice Manager
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="aspect-video bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-100/80 to-purple-100/80 dark:from-blue-950/50 dark:to-purple-950/50"></div>
-                      <PlayCircleIcon className="h-16 w-16 text-primary z-10" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
+                </TabsContent>
+              </motion.div>
+            )}
 
-          {/* Features Tab */}
-          <TabsContent value="features">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {features.map((feature) => (
-                <Card key={feature.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2">
-                      {feature.icon}
-                      <CardTitle>{feature.title}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pb-2">
-                    <CardDescription className="text-sm mb-4">
-                      {feature.description}
-                    </CardDescription>
-                  </CardContent>
-                  <CardFooter className="pt-0">
-                    <Button variant="link" asChild className="pl-0">
-                      <a href={feature.link}>
-                        Learn more <ArrowRightIcon className="ml-1 h-3 w-3" />
-                      </a>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
+            {activeTab === "faqs" && (
+              <motion.div
+                key="faqs"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={tabVariants}
+              >
+                <TabsContent value="faqs" className="space-y-2" forceMount>
+                  {faqs.map((faq) => (
+                    <Card key={faq.id} className={`transition-all py-2 px-1 ${expandedFaq === faq.id ? 'ring-1 ring-primary' : ''}`}>
+                      <CardHeader 
+                        className="cursor-pointer py-4 flex flex-row items-center justify-between"
+                        onClick={() => toggleFaq(faq.id)}
+                      >
+                        <CardTitle className="text-lg font-medium">{faq.question}</CardTitle>
+                        <Button variant="ghost" size="icon">
+                          {expandedFaq === faq.id ? 
+                            <ChevronDownIcon className="h-5 w-5" /> : 
+                            <ChevronRightIcon className="h-5 w-5" />
+                          }
+                        </Button>
+                      </CardHeader>
+                      {expandedFaq === faq.id && (
+                        <CardContent className="pt-0 pb-4">
+                          <p className="text-muted-foreground">{faq.answer}</p>
+                        </CardContent>
+                      )}
+                    </Card>
+                  ))}
+                  
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle>Still have questions?</CardTitle>
+                      <CardDescription>
+                        Check our comprehensive documentation or contact our support team for assistance.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
+                      <Button variant="outline">
+                        <BookOpenIcon className="mr-2 h-4 w-4" />
+                        Documentation
+                      </Button>
+                      <Button onClick={() => setActiveTab("support")}>
+                        <MailIcon className="mr-2 h-4 w-4" />
+                        Contact Support
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </TabsContent>
+              </motion.div>
+            )}
 
-          {/* FAQs Tab */}
-          <TabsContent value="faqs" className="space-y-2">
-            {faqs.map((faq) => (
-              <Card key={faq.id} className={`transition-all py-2 px-1 ${expandedFaq === faq.id ? 'ring-1 ring-primary' : ''}`}>
-                <CardHeader 
-                  className="cursor-pointer py-4 flex flex-row items-center justify-between"
-                  onClick={() => toggleFaq(faq.id)}
-                >
-                  <CardTitle className="text-lg font-medium">{faq.question}</CardTitle>
-                  <Button variant="ghost" size="icon">
-                    {expandedFaq === faq.id ? 
-                      <ChevronDownIcon className="h-5 w-5" /> : 
-                      <ChevronRightIcon className="h-5 w-5" />
-                    }
-                  </Button>
-                </CardHeader>
-                {expandedFaq === faq.id && (
-                  <CardContent className="pt-0 pb-4">
-                    <p className="text-muted-foreground">{faq.answer}</p>
-                  </CardContent>
-                )}
-              </Card>
-            ))}
-            
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Still have questions?</CardTitle>
-                <CardDescription>
-                  Check our comprehensive documentation or contact our support team for assistance.
-                </CardDescription>
-              </CardHeader>
-              <CardFooter className="flex flex-col sm:flex-row gap-3 sm:justify-between">
-                <Button variant="outline">
-                  <BookOpenIcon className="mr-2 h-4 w-4" />
-                  Documentation
-                </Button>
-                <Button onClick={() => setActiveTab("support")}>
-                  <MailIcon className="mr-2 h-4 w-4" />
-                  Contact Support
-                </Button>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-
-          {/* Support Tab */}
-          <TabsContent value="support">
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Contact Support</CardTitle>
-                  <CardDescription>
-                    Get help from our customer support team
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4">
-                    <div className="grid gap-2">
-                      <label htmlFor="name" className="text-sm font-medium">Name</label>
-                      <Input id="name" placeholder="Your name" />
-                    </div>
-                    <div className="grid gap-2">
-                      <label htmlFor="email" className="text-sm font-medium">Email</label>
-                      <Input id="email" type="email" placeholder="Your email address" />
-                    </div>
-                    <div className="grid gap-2">
-                      <label htmlFor="subject" className="text-sm font-medium">Subject</label>
-                      <Input id="subject" placeholder="How can we help you?" />
-                    </div>
-                    <div className="grid gap-2">
-                      <label htmlFor="message" className="text-sm font-medium">Message</label>
-                      <textarea 
-                        id="message" 
-                        className="min-h-[120px] rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
-                        placeholder="Describe your issue in detail"
-                      />
+            {activeTab === "support" && (
+              <motion.div
+                key="support"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={tabVariants}
+              >
+                <TabsContent value="support" forceMount>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Contact Support</CardTitle>
+                        <CardDescription>
+                          Get help from our customer support team
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4">
+                          <div className="grid gap-2">
+                            <label htmlFor="name" className="text-sm font-medium">Name</label>
+                            <Input id="name" placeholder="Your name" />
+                          </div>
+                          <div className="grid gap-2">
+                            <label htmlFor="email" className="text-sm font-medium">Email</label>
+                            <Input id="email" type="email" placeholder="Your email address" />
+                          </div>
+                          <div className="grid gap-2">
+                            <label htmlFor="subject" className="text-sm font-medium">Subject</label>
+                            <Input id="subject" placeholder="How can we help you?" />
+                          </div>
+                          <div className="grid gap-2">
+                            <label htmlFor="message" className="text-sm font-medium">Message</label>
+                            <textarea 
+                              id="message" 
+                              className="min-h-[120px] rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
+                              placeholder="Describe your issue in detail"
+                            />
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button className="w-full">Send Message</Button>
+                      </CardFooter>
+                    </Card>
+                    
+                    <div className="space-y-6">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Support Hours</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-sm">Monday - Friday</span>
+                            <span className="text-sm font-medium">9:00 AM - 5:00 PM EST</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm">Saturday</span>
+                            <span className="text-sm font-medium">10:00 AM - 2:00 PM EST</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm">Sunday</span>
+                            <span className="text-sm font-medium">Closed</span>
+                          </div>
+                          <Separator className="my-2" />
+                          <p className="text-xs text-muted-foreground">
+                            Average response time: <span className="font-medium">Under 24 hours</span>
+                          </p>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Additional Resources</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center gap-2">
+                            <BookOpenIcon className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <h4 className="text-sm font-medium">Documentation</h4>
+                              <p className="text-xs text-muted-foreground">Detailed guides and reference</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <PlayCircleIcon className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <h4 className="text-sm font-medium">Video Tutorials</h4>
+                              <p className="text-xs text-muted-foreground">Step-by-step visual guides</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <MessageSquareIcon className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <h4 className="text-sm font-medium">Community Forum</h4>
+                              <p className="text-xs text-muted-foreground">Ask questions and share insights</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <Button className="w-full">Send Message</Button>
-                </CardFooter>
-              </Card>
-              
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Support Hours</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Monday - Friday</span>
-                      <span className="text-sm font-medium">9:00 AM - 5:00 PM EST</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Saturday</span>
-                      <span className="text-sm font-medium">10:00 AM - 2:00 PM EST</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Sunday</span>
-                      <span className="text-sm font-medium">Closed</span>
-                    </div>
-                    <Separator className="my-2" />
-                    <p className="text-xs text-muted-foreground">
-                      Average response time: <span className="font-medium">Under 24 hours</span>
-                    </p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Additional Resources</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <BookOpenIcon className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <h4 className="text-sm font-medium">Documentation</h4>
-                        <p className="text-xs text-muted-foreground">Detailed guides and reference</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <PlayCircleIcon className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <h4 className="text-sm font-medium">Video Tutorials</h4>
-                        <p className="text-xs text-muted-foreground">Step-by-step visual guides</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MessageSquareIcon className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <h4 className="text-sm font-medium">Community Forum</h4>
-                        <p className="text-xs text-muted-foreground">Ask questions and share insights</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
+                </TabsContent>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Tabs>
       </div>
     </div>
