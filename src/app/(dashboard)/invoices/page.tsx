@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { 
   PlusIcon, SearchIcon, EditIcon, 
   CheckCircleIcon, MailIcon, TrashIcon, 
-  ChevronDownIcon, ChevronUpIcon 
+  ChevronDownIcon, ChevronUpIcon,
+  AlertTriangleIcon
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
-import { getInvoicesByStatus } from "@/actions/invoice";
+import { getInvoicesByStatus, deleteInvoice } from "@/actions/invoice";
 import { toast } from "sonner";
 import {
   Select,
@@ -19,6 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function InvoicesPage() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -32,6 +41,9 @@ export default function InvoicesPage() {
     key: string;
     direction: 'ascending' | 'descending';
   } | null>({ key: 'dueDate', direction: 'ascending' });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
+  const [isDeletingInvoice, setIsDeletingInvoice] = useState(false);
 
   // Fetch invoices
   useEffect(() => {
@@ -158,7 +170,7 @@ export default function InvoicesPage() {
       : <ChevronDownIcon className="h-3 w-3 text-muted-foreground" />;
   };
 
-  // Action handlers (to be implemented)
+  // Action handlers
   const handleEdit = (invoiceId: string) => {
     // Placeholder for edit action
     toast.info("Edit feature coming soon");
@@ -174,9 +186,34 @@ export default function InvoicesPage() {
     toast.info("Send reminder feature coming soon");
   };
 
-  const handleDelete = (invoiceId: string) => {
-    // Placeholder for delete action
-    toast.info("Delete feature coming soon");
+  const openDeleteModal = (invoiceId: string) => {
+    setInvoiceToDelete(invoiceId);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!invoiceToDelete) return;
+    
+    setIsDeletingInvoice(true);
+    try {
+      const result = await deleteInvoice(invoiceToDelete);
+      if (result.success) {
+        toast.success("Invoice deleted successfully");
+        // Remove the invoice from the local state
+        const updatedInvoices = invoices.filter(invoice => invoice.id !== invoiceToDelete);
+        setInvoices(updatedInvoices);
+        setFilteredInvoices(filteredInvoices.filter(invoice => invoice.id !== invoiceToDelete));
+      } else {
+        toast.error(result.error || "Failed to delete invoice");
+      }
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      toast.error("An error occurred while deleting the invoice");
+    } finally {
+      setIsDeletingInvoice(false);
+      setDeleteModalOpen(false);
+      setInvoiceToDelete(null);
+    }
   };
 
   return (
@@ -324,7 +361,7 @@ export default function InvoicesPage() {
                         variant="ghost" 
                         size="icon" 
                         className="h-7 w-7 text-red-600" 
-                        onClick={() => handleDelete(invoice.id)}
+                        onClick={() => openDeleteModal(invoice.id)}
                         title="Delete Invoice"
                       >
                         <TrashIcon className="h-3.5 w-3.5" />
@@ -354,6 +391,49 @@ export default function InvoicesPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="max-w-[80vw]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangleIcon className="h-5 w-5 text-red-500" />
+              <span>Delete Invoice</span>
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this invoice? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex sm:justify-between gap-4 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={isDeletingInvoice}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+              disabled={isDeletingInvoice}
+              className="gap-2 cursor-pointer"
+            >
+              {isDeletingInvoice ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <TrashIcon className="h-4 w-4" />
+                  Delete Invoice
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Invoice Creation Modal */}
       {isModalOpen && (

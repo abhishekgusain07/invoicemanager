@@ -211,4 +211,47 @@ export async function getMonthlyInvoiceData() {
     console.error("Error fetching monthly invoice data:", error);
     return months.map(month => ({ name: month, amount: 0 }));
   }
+}
+
+export async function deleteInvoice(invoiceId: string) {
+  // Check if user is authenticated
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized. Please sign in to delete an invoice." };
+  }
+
+  try {
+    // First check if the invoice belongs to the user
+    const invoice = await db
+      .select()
+      .from(clientInvoices)
+      .where(
+        eq(clientInvoices.id, invoiceId) && 
+        eq(clientInvoices.userId, session.user.id)
+      );
+
+    if (invoice.length === 0) {
+      return { success: false, error: "Invoice not found or you don't have permission to delete it." };
+    }
+
+    // Delete the invoice
+    await db
+      .delete(clientInvoices)
+      .where(
+        eq(clientInvoices.id, invoiceId) && 
+        eq(clientInvoices.userId, session.user.id)
+      );
+
+    // Revalidate dashboard and invoices pages
+    revalidatePath("/dashboard");
+    revalidatePath("/invoices");
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting invoice:", error);
+    return { success: false, error: "Failed to delete invoice" };
+  }
 } 
