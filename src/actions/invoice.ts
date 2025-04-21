@@ -357,4 +357,80 @@ export async function updateInvoiceStatus(
     console.error("Error updating invoice status:", error);
     return { success: false, error: "Failed to update invoice status" };
   }
+}
+
+export async function updateInvoice(invoiceId: string, formData: FormData) {
+  // Check if user is authenticated
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized. Please sign in to update an invoice." };
+  }
+
+  try {
+    // Check if the invoice belongs to the user
+    const invoice = await db
+      .select()
+      .from(clientInvoices)
+      .where(
+        eq(clientInvoices.id, invoiceId) && 
+        eq(clientInvoices.userId, session.user.id)
+      );
+
+    if (invoice.length === 0) {
+      return { success: false, error: "Invoice not found or you don't have permission to update it." };
+    }
+
+    // Extract and validate form data with Zod
+    const rawFormData = Object.fromEntries(formData.entries());
+    
+    // Parse and validate with Zod
+    const validationResult = invoiceFormSchema.safeParse(rawFormData);
+    
+    if (!validationResult.success) {
+      // Return validation errors
+      return { 
+        success: false, 
+        error: "Invalid form data", 
+        errors: validationResult.error.flatten().fieldErrors 
+      };
+    }
+    
+    const validData = validationResult.data;
+    
+    // Parse dates from strings
+    const issueDate = new Date(validData.issueDate);
+    const dueDate = new Date(validData.dueDate);
+
+    // Update the invoice
+    await db
+      .update(clientInvoices)
+      .set({
+        clientName: validData.clientName,
+        clientEmail: validData.clientEmail,
+        invoiceNumber: validData.invoiceNumber,
+        amount: String(validData.amount), // Convert to string for Drizzle
+        currency: validData.currency,
+        issueDate,
+        dueDate,
+        description: validData.description || "",
+        additionalNotes: validData.additionalNotes || "",
+        updatedAt: new Date()
+      })
+      .where(
+        eq(clientInvoices.id, invoiceId) && 
+        eq(clientInvoices.userId, session.user.id)
+      );
+
+    // Revalidate dashboard and invoices pages
+    revalidatePath("/dashboard");
+    revalidatePath("/invoices");
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating invoice:", error);
+    return { success: false, error: "Failed to update invoice" };
+  }
 } 

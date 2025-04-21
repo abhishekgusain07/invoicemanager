@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -50,6 +50,7 @@ export default function InvoicesPage() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>("pending");
   const [currentInvoiceStatus, setCurrentInvoiceStatus] = useState<string>("");
+  const [editingInvoice, setEditingInvoice] = useState<any | null>(null);
 
   // Fetch invoices
   useEffect(() => {
@@ -178,8 +179,14 @@ export default function InvoicesPage() {
 
   // Action handlers
   const handleEdit = (invoiceId: string) => {
-    // Placeholder for edit action
-    toast.info("Edit feature coming soon");
+    // Find the invoice to edit
+    const invoiceToEdit = invoices.find(invoice => invoice.id === invoiceId);
+    if (invoiceToEdit) {
+      setEditingInvoice(invoiceToEdit);
+      setIsModalOpen(true);
+    } else {
+      toast.error("Invoice not found");
+    }
   };
 
   const handleSendReminder = (invoiceId: string) => {
@@ -273,6 +280,21 @@ export default function InvoicesPage() {
       default: return "bg-gray-100 text-gray-800 hover:bg-gray-200";
     }
   };
+
+  // Use useCallback to prevent recreating this function on every render
+  const handleModalClose = useCallback(() => {
+    setIsModalOpen(false);
+    setEditingInvoice(null);
+    // Refresh the data after creating/editing an invoice
+    getInvoicesByStatus(statusFilter as any)
+      .then(data => {
+        setInvoices(data);
+        setFilteredInvoices(data);
+      })
+      .catch(error => {
+        console.error("Error refreshing invoices:", error);
+      });
+  }, [statusFilter, setInvoices, setFilteredInvoices, setIsModalOpen, setEditingInvoice]);
 
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
@@ -563,21 +585,12 @@ export default function InvoicesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Invoice Creation Modal */}
+      {/* Invoice Creation/Editing Modal */}
       {isModalOpen && (
         <CreateInvoiceForm
-          onClose={() => {
-            setIsModalOpen(false);
-            // Refresh the data after creating a new invoice
-            getInvoicesByStatus(statusFilter as any)
-              .then(data => {
-                setInvoices(data);
-                setFilteredInvoices(data);
-              })
-              .catch(error => {
-                console.error("Error refreshing invoices:", error);
-              });
-          }}
+          onClose={handleModalClose}
+          initialData={editingInvoice}
+          isEditing={!!editingInvoice}
         />
       )}
     </div>
