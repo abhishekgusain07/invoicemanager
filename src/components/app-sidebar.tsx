@@ -30,7 +30,7 @@ const items = [
   },
   {
     title: "Setting",
-    url: "/setting",
+    url: "/settings",
     icon: Settings2,
   },
   {
