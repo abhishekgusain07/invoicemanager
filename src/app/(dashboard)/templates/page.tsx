@@ -7,6 +7,7 @@ import { PlusIcon, MessageSquareIcon, RefreshCwIcon } from "lucide-react";
 import { TemplateList } from "./components/template-list";
 import { TemplateForm } from "./components/template-form";
 import { TemplatePlaceholders } from "./components/template-placeholders";
+import { TemplateListSkeleton } from "./components/template-list-skeleton";
 import { getTemplates } from "@/actions/templates";
 import { EmailTemplate } from "@/lib/validations/email-template";
 import { toast } from "sonner";
@@ -91,10 +92,7 @@ export default function TemplatesPage() {
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mb-4"></div>
-              <p className="text-muted-foreground">Loading templates...</p>
-            </div>
+            <TemplateListSkeleton />
           ) : (
             <TemplateList
               templates={templates}
