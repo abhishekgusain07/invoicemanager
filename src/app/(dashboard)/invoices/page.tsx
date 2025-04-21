@@ -7,11 +7,12 @@ import {
   PlusIcon, SearchIcon, EditIcon, 
   CheckCircleIcon, MailIcon, TrashIcon, 
   ChevronDownIcon, ChevronUpIcon,
-  AlertTriangleIcon
+  AlertTriangleIcon,
+  CheckIcon
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
-import { getInvoicesByStatus, deleteInvoice } from "@/actions/invoice";
+import { getInvoicesByStatus, deleteInvoice, markInvoiceAsPaid, updateInvoiceStatus } from "@/actions/invoice";
 import { toast } from "sonner";
 import {
   Select,
@@ -44,6 +45,11 @@ export default function InvoicesPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
   const [isDeletingInvoice, setIsDeletingInvoice] = useState(false);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [invoiceToUpdate, setInvoiceToUpdate] = useState<string | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>("pending");
+  const [currentInvoiceStatus, setCurrentInvoiceStatus] = useState<string>("");
 
   // Fetch invoices
   useEffect(() => {
@@ -176,11 +182,6 @@ export default function InvoicesPage() {
     toast.info("Edit feature coming soon");
   };
 
-  const handleMarkAsPaid = (invoiceId: string) => {
-    // Placeholder for mark as paid action
-    toast.info("Mark as paid feature coming soon");
-  };
-
   const handleSendReminder = (invoiceId: string) => {
     // Placeholder for send reminder action
     toast.info("Send reminder feature coming soon");
@@ -213,6 +214,63 @@ export default function InvoicesPage() {
       setIsDeletingInvoice(false);
       setDeleteModalOpen(false);
       setInvoiceToDelete(null);
+    }
+  };
+
+  // Update status modal
+  const openUpdateStatusModal = (invoiceId: string, currentStatus: string) => {
+    setInvoiceToUpdate(invoiceId);
+    setSelectedStatus(currentStatus);
+    setCurrentInvoiceStatus(currentStatus);
+    setStatusModalOpen(true);
+  };
+
+  const handleUpdateStatusConfirm = async () => {
+    if (!invoiceToUpdate) return;
+    
+    setIsUpdatingStatus(true);
+    try {
+      const result = await updateInvoiceStatus(invoiceToUpdate, selectedStatus as any);
+      if (result.success) {
+        toast.success(`Invoice status updated to ${selectedStatus} successfully`);
+        
+        // Update the invoice in the local state
+        const updatedInvoices = invoices.map(invoice => 
+          invoice.id === invoiceToUpdate 
+            ? { ...invoice, status: selectedStatus } 
+            : invoice
+        );
+        setInvoices(updatedInvoices);
+        
+        // Update filtered invoices too
+        setFilteredInvoices(filteredInvoices.map(invoice => 
+          invoice.id === invoiceToUpdate 
+            ? { ...invoice, status: selectedStatus } 
+            : invoice
+        ));
+      } else {
+        toast.error(result.error || "Failed to update invoice status");
+      }
+    } catch (error) {
+      console.error("Error updating invoice status:", error);
+      toast.error("An error occurred while updating the invoice");
+    } finally {
+      setIsUpdatingStatus(false);
+      setStatusModalOpen(false);
+      setInvoiceToUpdate(null);
+    }
+  };
+
+  // Get a color class for the status button based on the status
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending": return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200";
+      case "paid": return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "overdue": return "bg-red-100 text-red-800 hover:bg-red-200";
+      case "cancelled": return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+      case "draft": return "bg-blue-100 text-blue-800 hover:bg-blue-200";
+      case "partially_paid": return "bg-purple-100 text-purple-800 hover:bg-purple-200";
+      default: return "bg-gray-100 text-gray-800 hover:bg-gray-200";
     }
   };
 
@@ -343,8 +401,8 @@ export default function InvoicesPage() {
                         variant="ghost" 
                         size="icon" 
                         className="h-7 w-7 text-green-600" 
-                        onClick={() => handleMarkAsPaid(invoice.id)}
-                        title="Mark as Paid"
+                        onClick={() => openUpdateStatusModal(invoice.id, invoice.status)}
+                        title="Update Status"
                       >
                         <CheckCircleIcon className="h-3.5 w-3.5" />
                       </Button>
@@ -428,6 +486,76 @@ export default function InvoicesPage() {
                 <>
                   <TrashIcon className="h-4 w-4" />
                   Delete Invoice
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Status Modal */}
+      <Dialog open={statusModalOpen} onOpenChange={setStatusModalOpen}>
+        <DialogContent className="max-w-[80vw]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckIcon className="h-5 w-5 text-blue-500" />
+              <span>Update Invoice Status</span>
+            </DialogTitle>
+            <DialogDescription>
+              Select a new status for this invoice.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="mb-4">
+              <label className="text-sm font-medium text-gray-700 mb-1 block">Current Status:</label>
+              <div className={`inline-block px-3 py-1 rounded-full text-sm ${getStatusColor(currentInvoiceStatus)}`}>
+                {currentInvoiceStatus.charAt(0).toUpperCase() + currentInvoiceStatus.slice(1).replace('_', ' ')}
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">New Status:</label>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a new status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="partially_paid">Partially Paid</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex sm:justify-between gap-4 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setStatusModalOpen(false)}
+              disabled={isUpdatingStatus}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={handleUpdateStatusConfirm}
+              disabled={isUpdatingStatus || selectedStatus === currentInvoiceStatus}
+              className={`gap-2 cursor-pointer ${selectedStatus && selectedStatus !== currentInvoiceStatus ? getStatusColor(selectedStatus) : 'bg-gray-100 text-gray-400'}`}
+            >
+              {isUpdatingStatus ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <CheckCircleIcon className="h-4 w-4" />
+                  Update Status
                 </>
               )}
             </Button>

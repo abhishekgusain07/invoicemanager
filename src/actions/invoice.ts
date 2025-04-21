@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
-import { clientInvoices } from "@/db/schema";
+import { clientInvoices, invoiceStatusEnum } from "@/db/schema";
 import { authClient } from "@/lib/auth-client";
 import { v4 as uuidv4 } from "uuid";
 import { invoiceFormSchema } from "@/lib/validations/invoice";
@@ -253,5 +253,108 @@ export async function deleteInvoice(invoiceId: string) {
   } catch (error) {
     console.error("Error deleting invoice:", error);
     return { success: false, error: "Failed to delete invoice" };
+  }
+}
+
+export async function markInvoiceAsPaid(invoiceId: string) {
+  // Check if user is authenticated
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized. Please sign in to update an invoice." };
+  }
+
+  try {
+    // First check if the invoice belongs to the user
+    const invoice = await db
+      .select()
+      .from(clientInvoices)
+      .where(
+        eq(clientInvoices.id, invoiceId) && 
+        eq(clientInvoices.userId, session.user.id)
+      );
+
+    if (invoice.length === 0) {
+      return { success: false, error: "Invoice not found or you don't have permission to update it." };
+    }
+
+    // Update the invoice status to paid
+    await db
+      .update(clientInvoices)
+      .set({ 
+        status: "paid",
+        updatedAt: new Date()
+      })
+      .where(
+        eq(clientInvoices.id, invoiceId) && 
+        eq(clientInvoices.userId, session.user.id)
+      );
+
+    // Revalidate dashboard and invoices pages
+    revalidatePath("/dashboard");
+    revalidatePath("/invoices");
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error marking invoice as paid:", error);
+    return { success: false, error: "Failed to update invoice status" };
+  }
+}
+
+export async function updateInvoiceStatus(
+  invoiceId: string, 
+  status: "pending" | "paid" | "overdue" | "cancelled" | "draft" | "partially_paid"
+) {
+  // Check if user is authenticated
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized. Please sign in to update an invoice." };
+  }
+
+  // Validate that the status is valid
+  const validStatuses = invoiceStatusEnum.enumValues;
+  if (!validStatuses.includes(status)) {
+    return { success: false, error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` };
+  }
+
+  try {
+    // First check if the invoice belongs to the user
+    const invoice = await db
+      .select()
+      .from(clientInvoices)
+      .where(
+        eq(clientInvoices.id, invoiceId) && 
+        eq(clientInvoices.userId, session.user.id)
+      );
+
+    if (invoice.length === 0) {
+      return { success: false, error: "Invoice not found or you don't have permission to update it." };
+    }
+
+    // Update the invoice status
+    await db
+      .update(clientInvoices)
+      .set({ 
+        status,
+        updatedAt: new Date()
+      })
+      .where(
+        eq(clientInvoices.id, invoiceId) && 
+        eq(clientInvoices.userId, session.user.id)
+      );
+
+    // Revalidate dashboard and invoices pages
+    revalidatePath("/dashboard");
+    revalidatePath("/invoices");
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating invoice status:", error);
+    return { success: false, error: "Failed to update invoice status" };
   }
 } 
