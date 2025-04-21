@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,56 @@ import { Button } from "@/components/ui/button";
 import { MailIcon, HelpCircleIcon, SendIcon } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { type EmailSettingsValues } from "@/lib/validations/settings";
 
-export default function EmailSettings() {
+interface EmailSettingsProps {
+  settings: any;
+  onChange: (values: Partial<EmailSettingsValues>) => void;
+}
+
+export default function EmailSettings({ settings, onChange }: EmailSettingsProps) {
   const [fromName, setFromName] = useState("");
   const [emailSignature, setEmailSignature] = useState("Best regards,");
   const [defaultCC, setDefaultCC] = useState("");
   const [defaultBCC, setDefaultBCC] = useState("");
   const [previewEmails, setPreviewEmails] = useState(true);
+
+  // Initialize local state from settings
+  useEffect(() => {
+    if (settings) {
+      setFromName(settings.fromName || "");
+      setEmailSignature(settings.emailSignature || "Best regards,");
+      setDefaultCC(settings.defaultCC || "");
+      setDefaultBCC(settings.defaultBCC || "");
+      setPreviewEmails(settings.previewEmails ?? true);
+    }
+  }, [settings]);
+
+  // Update parent component when settings change
+  const handleFromNameChange = (value: string) => {
+    setFromName(value);
+    onChange({ fromName: value });
+  };
+
+  const handleEmailSignatureChange = (value: string) => {
+    setEmailSignature(value);
+    onChange({ emailSignature: value });
+  };
+
+  const handleDefaultCCChange = (value: string) => {
+    setDefaultCC(value);
+    onChange({ defaultCC: value });
+  };
+
+  const handleDefaultBCCChange = (value: string) => {
+    setDefaultBCC(value);
+    onChange({ defaultBCC: value });
+  };
+
+  const handlePreviewEmailsChange = (checked: boolean) => {
+    setPreviewEmails(checked);
+    onChange({ previewEmails: checked });
+  };
 
   const handleSendTestEmail = () => {
     // This would typically be a server action to send a test email
@@ -52,7 +95,7 @@ export default function EmailSettings() {
                 <Input
                   id="from-name"
                   value={fromName}
-                  onChange={(e) => setFromName(e.target.value)}
+                  onChange={(e) => handleFromNameChange(e.target.value)}
                   placeholder="Your name or business name"
                 />
               </div>
@@ -70,7 +113,7 @@ export default function EmailSettings() {
                 <Textarea
                   id="email-signature"
                   value={emailSignature}
-                  onChange={(e) => setEmailSignature(e.target.value)}
+                  onChange={(e) => handleEmailSignatureChange(e.target.value)}
                   placeholder="Your email signature"
                   rows={4}
                 />
@@ -90,7 +133,7 @@ export default function EmailSettings() {
                   id="default-cc"
                   type="email"
                   value={defaultCC}
-                  onChange={(e) => setDefaultCC(e.target.value)}
+                  onChange={(e) => handleDefaultCCChange(e.target.value)}
                   placeholder="cc@example.com"
                 />
               </div>
@@ -109,7 +152,7 @@ export default function EmailSettings() {
                   id="default-bcc"
                   type="email"
                   value={defaultBCC}
-                  onChange={(e) => setDefaultBCC(e.target.value)}
+                  onChange={(e) => handleDefaultBCCChange(e.target.value)}
                   placeholder="bcc@example.com"
                 />
               </div>
@@ -129,7 +172,7 @@ export default function EmailSettings() {
                 <Switch
                   id="preview-emails"
                   checked={previewEmails}
-                  onCheckedChange={setPreviewEmails}
+                  onCheckedChange={handlePreviewEmailsChange}
                 />
               </div>
 

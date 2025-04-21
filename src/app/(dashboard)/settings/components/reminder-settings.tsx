@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,14 @@ import {
 } from "@/components/ui/select";
 import { ClockIcon, HelpCircleIcon, MessageSquareIcon } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
+import { type ReminderSettingsValues } from "@/lib/validations/settings";
 
-export default function ReminderSettings() {
+interface ReminderSettingsProps {
+  settings: any;
+  onChange: (values: Partial<ReminderSettingsValues>) => void;
+}
+
+export default function ReminderSettings({ settings, onChange }: ReminderSettingsProps) {
   const [isAutomated, setIsAutomated] = useState(true);
   const [firstReminderDays, setFirstReminderDays] = useState(3);
   const [followUpFrequency, setFollowUpFrequency] = useState(7);
@@ -23,6 +29,68 @@ export default function ReminderSettings() {
   const [firstTone, setFirstTone] = useState("polite");
   const [secondTone, setSecondTone] = useState("firm");
   const [thirdTone, setThirdTone] = useState("urgent");
+
+  // Initialize local state from settings
+  useEffect(() => {
+    if (settings) {
+      setIsAutomated(settings.isAutomatedReminders ?? true);
+      setFirstReminderDays(settings.firstReminderDays ?? 3);
+      setFollowUpFrequency(settings.followUpFrequency ?? 7);
+      setMaxReminders(settings.maxReminders ?? 3);
+      setFirstTone(settings.firstReminderTone ?? "polite");
+      setSecondTone(settings.secondReminderTone ?? "firm");
+      setThirdTone(settings.thirdReminderTone ?? "urgent");
+      
+      console.log("ReminderSettings received settings:", settings);
+    }
+  }, [settings]);
+
+  // Update parent component when settings change
+  const updateSetting = (key: string, value: any) => {
+    console.log(`Updating setting ${key}:`, value);
+    const settingKey = key as keyof ReminderSettingsValues;
+    onChange({ [settingKey]: value } as Partial<ReminderSettingsValues>);
+  };
+
+  // Handle toggle change
+  const handleAutomatedChange = (checked: boolean) => {
+    setIsAutomated(checked);
+    updateSetting('isAutomatedReminders', checked);
+  };
+
+  // Handle first reminder days change
+  const handleFirstReminderChange = (value: number) => {
+    setFirstReminderDays(value);
+    updateSetting('firstReminderDays', value);
+  };
+
+  // Handle follow-up frequency change
+  const handleFrequencyChange = (value: number) => {
+    setFollowUpFrequency(value);
+    updateSetting('followUpFrequency', value);
+  };
+
+  // Handle max reminders change
+  const handleMaxRemindersChange = (value: number) => {
+    setMaxReminders(value);
+    updateSetting('maxReminders', value);
+  };
+
+  // Handle tone changes
+  const handleFirstToneChange = (value: string) => {
+    setFirstTone(value);
+    updateSetting('firstReminderTone', value);
+  };
+
+  const handleSecondToneChange = (value: string) => {
+    setSecondTone(value);
+    updateSetting('secondReminderTone', value);
+  };
+
+  const handleThirdToneChange = (value: string) => {
+    setThirdTone(value);
+    updateSetting('thirdReminderTone', value);
+  };
 
   return (
     <div className="space-y-8">
@@ -54,7 +122,7 @@ export default function ReminderSettings() {
                 <Switch
                   id="automated-reminders"
                   checked={isAutomated}
-                  onCheckedChange={setIsAutomated}
+                  onCheckedChange={handleAutomatedChange}
                 />
               </div>
 
@@ -75,7 +143,7 @@ export default function ReminderSettings() {
                     min={1}
                     className="w-20"
                     value={firstReminderDays}
-                    onChange={(e) => setFirstReminderDays(Number(e.target.value))}
+                    onChange={(e) => handleFirstReminderChange(Number(e.target.value))}
                   />
                   <span className="text-muted-foreground">days after due date</span>
                 </div>
@@ -98,7 +166,7 @@ export default function ReminderSettings() {
                     min={1}
                     className="w-20"
                     value={followUpFrequency}
-                    onChange={(e) => setFollowUpFrequency(Number(e.target.value))}
+                    onChange={(e) => handleFrequencyChange(Number(e.target.value))}
                   />
                   <span className="text-muted-foreground">days between reminders</span>
                 </div>
@@ -122,7 +190,7 @@ export default function ReminderSettings() {
                     max={10}
                     className="w-20"
                     value={maxReminders}
-                    onChange={(e) => setMaxReminders(Number(e.target.value))}
+                    onChange={(e) => handleMaxRemindersChange(Number(e.target.value))}
                   />
                   <span className="text-muted-foreground">reminders per invoice</span>
                 </div>
@@ -155,7 +223,7 @@ export default function ReminderSettings() {
                     <HelpCircleIcon className="h-4 w-4 text-muted-foreground cursor-help" />
                   </Tooltip>
                 </div>
-                <Select value={firstTone} onValueChange={setFirstTone}>
+                <Select value={firstTone} onValueChange={handleFirstToneChange}>
                   <SelectTrigger id="first-tone" className="w-full">
                     <SelectValue placeholder="Select tone" />
                   </SelectTrigger>
@@ -177,7 +245,7 @@ export default function ReminderSettings() {
                     <HelpCircleIcon className="h-4 w-4 text-muted-foreground cursor-help" />
                   </Tooltip>
                 </div>
-                <Select value={secondTone} onValueChange={setSecondTone}>
+                <Select value={secondTone} onValueChange={handleSecondToneChange}>
                   <SelectTrigger id="second-tone" className="w-full">
                     <SelectValue placeholder="Select tone" />
                   </SelectTrigger>
@@ -199,7 +267,7 @@ export default function ReminderSettings() {
                     <HelpCircleIcon className="h-4 w-4 text-muted-foreground cursor-help" />
                   </Tooltip>
                 </div>
-                <Select value={thirdTone} onValueChange={setThirdTone}>
+                <Select value={thirdTone} onValueChange={handleThirdToneChange}>
                   <SelectTrigger id="third-tone" className="w-full">
                     <SelectValue placeholder="Select tone" />
                   </SelectTrigger>

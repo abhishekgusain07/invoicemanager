@@ -6,8 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { MailIcon, AlertTriangleIcon, InfoIcon, HelpCircleIcon } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
+import { type AccountSettingsValues } from "@/lib/validations/settings";
 
-export default function AccountSettings() {
+interface AccountSettingsProps {
+  settings: any;
+  onChange: (values: Partial<AccountSettingsValues>) => void;
+}
+
+export default function AccountSettings({ settings, onChange }: AccountSettingsProps) {
   const { user } = useUser();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,6 +26,25 @@ export default function AccountSettings() {
       setFullName(user.name || "");
     }
   }, [user]);
+
+  // Initialize local state from settings
+  useEffect(() => {
+    if (settings) {
+      setBusinessName(settings.businessName || "");
+      setPhoneNumber(settings.phoneNumber || "");
+    }
+  }, [settings]);
+
+  // Update parent component when settings change
+  const handleBusinessNameChange = (value: string) => {
+    setBusinessName(value);
+    onChange({ businessName: value });
+  };
+
+  const handlePhoneNumberChange = (value: string) => {
+    setPhoneNumber(value);
+    onChange({ phoneNumber: value });
+  };
 
   return (
     <div className="space-y-8">
@@ -46,6 +71,7 @@ export default function AccountSettings() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Your full name"
+                  disabled
                 />
                 <p className="text-xs text-muted-foreground">
                   Set by your account information
@@ -78,7 +104,7 @@ export default function AccountSettings() {
                 <Input
                   id="business-name"
                   value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
+                  onChange={(e) => handleBusinessNameChange(e.target.value)}
                   placeholder="Your business name"
                 />
                 <p className="text-xs text-muted-foreground">
@@ -94,7 +120,7 @@ export default function AccountSettings() {
                 <Input
                   id="phone-number"
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={(e) => handlePhoneNumberChange(e.target.value)}
                   placeholder="Your phone number"
                 />
               </div>

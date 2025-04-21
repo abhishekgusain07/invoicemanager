@@ -57,6 +57,48 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
 	'partially_paid'
 ]);
 
+// Define reminder tone enum
+export const reminderToneEnum = pgEnum('reminder_tone', [
+	'polite',
+	'friendly',
+	'neutral',
+	'firm',
+	'direct',
+	'assertive',
+	'urgent',
+	'final',
+	'serious'
+]);
+
+// User Settings schema
+export const userSettings = pgTable("user_settings", {
+	id: text("id").primaryKey(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	
+	// Reminder Settings
+	isAutomatedReminders: boolean("is_automated_reminders").default(true),
+	firstReminderDays: integer("first_reminder_days").default(3),
+	followUpFrequency: integer("follow_up_frequency").default(7),
+	maxReminders: integer("max_reminders").default(3),
+	firstReminderTone: reminderToneEnum("first_reminder_tone").default("polite"),
+	secondReminderTone: reminderToneEnum("second_reminder_tone").default("firm"),
+	thirdReminderTone: reminderToneEnum("third_reminder_tone").default("urgent"),
+	
+	// Account Settings
+	businessName: text("business_name"),
+	phoneNumber: text("phone_number"),
+	
+	// Email Settings
+	fromName: text("from_name"),
+	emailSignature: text("email_signature").default("Best regards,"),
+	defaultCC: text("default_cc"),
+	defaultBCC: text("default_bcc"),
+	previewEmails: boolean("preview_emails").default(true),
+	
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
 // Invoice Manager schema
 export const clientInvoices = pgTable("client_invoices", {
 	id: text("id").primaryKey(),
