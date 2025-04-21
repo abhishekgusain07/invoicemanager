@@ -76,7 +76,7 @@ export default function TemplatesPage() {
 
       {/* Template Form Dialog */}
       <Dialog open={isTemplateFormOpen} onOpenChange={setIsTemplateFormOpen}>
-        <DialogContent className="max-w-4xl p-0">
+        <DialogContent className="w-[75vw] max-w-none p-0">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle>{editTemplate ? "Edit Template" : "Create Template"}</DialogTitle>
           </DialogHeader>

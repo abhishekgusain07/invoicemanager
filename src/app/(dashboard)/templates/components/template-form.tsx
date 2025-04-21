@@ -93,7 +93,7 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className="max-w-4xl mx-auto">
+      <Card className="max-w-4xl w-[70vw] mx-auto">
         <CardContent className="pt-6 space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             {/* Template Name */}
