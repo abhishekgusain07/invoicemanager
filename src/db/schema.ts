@@ -70,6 +70,23 @@ export const reminderToneEnum = pgEnum('reminder_tone', [
 	'serious'
 ]);
 
+// Define feature request priority enum
+export const featurePriorityEnum = pgEnum('feature_priority', [
+	'low',
+	'medium',
+	'high'
+]);
+
+// Define feature request status enum
+export const featureStatusEnum = pgEnum('feature_status', [
+	'new',
+	'under_review',
+	'planned',
+	'in_progress',
+	'completed',
+	'declined'
+]);
+
 // User Settings schema
 export const userSettings = pgTable("user_settings", {
 	id: text("id").primaryKey(),
@@ -175,4 +192,17 @@ export const feedback = pgTable("feedback", {
 	userId: text("user_id"),
 	feedbackContent: text("feedback_content"),
 	stars: integer().notNull()
-})
+});
+
+export const featureRequests = pgTable("feature_requests", {
+	id: text("id").primaryKey(),
+	createdTime: timestamp("created_time").defaultNow(),
+	updatedTime: timestamp("updated_time").defaultNow(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	title: text("title").notNull(),
+	description: text("description").notNull(),
+	priority: featurePriorityEnum("priority").notNull().default("medium"),
+	status: featureStatusEnum("status").notNull().default("new"),
+	adminNotes: text("admin_notes"),
+	upvotes: integer("upvotes").default(0)
+});

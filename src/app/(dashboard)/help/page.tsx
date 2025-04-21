@@ -1,18 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   HelpCircleIcon, MailIcon, BookOpenIcon, CompassIcon, 
   ChevronDownIcon, ChevronRightIcon, SearchIcon, ArrowRightIcon,
   PlayCircleIcon, FileTextIcon, MessageSquareIcon, UserIcon,
-  BellIcon, BarChartIcon, InboxIcon
+  BellIcon, BarChartIcon, InboxIcon, ThumbsUpIcon, StarIcon,
+  LightbulbIcon, PlusIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { submitFeedback, submitFeatureRequest } from "@/actions/feedback";
+import { auth } from "@/lib/auth";
+import { authClient } from "@/lib/auth-client";
+import { User } from "better-auth";
+import { HelpSkeleton } from "./components/help-skeleton";
 
 const tabVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -31,9 +39,157 @@ const tabVariants = {
 const Help = () => {
   const [activeTab, setActiveTab] = useState("getting-started");
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [featureTitle, setFeatureTitle] = useState("");
+  const [featureDescription, setFeatureDescription] = useState("");
+  const [featurePriority, setFeaturePriority] = useState("medium");
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [isSubmittingFeature, setIsSubmittingFeature] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<{type: "success" | "error", message: string} | null>(null);
+  const [featureRequestMessage, setFeatureRequestMessage] = useState<{type: "success" | "error", message: string} | null>(null);
+  const [user, setUser] = useState<User | null>(null)
+  const [loadingUser, setloadingUser] = useState(true)
+
+  useEffect(() =>{
+    const getSession = async () => {
+      setloadingUser(true)
+      try {
+        const { data: session, error } = await authClient.getSession()
+        if(error){
+          console.error("Error fetching session:", error)
+        } else {
+          setUser(session.user)
+        }
+      } catch (error) {
+        console.error("Error fetching session:", error)
+      } finally {
+        setloadingUser(false)
+      }
+    }
+    getSession()
+  }, [])
+
+  if(loadingUser){
+    return <HelpSkeleton />;
+  }
 
   const toggleFaq = (id: string) => {
     setExpandedFaq(expandedFaq === id ? null : id);
+  };
+
+  const handleStarClick = (rating: number) => {
+    setFeedbackRating(rating);
+  };
+
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user?.id) {
+      setFeedbackMessage({
+        type: "error",
+        message: "You must be logged in to submit feedback."
+      });
+      return;
+    }
+    
+    if (feedbackText.length < 5) {
+      setFeedbackMessage({
+        type: "error",
+        message: "Please provide more detailed feedback (at least 5 characters)."
+      });
+      return;
+    }
+    
+    if (feedbackRating === 0) {
+      setFeedbackMessage({
+        type: "error",
+        message: "Please select a rating before submitting."
+      });
+      return;
+    }
+    
+    try {
+      setIsSubmittingFeedback(true);
+      
+      await submitFeedback({
+        feedbackContent: feedbackText,
+        stars: feedbackRating,
+        userId: user.id
+      });
+      
+      setFeedbackText("");
+      setFeedbackRating(0);
+      
+      setFeedbackMessage({
+        type: "success",
+        message: "Thank you for your feedback!"
+      });
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      setFeedbackMessage({
+        type: "error",
+        message: "There was an error submitting your feedback. Please try again."
+      });
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+
+  const handleSubmitFeatureRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!user?.id) {
+      setFeatureRequestMessage({
+        type: "error",
+        message: "You must be logged in to submit feature requests."
+      });
+      return;
+    }
+    
+    if (featureTitle.length < 3) {
+      setFeatureRequestMessage({
+        type: "error",
+        message: "Please provide a more descriptive title (at least 3 characters)."
+      });
+      return;
+    }
+    
+    if (featureDescription.length < 10) {
+      setFeatureRequestMessage({
+        type: "error",
+        message: "Please provide a more detailed description (at least 10 characters)."
+      });
+      return;
+    }
+    
+    try {
+      setIsSubmittingFeature(true);
+      
+      await submitFeatureRequest({
+        title: featureTitle,
+        description: featureDescription,
+        priority: featurePriority as "low" | "medium" | "high",
+        userId: user.id
+      });
+      
+      setFeatureTitle("");
+      setFeatureDescription("");
+      setFeaturePriority("medium");
+      
+      setFeatureRequestMessage({
+        type: "success",
+        message: "Thank you for your suggestion! We'll review it shortly."
+      });
+    } catch (error) {
+      console.error("Error submitting feature request:", error);
+      setFeatureRequestMessage({
+        type: "error",
+        message: "There was an error submitting your feature request. Please try again."
+      });
+    } finally {
+      setIsSubmittingFeature(false);
+    }
   };
 
   const faqs = [
@@ -178,6 +334,10 @@ const Help = () => {
             <TabsTrigger value="support" className="flex items-center gap-2">
               <MailIcon className="h-4 w-4" />
               <span>Support</span>
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="flex items-center gap-2">
+              <ThumbsUpIcon className="h-4 w-4" />
+              <span>Feedback</span>
             </TabsTrigger>
           </TabsList>
 
@@ -429,6 +589,199 @@ const Help = () => {
                         </CardContent>
                       </Card>
                     </div>
+                  </div>
+                </TabsContent>
+              </motion.div>
+            )}
+
+            {activeTab === "feedback" && (
+              <motion.div
+                key="feedback"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={tabVariants}
+              >
+                <TabsContent value="feedback" forceMount>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    {/* Feedback Section */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <ThumbsUpIcon className="h-5 w-5 text-blue-500" />
+                          Share Your Feedback
+                        </CardTitle>
+                        <CardDescription>
+                          Let us know what you think about our application
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <form onSubmit={handleSubmitFeedback} className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">Your Rating</label>
+                            <div className="flex gap-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  type="button"
+                                  className="p-1"
+                                  onClick={() => handleStarClick(star)}
+                                >
+                                  <StarIcon 
+                                    className={`h-6 w-6 ${
+                                      feedbackRating >= star 
+                                        ? "fill-yellow-400 text-yellow-400" 
+                                        : "text-muted-foreground"
+                                    }`} 
+                                  />
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label htmlFor="feedback" className="text-sm font-medium">Your Feedback</label>
+                            <Textarea
+                              id="feedback"
+                              placeholder="What did you like or dislike? How can we improve?"
+                              className="min-h-[120px] resize-none"
+                              value={feedbackText}
+                              onChange={(e) => setFeedbackText(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          {feedbackMessage && (
+                            <div className={`text-sm p-2 rounded-md ${
+                              feedbackMessage.type === "success" 
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                            }`}>
+                              {feedbackMessage.message}
+                            </div>
+                          )}
+
+                          <Button 
+                            type="submit" 
+                            className="w-full mt-4"
+                            disabled={isSubmittingFeedback}
+                          >
+                            {isSubmittingFeedback ? "Submitting..." : "Submit Feedback"}
+                          </Button>
+                        </form>
+                      </CardContent>
+                    </Card>
+
+                    {/* Feature Request Section */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <LightbulbIcon className="h-5 w-5 text-amber-500" />
+                          Request a Feature
+                        </CardTitle>
+                        <CardDescription>
+                          Suggest new features or improvements you'd like to see
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <form onSubmit={handleSubmitFeatureRequest} className="space-y-4">
+                          <div className="space-y-2">
+                            <label htmlFor="feature-title" className="text-sm font-medium">Feature Title</label>
+                            <Input
+                              id="feature-title"
+                              placeholder="E.g., Recurring Invoices"
+                              value={featureTitle}
+                              onChange={(e) => setFeatureTitle(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <label htmlFor="feature-description" className="text-sm font-medium">Description</label>
+                            <Textarea
+                              id="feature-description"
+                              placeholder="Please describe the feature and why it would be useful..."
+                              className="min-h-[120px] resize-none"
+                              value={featureDescription}
+                              onChange={(e) => setFeatureDescription(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <label htmlFor="feature-priority" className="text-sm font-medium">Priority</label>
+                            <Select value={featurePriority} onValueChange={setFeaturePriority}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select priority" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="low">Low - Nice to have</SelectItem>
+                                <SelectItem value="medium">Medium - Would improve my experience</SelectItem>
+                                <SelectItem value="high">High - Critical for my workflow</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {featureRequestMessage && (
+                            <div className={`text-sm p-2 rounded-md ${
+                              featureRequestMessage.type === "success" 
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                            }`}>
+                              {featureRequestMessage.message}
+                            </div>
+                          )}
+
+                          <Button 
+                            type="submit" 
+                            className="w-full mt-4"
+                            disabled={isSubmittingFeature}
+                          >
+                            {isSubmittingFeature ? "Submitting..." : "Submit Request"}
+                          </Button>
+                        </form>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Recently Implemented Features */}
+                    <Card className="md:col-span-2 mt-4">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <PlusIcon className="h-5 w-5 text-green-500" />
+                          Recently Implemented Features
+                        </CardTitle>
+                        <CardDescription>
+                          New features we've added based on user feedback
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="bg-muted/50 p-4 rounded-md">
+                            <h3 className="font-medium text-base mb-1">Bulk Invoice Actions</h3>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Select multiple invoices to perform actions like mark as paid, send reminders, or delete.
+                            </p>
+                            <p className="text-xs text-muted-foreground">Added: May 15, 2023</p>
+                          </div>
+                          
+                          <div className="bg-muted/50 p-4 rounded-md">
+                            <h3 className="font-medium text-base mb-1">Custom Email Templates</h3>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Create and save your own email templates for different reminder scenarios.
+                            </p>
+                            <p className="text-xs text-muted-foreground">Added: April 2, 2023</p>
+                          </div>
+                          
+                          <div className="bg-muted/50 p-4 rounded-md">
+                            <h3 className="font-medium text-base mb-1">Advanced Analytics Dashboard</h3>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              View detailed payment trends, overdue invoice statistics, and revenue projections.
+                            </p>
+                            <p className="text-xs text-muted-foreground">Added: March 10, 2023</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </TabsContent>
               </motion.div>
