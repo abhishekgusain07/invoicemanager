@@ -41,6 +41,7 @@ export default function InvoicesPage() {
       setIsLoading(true);
       try {
         const data = await getInvoicesByStatus(statusFilter as any);
+        console.log("invoice response", data);
         setInvoices(data);
         setFilteredInvoices(data);
       } catch (error) {

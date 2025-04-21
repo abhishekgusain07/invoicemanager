@@ -7,11 +7,15 @@ import { authClient } from "@/lib/auth-client";
 import { v4 as uuidv4 } from "uuid";
 import { invoiceFormSchema } from "@/lib/validations/invoice";
 import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export async function createInvoice(formData: FormData) {
   // Check if user is authenticated
-  const session = await authClient.getSession();
-  if (!session?.data?.user) {
+  const session = await auth.api.getSession({
+    headers:  await headers()
+  });
+  if (!session?.user) {
     return { success: false, error: "Unauthorized. Please sign in to create an invoice." };
   }
 
@@ -40,7 +44,7 @@ export async function createInvoice(formData: FormData) {
     // Insert new invoice - convert amount to string to satisfy Drizzle's type requirements
     await db.insert(clientInvoices).values({
       id: uuidv4(),
-      userId: session.data.user.id,
+      userId: session.user.id,
       clientName: validData.clientName,
       clientEmail: validData.clientEmail,
       invoiceNumber: validData.invoiceNumber,
@@ -66,8 +70,11 @@ export async function createInvoice(formData: FormData) {
 
 export async function getInvoiceStats() {
   // Check if user is authenticated
-  const session = await authClient.getSession();
-  if (!session?.data?.user) {
+  const session = await auth.api.getSession({
+    headers:  await headers()
+  });
+
+  if (!session?.user) {
     return {
       pendingInvoices: 0,
       overdueInvoices: 0,
@@ -79,9 +86,10 @@ export async function getInvoiceStats() {
 
   try {
     // Fetch all user invoices using typed query
-    const userInvoices = await db.query.clientInvoices.findMany({
-      where: eq(clientInvoices.userId, session.data.user.id),
-    });
+    const userInvoices = await db
+    .select()
+    .from(clientInvoices)
+    .where(eq(clientInvoices.userId, session.user.id));
 
     // Count invoices by status
     const pendingInvoices = userInvoices.filter(invoice => invoice.status === "pending").length;
@@ -127,16 +135,20 @@ export async function getInvoiceStats() {
 
 export async function getInvoicesByStatus(status: "pending" | "paid" | "overdue" | "all") {
   // Check if user is authenticated
-  const session = await authClient.getSession();
-  if (!session?.data?.user) {
+  const session = await auth.api.getSession({
+    headers:  await headers()
+  });
+
+  if (!session?.user) {
     return [];
   }
 
   try {
     // Fetch all user invoices
-    const userInvoices = await db.query.clientInvoices.findMany({
-      where: eq(clientInvoices.userId, session.data.user.id),
-    });
+    const userInvoices = await db
+    .select()
+    .from(clientInvoices)
+    .where(eq(clientInvoices.userId, session.user.id));
 
     const now = new Date();
     
@@ -157,8 +169,10 @@ export async function getInvoicesByStatus(status: "pending" | "paid" | "overdue"
 
 export async function getMonthlyInvoiceData() {
   // Check if user is authenticated
-  const session = await authClient.getSession();
-  if (!session?.data?.user) {
+  const session = await auth.api.getSession({
+    headers:  await headers()
+  });
+  if (!session?.user) {
     return [];
   }
 
@@ -166,9 +180,10 @@ export async function getMonthlyInvoiceData() {
 
   try {
     // Fetch all user invoices
-    const userInvoices = await db.query.clientInvoices.findMany({
-      where: eq(clientInvoices.userId, session.data.user.id),
-    });
+    const userInvoices = await db
+    .select()
+    .from(clientInvoices)
+    .where(eq(clientInvoices.userId, session.user.id));
 
     // Get current year
     const currentYear = new Date().getFullYear();
