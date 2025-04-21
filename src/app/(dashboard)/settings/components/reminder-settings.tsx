@@ -40,14 +40,11 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
       setFirstTone(settings.firstReminderTone ?? "polite");
       setSecondTone(settings.secondReminderTone ?? "firm");
       setThirdTone(settings.thirdReminderTone ?? "urgent");
-      
-      console.log("ReminderSettings received settings:", settings);
     }
   }, [settings]);
 
   // Update parent component when settings change
   const updateSetting = (key: string, value: any) => {
-    console.log(`Updating setting ${key}:`, value);
     const settingKey = key as keyof ReminderSettingsValues;
     onChange({ [settingKey]: value } as Partial<ReminderSettingsValues>);
   };
