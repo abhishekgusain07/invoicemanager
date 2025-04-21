@@ -6,7 +6,8 @@ import { BellIcon, UserCogIcon, MailIcon, SaveIcon } from "lucide-react";
 import { toast } from "sonner";
 import ReminderSettings from "./components/reminder-settings";
 import AccountSettings from "./components/account-settings";
-import {EmailSettings} from "./components/email-settings";
+import { EmailSettings } from "./components/email-settings";
+import SettingsSkeleton from "./components/settings-skeleton";
 import { getUserSettings, updateAllSettings } from "@/actions/settings";
 import { UserSettingsValues } from "@/lib/validations/settings";
 
@@ -98,14 +99,7 @@ export default function SettingsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex-1 p-8 flex items-center justify-center">
-        <div className="space-y-2 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto"></div>
-          <p className="text-muted-foreground">Loading settings...</p>
-        </div>
-      </div>
-    );
+    return <SettingsSkeleton />;
   }
 
   return (
