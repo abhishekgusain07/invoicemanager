@@ -99,6 +99,19 @@ export const userSettings = pgTable("user_settings", {
 	updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
+// Email Template schema
+export const emailTemplates = pgTable("email_templates", {
+	id: text("id").primaryKey(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	name: text("name").notNull(),
+	subject: text("subject").notNull(),
+	content: text("content").notNull(),
+	tone: reminderToneEnum("tone").notNull(),
+	isDefault: boolean("is_default").default(false),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
 // Invoice Manager schema
 export const clientInvoices = pgTable("client_invoices", {
 	id: text("id").primaryKey(),

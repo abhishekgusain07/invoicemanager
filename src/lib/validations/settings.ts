@@ -28,6 +28,17 @@ export const emailSettingsSchema = z.object({
   defaultCC: z.string().email().optional().or(z.literal('')),
   defaultBCC: z.string().email().optional().or(z.literal('')),
   previewEmails: z.preprocess(val => val === 'true' || val === true, z.boolean()).default(true),
+  reminderTemplate: z.string().optional(),
+  followUpTemplate: z.string().optional(),
+  finalReminderTemplate: z.string().optional(),
+  ccAccountant: z.preprocess(val => val === 'true' || val === true, z.boolean()).default(false),
+  useBrandedEmails: z.preprocess(val => val === 'true' || val === true, z.boolean()).default(false),
+  sendCopyToSelf: z.preprocess(val => val === 'true' || val === true, z.boolean()).default(false),
+  ccEmails: z.string().max(500).optional(),
+  senderName: z.string().max(100).optional(),
+  firstReminderTemplateId: z.string().optional(),
+  followUpTemplateId: z.string().optional(),
+  finalNoticeTemplateId: z.string().optional(),
 });
 
 // Combined settings schema

@@ -61,10 +61,40 @@ export async function getUserSettings(): Promise<{ success: boolean, data: UserS
         .values(defaultSettings)
         .returning();
 
-      return { success: true, data: newSettings[0] as UserSettingsValues, error: null };
+      // Convert nullable fields to non-null before type assertion
+      const sanitizedSettings = {
+        ...newSettings[0],
+        isAutomatedReminders: newSettings[0].isAutomatedReminders ?? true,
+        firstReminderDays: newSettings[0].firstReminderDays ?? 3,
+        followUpFrequency: newSettings[0].followUpFrequency ?? 7,
+        maxReminders: newSettings[0].maxReminders ?? 3,
+        firstReminderTone: newSettings[0].firstReminderTone ?? "polite",
+        secondReminderTone: newSettings[0].secondReminderTone ?? "firm", 
+        thirdReminderTone: newSettings[0].thirdReminderTone ?? "urgent",
+        ccAccountant: false,
+        useBrandedEmails: false,
+        sendCopyToSelf: false
+      };
+
+      return { success: true, data: sanitizedSettings as UserSettingsValues, error: null };
     }
 
-    return { success: true, data: settings[0] as UserSettingsValues, error: null };
+    // Convert nullable fields to non-null before type assertion
+    const sanitizedSettings = {
+      ...settings[0],
+      isAutomatedReminders: settings[0].isAutomatedReminders ?? true,
+      firstReminderDays: settings[0].firstReminderDays ?? 3,
+      followUpFrequency: settings[0].followUpFrequency ?? 7,
+      maxReminders: settings[0].maxReminders ?? 3,
+      firstReminderTone: settings[0].firstReminderTone ?? "polite",
+      secondReminderTone: settings[0].secondReminderTone ?? "firm",
+      thirdReminderTone: settings[0].thirdReminderTone ?? "urgent",
+      ccAccountant: false,
+      useBrandedEmails: false, 
+      sendCopyToSelf: false
+    };
+
+    return { success: true, data: sanitizedSettings as UserSettingsValues, error: null };
   } catch (error) {
     console.error("Error getting user settings:", error);
     return { success: false, data: null, error: "Failed to get user settings" };

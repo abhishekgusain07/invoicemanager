@@ -6,7 +6,7 @@ import { BellIcon, UserCogIcon, MailIcon, SaveIcon } from "lucide-react";
 import { toast } from "sonner";
 import ReminderSettings from "./components/reminder-settings";
 import AccountSettings from "./components/account-settings";
-import EmailSettings from "./components/email-settings";
+import {EmailSettings} from "./components/email-settings";
 import { getUserSettings, updateAllSettings } from "@/actions/settings";
 import { UserSettingsValues } from "@/lib/validations/settings";
 
@@ -25,6 +25,7 @@ export default function SettingsPage() {
         const result = await getUserSettings();
         if (result.success && result.data && result.data !== null) {
           setUserSettings(result.data as UserSettingsValues);
+          console.log("Loaded user settings:", result.data);
         } else {
           toast.error(result.error || "Failed to load settings");
         }
@@ -186,7 +187,16 @@ export default function SettingsPage() {
         )}
         {activeTab === "email" && (
           <EmailSettings 
-            settings={userSettings} 
+            settings={userSettings ?? {
+              emailSignature: "",
+              previewEmails: false,
+              ccAccountant: false,
+              useBrandedEmails: false,
+              sendCopyToSelf: false,
+              fromName: undefined,
+              defaultCC: undefined,
+              finalNoticeTemplateId: undefined
+            }}
             onChange={(values) => handleSettingsChange("email", values)} 
           />
         )}
