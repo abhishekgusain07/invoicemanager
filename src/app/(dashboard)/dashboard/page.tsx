@@ -4,7 +4,18 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusIcon, ClockIcon, AlertTriangleIcon, CheckCircleIcon, DollarSignIcon, ArrowRightIcon } from "lucide-react";
+import { 
+  PlusIcon, 
+  TrendingUpIcon, 
+  TrendingDownIcon, 
+  ChevronUpIcon, 
+  ChevronDownIcon,
+  ClockIcon, 
+  AlertTriangleIcon, 
+  CheckCircleIcon, 
+  DollarSignIcon, 
+  ArrowRightIcon 
+} from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
 import { getInvoiceStats, getMonthlyInvoiceData } from "@/actions/invoice";
@@ -35,6 +46,7 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [invoiceStats, setInvoiceStats] = useState(defaultStats);
   const [chartData, setChartData] = useState(defaultChartData);
+  const [selectedPeriod, setSelectedPeriod] = useState("all");
   
   const hasInvoices = invoiceStats.recentInvoices.length > 0;
 
@@ -97,13 +109,16 @@ export default function DashboardPage() {
     }).format(new Date(date));
   };
 
+  // Calculate total invoices
+  const totalInvoices = invoiceStats.pendingInvoices + invoiceStats.overdueInvoices + invoiceStats.paidInvoices;
+
   return (
     <div className="flex-1 space-y-8 p-8 pt-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
           <p className="text-muted-foreground">
-            Welcome to your Invoice Nudger dashboard
+            Welcome to your Invoice Manager dashboard
           </p>
         </div>
         <Button onClick={() => setIsModalOpen(true)} className="gap-1">
@@ -112,85 +127,152 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invoices</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center">
-              <ClockIcon className="h-5 w-5 text-yellow-600" />
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-sm font-medium text-gray-600">Pending Invoices</CardTitle>
+              <span className="text-yellow-600 text-xs font-medium flex items-center">
+                <ChevronUpIcon className="h-3 w-3 mr-1" /> 
+                {isLoading ? "..." : `${Math.round((invoiceStats.pendingInvoices / Math.max(totalInvoices, 1)) * 100)}%`}
+              </span>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-3xl font-bold mb-2">
               {isLoading ? (
                 <div className="h-8 w-12 animate-pulse bg-gray-200 rounded"></div>
               ) : (
                 invoiceStats.pendingInvoices
               )}
             </div>
+            <div className="flex items-start space-x-2">
+              <ClockIcon className="h-4 w-4 text-gray-700 mt-0.5" />
+              <div className="text-xs text-gray-500">
+                Awaiting payment<br />
+                {invoiceStats.pendingInvoices === 1 ? "Needs attention" : "Need attention"}
+              </div>
+            </div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Overdue Invoices</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-              <AlertTriangleIcon className="h-5 w-5 text-red-600" />
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-sm font-medium text-gray-600">Overdue Invoices</CardTitle>
+              <span className="text-red-600 text-xs font-medium flex items-center">
+                <ChevronUpIcon className="h-3 w-3 mr-1" />
+                {isLoading ? "..." : `${Math.round((invoiceStats.overdueInvoices / Math.max(totalInvoices, 1)) * 100)}%`}
+              </span>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-3xl font-bold mb-2">
               {isLoading ? (
                 <div className="h-8 w-12 animate-pulse bg-gray-200 rounded"></div>
               ) : (
                 invoiceStats.overdueInvoices
               )}
             </div>
+            <div className="flex items-start space-x-2">
+              <AlertTriangleIcon className="h-4 w-4 text-gray-700 mt-0.5" />
+              <div className="text-xs text-gray-500">
+                Past due date<br />
+                Requires immediate action
+              </div>
+            </div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Paid Invoices</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircleIcon className="h-5 w-5 text-green-600" />
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-sm font-medium text-gray-600">Paid Invoices</CardTitle>
+              <span className="text-green-600 text-xs font-medium flex items-center">
+                <ChevronUpIcon className="h-3 w-3 mr-1" />
+                {isLoading ? "..." : `${Math.round((invoiceStats.paidInvoices / Math.max(totalInvoices, 1)) * 100)}%`}
+              </span>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-3xl font-bold mb-2">
               {isLoading ? (
                 <div className="h-8 w-12 animate-pulse bg-gray-200 rounded"></div>
               ) : (
                 invoiceStats.paidInvoices
               )}
             </div>
+            <div className="flex items-start space-x-2">
+              <CheckCircleIcon className="h-4 w-4 text-gray-700 mt-0.5" />
+              <div className="text-xs text-gray-500">
+                Successfully collected<br />
+                Payment received
+              </div>
+            </div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding Amount</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <DollarSignIcon className="h-5 w-5 text-blue-600" />
+        <Card className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-sm font-medium text-gray-600">Outstanding Amount</CardTitle>
+              <span className="text-blue-600 text-xs font-medium">
+                Pending + Overdue
+              </span>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-3xl font-bold mb-2">
               {isLoading ? (
                 <div className="h-8 w-24 animate-pulse bg-gray-200 rounded"></div>
               ) : (
                 invoiceStats.outstandingAmount
               )}
             </div>
+            <div className="flex items-start space-x-2">
+              <DollarSignIcon className="h-4 w-4 text-gray-700 mt-0.5" />
+              <div className="text-xs text-gray-500">
+                Total unbilled amount<br />
+                Expected revenue
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-6 md:grid-cols-7">
         {/* Payment Status Chart */}
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Payment Status</CardTitle>
+        <Card className="md:col-span-4 border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle>Payment Analytics</CardTitle>
+              <div className="flex space-x-2">
+                <Button 
+                  variant={selectedPeriod === "all" ? "secondary" : "outline"} 
+                  size="sm"
+                  className="text-sm"
+                  onClick={() => setSelectedPeriod("all")}
+                >
+                  All Time
+                </Button>
+                <Button 
+                  variant={selectedPeriod === "month" ? "secondary" : "outline"} 
+                  size="sm"
+                  className="text-sm"
+                  onClick={() => setSelectedPeriod("month")}
+                >
+                  This Month
+                </Button>
+                <Button 
+                  variant={selectedPeriod === "week" ? "secondary" : "outline"} 
+                  size="sm"
+                  className="text-sm"
+                  onClick={() => setSelectedPeriod("week")}
+                >
+                  This Week
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="h-[300px]">
             {isLoading ? (
@@ -199,9 +281,12 @@ export default function DashboardPage() {
               </div>
             ) : (
               <>
-                <div className="flex h-full items-end justify-between gap-2 pb-4 pt-8">
+                <div className="flex h-full items-end justify-between gap-2 pb-4 pt-8 relative">
+                  {/* Area Chart Background */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-50 to-transparent opacity-50 rounded-md" style={{ height: '80%', top: '10%' }}></div>
+                  
                   {chartData.map((item, index) => (
-                    <div key={index} className="flex flex-col items-center">
+                    <div key={index} className="flex flex-col items-center relative z-10">
                       <div 
                         className="w-10 bg-blue-500 rounded-t-md transition-all duration-500" 
                         style={{ height: `${Math.max(20, Math.min(250, item.amount * 5 + 20))}px` }}
@@ -221,29 +306,38 @@ export default function DashboardPage() {
         </Card>
 
         {/* Upcoming Reminders */}
-        <Card className="col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Upcoming Reminders</CardTitle>
-            <Button variant="ghost" size="sm" className="text-blue-600">
-              Settings
-            </Button>
+        <Card className="md:col-span-3 border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle>Upcoming Reminders</CardTitle>
+              <Button variant="outline" size="sm" className="text-sm">
+                Configure
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="h-[300px] flex flex-col items-center justify-center text-center">
             <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
               <ClockIcon className="h-8 w-8 text-gray-400" />
             </div>
             <p className="text-muted-foreground">No upcoming reminders</p>
+            <p className="text-xs text-gray-500 mt-2 max-w-xs">
+              Reminders will appear here when you have pending invoices approaching their due date
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Recent Invoices */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Recent Invoices</CardTitle>
-          <Button variant="ghost" size="sm" className="gap-1">
-            View All <ArrowRightIcon className="h-4 w-4" />
-          </Button>
+      <Card className="border shadow-sm">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle>Recent Invoices</CardTitle>
+            <Button variant="outline" size="sm" asChild className="text-sm">
+              <Link href="/invoices">
+                View All <ArrowRightIcon className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -267,7 +361,7 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {invoiceStats.recentInvoices.map((invoice: any) => (
-                      <tr key={invoice.id} className="border-b hover:bg-muted/50">
+                      <tr key={invoice.id} className="border-b hover:bg-gray-50">
                         <td className="p-2">{invoice.clientName}</td>
                         <td className="p-2 font-mono text-sm">{invoice.invoiceNumber}</td>
                         <td className="p-2">{invoice.currency} {parseFloat(invoice.amount).toFixed(2)}</td>
