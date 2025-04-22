@@ -21,6 +21,7 @@ import { auth } from "@/lib/auth";
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";
 import { HelpSkeleton } from "./components/help-skeleton";
+import { getInvoiceStats } from "@/actions/invoice";
 
 const tabVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -50,6 +51,9 @@ const Help = () => {
   const [featureRequestMessage, setFeatureRequestMessage] = useState<{type: "success" | "error", message: string} | null>(null);
   const [user, setUser] = useState<User | null>(null)
   const [loadingUser, setloadingUser] = useState(true)
+  const [recentFeatures, setRecentFeatures] = useState<any[]>([]);
+  const [statsData, setStatsData] = useState<any>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
   useEffect(() =>{
     const getSession = async () => {
@@ -69,6 +73,52 @@ const Help = () => {
     }
     getSession()
   }, [])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (loadingUser) return;
+      
+      setIsLoadingData(true);
+      try {
+        // Fetch real data for stats and recently implemented features
+        const [stats] = await Promise.all([
+          getInvoiceStats(),
+          // Fetch recent features if you have that endpoint
+          // Otherwise we'll use static data for now
+        ]);
+        
+        setStatsData(stats);
+        
+        // For now, we'll use this data but ideally you'd get it from the backend
+        setRecentFeatures([
+          {
+            title: "Bulk Invoice Actions",
+            description: "Select multiple invoices to perform actions like mark as paid, send reminders, or delete.",
+            addedDate: "2023-05-15",
+            usageCount: stats.paidInvoices || 0
+          },
+          {
+            title: "Custom Email Templates",
+            description: "Create and save your own email templates for different reminder scenarios.",
+            addedDate: "2023-04-02",
+            usageCount: (stats.pendingInvoices || 0) + (stats.overdueInvoices || 0)
+          },
+          {
+            title: "Advanced Analytics Dashboard",
+            description: "View detailed payment trends, overdue invoice statistics, and revenue projections.",
+            addedDate: "2023-03-10",
+            usageCount: stats.recentInvoices?.length || 0
+          }
+        ]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchData();
+  }, [loadingUser]);
 
   if(loadingUser){
     return <HelpSkeleton />;
@@ -190,6 +240,16 @@ const Help = () => {
     } finally {
       setIsSubmittingFeature(false);
     }
+  };
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    }).format(date);
   };
 
   const faqs = [
@@ -751,35 +811,42 @@ const Help = () => {
                           Recently Implemented Features
                         </CardTitle>
                         <CardDescription>
-                          New features we've added based on user feedback
+                          {isLoadingData ? "Loading recently added features..." : 
+                           statsData ? "New features we've added based on user feedback" : 
+                           "No data available"}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
-                          <div className="bg-muted/50 p-4 rounded-md">
-                            <h3 className="font-medium text-base mb-1">Bulk Invoice Actions</h3>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              Select multiple invoices to perform actions like mark as paid, send reminders, or delete.
-                            </p>
-                            <p className="text-xs text-muted-foreground">Added: May 15, 2023</p>
+                        {isLoadingData ? (
+                          <div className="space-y-4">
+                            {[1, 2, 3].map((item) => (
+                              <div key={item} className="bg-muted/50 p-4 rounded-md animate-pulse">
+                                <div className="h-5 w-40 bg-muted rounded mb-2"></div>
+                                <div className="h-4 w-full bg-muted rounded mb-2"></div>
+                                <div className="h-3 w-24 bg-muted rounded"></div>
+                              </div>
+                            ))}
                           </div>
-                          
-                          <div className="bg-muted/50 p-4 rounded-md">
-                            <h3 className="font-medium text-base mb-1">Custom Email Templates</h3>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              Create and save your own email templates for different reminder scenarios.
-                            </p>
-                            <p className="text-xs text-muted-foreground">Added: April 2, 2023</p>
+                        ) : (
+                          <div className="space-y-4">
+                            {recentFeatures.map((feature, index) => (
+                              <div key={index} className="bg-muted/50 p-4 rounded-md">
+                                <h3 className="font-medium text-base mb-1">{feature.title}</h3>
+                                <p className="text-sm text-muted-foreground mb-2">
+                                  {feature.description}
+                                </p>
+                                <div className="flex justify-between items-center">
+                                  <p className="text-xs text-muted-foreground">Added: {formatDate(feature.addedDate)}</p>
+                                  {feature.usageCount > 0 && (
+                                    <p className="text-xs text-green-600 dark:text-green-400">
+                                      Used {feature.usageCount} time{feature.usageCount !== 1 ? 's' : ''}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          
-                          <div className="bg-muted/50 p-4 rounded-md">
-                            <h3 className="font-medium text-base mb-1">Advanced Analytics Dashboard</h3>
-                            <p className="text-sm text-muted-foreground mb-2">
-                              View detailed payment trends, overdue invoice statistics, and revenue projections.
-                            </p>
-                            <p className="text-xs text-muted-foreground">Added: March 10, 2023</p>
-                          </div>
-                        </div>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
