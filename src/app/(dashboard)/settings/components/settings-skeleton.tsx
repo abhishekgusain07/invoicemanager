@@ -27,82 +27,82 @@ export default function SettingsSkeleton() {
       </div>
 
       {/* Skeleton for Reminder Settings (active by default) */}
-      <div className="py-4 space-y-8">
-        {/* First Settings Card */}
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          <div className="p-6 space-y-4">
-            <Skeleton className="h-6 w-40 mb-2" />
-            <Skeleton className="h-5 w-full max-w-md mb-3" />
+      <div className="py-4 space-y-6">
+        {/* Settings Cards - Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Reminder Schedule Card */}
+          <div>
+            {/* Header */}
+            <Skeleton className="h-8 w-52 mb-2" />
+            <Skeleton className="h-5 w-full max-w-md mb-6" />
             
-            <div className="space-y-4">
-              {/* Toggle Row */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Skeleton className="h-5 w-40" />
-                  <Skeleton className="h-4 w-60" />
+            {/* Card */}
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm h-full">
+              <div className="p-6 space-y-4">
+                {/* Toggle Row */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Skeleton className="h-5 w-56" />
+                  </div>
+                  <Skeleton className="h-6 w-12 rounded-full" />
                 </div>
-                <Skeleton className="h-6 w-12 rounded-full" />
-              </div>
-              
-              {/* Input Rows */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Skeleton className="h-5 w-28" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-5 w-28" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              </div>
-              
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Skeleton className="h-5 w-28" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-5 w-28" />
-                  <Skeleton className="h-10 w-full" />
+                
+                {/* Input Rows */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-36" />
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-5 w-32" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-40" />
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-5 w-40" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-44" />
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-10 w-20" />
+                      <Skeleton className="h-5 w-44" />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Second Settings Card */}
-        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          <div className="p-6 space-y-4">
-            <Skeleton className="h-6 w-52 mb-2" />
-            <Skeleton className="h-5 w-full max-w-md mb-3" />
+          
+          {/* Reminder Escalation Card */}
+          <div>
+            {/* Header */}
+            <Skeleton className="h-8 w-52 mb-2" />
+            <Skeleton className="h-5 w-full max-w-md mb-6" />
             
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-28" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            </div>
-            
-            {/* Toggle Rows */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Skeleton className="h-5 w-44" />
-                  <Skeleton className="h-4 w-64" />
+            {/* Card */}
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm h-full">
+              <div className="p-6 space-y-4">
+                {/* Select Inputs */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-40" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-44" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-40" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
                 </div>
-                <Skeleton className="h-6 w-12 rounded-full" />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Skeleton className="h-5 w-40" />
-                  <Skeleton className="h-4 w-56" />
-                </div>
-                <Skeleton className="h-6 w-12 rounded-full" />
               </div>
             </div>
           </div>
