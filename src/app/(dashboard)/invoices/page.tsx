@@ -160,6 +160,13 @@ export default function InvoicesPage() {
       try {
         const data = await getInvoicesByStatus(statusFilter as any);
         
+        console.log("Fetched invoices:", data);
+        
+        // Verify the statuses of each invoice
+        data.forEach((invoice: any) => {
+          console.log(`Invoice ${invoice.invoiceNumber}: status=${invoice.status}, dueDate=${invoice.dueDate}`);
+        });
+        
         setInvoices(data);
         setFilteredInvoices(data);
       } catch (error) {
@@ -237,7 +244,9 @@ export default function InvoicesPage() {
   const getStatusBadge = (status: string, dueDate: Date) => {
     // Check if pending invoice is overdue
     const now = new Date();
-    const isOverdue = status === "pending" && new Date(dueDate) < now;
+    // Only consider it overdue for display if specifically marked as overdue in database
+    // or if it's both pending AND past due date
+    const isOverdue = status === "overdue" || (status === "pending" && new Date(dueDate) < now);
     
     // Important: Update the display status but don't modify the actual status property
     const displayStatus = isOverdue ? "overdue" : status;
@@ -330,11 +339,18 @@ export default function InvoicesPage() {
     const diffTime = now.getTime() - dueDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    // Set default tone based on how overdue
-    if (diffDays > 14) {
-      defaultTone = "urgent";
-    } else if (diffDays > 7) {
-      defaultTone = "firm";
+    // Only set firm/urgent tones if the invoice is actually overdue
+    // Check both the due date and the status
+    const isActuallyOverdue = invoice.status === "overdue" || 
+      (invoice.status === "pending" && diffDays > 0);
+    
+    // Set default tone based on how overdue (only if it's actually overdue)
+    if (isActuallyOverdue) {
+      if (diffDays > 14) {
+        defaultTone = "urgent";
+      } else if (diffDays > 7) {
+        defaultTone = "firm";
+      }
     }
     
     // Set initial template
@@ -702,8 +718,13 @@ Best regards,
   }, [refreshReminders]);
 
   // Add this function to check if invoice is overdue
-  const isInvoiceOverdue = (dueDate: Date) => {
+  const isInvoiceOverdue = (dueDate: Date, status?: string) => {
     const now = new Date();
+    // If status is provided, only consider overdue if it's explicitly "overdue" or if it's "pending" and past due date
+    if (status) {
+      return status === "overdue" || (status === "pending" && new Date(dueDate) < now);
+    }
+    // For backward compatibility with existing calls
     return new Date(dueDate) < now;
   };
   
@@ -1128,15 +1149,15 @@ Best regards,
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-3">
                   <div className={cn(
                     "rounded-lg p-4 text-center border h-fit",
-                    isInvoiceOverdue(selectedInvoice.dueDate)
+                    isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status)
                       ? "bg-gradient-to-br from-red-50 to-orange-50 border-red-100" 
                       : "bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-100"
                   )}>
                     <div className={cn(
                       "inline-flex h-10 w-10 items-center justify-center rounded-full mb-2",
-                      isInvoiceOverdue(selectedInvoice.dueDate) ? "bg-red-100" : "bg-yellow-100"
+                      isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? "bg-red-100" : "bg-yellow-100"
                     )}>
-                      {isInvoiceOverdue(selectedInvoice.dueDate) ? (
+                      {isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? (
                         <AlertTriangleIcon className="h-6 w-6 text-red-600" />
                       ) : (
                         <Clock8Icon className="h-6 w-6 text-yellow-600" />
@@ -1144,28 +1165,28 @@ Best regards,
                     </div>
                     <h3 className={cn(
                       "text-lg font-semibold",
-                      isInvoiceOverdue(selectedInvoice.dueDate) ? "text-red-800" : "text-yellow-800"
+                      isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? "text-red-800" : "text-yellow-800"
                     )}>
-                      {isInvoiceOverdue(selectedInvoice.dueDate)
+                      {isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status)
                         ? `Payment Overdue by ${getDaysOverdue(selectedInvoice.dueDate)} days` 
                         : "Payment Pending"}
                     </h3>
                     <p className={cn(
                       "text-sm", 
-                      isInvoiceOverdue(selectedInvoice.dueDate) ? "text-red-700" : "text-yellow-700"
+                      isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? "text-red-700" : "text-yellow-700"
                     )}>
-                      {isInvoiceOverdue(selectedInvoice.dueDate)
+                      {isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status)
                         ? `This invoice was due on ${formatDate(selectedInvoice.dueDate)}.` 
                         : `This invoice is due on ${formatDate(selectedInvoice.dueDate)}.`}
                     </p>
                     <div className="mt-3 flex justify-center gap-2">
                       <Badge className={cn(
                         "py-0.5 text-xs",
-                        isInvoiceOverdue(selectedInvoice.dueDate)
+                        isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status)
                           ? "bg-red-100 text-red-800 hover:bg-red-200" 
                           : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                       )}>
-                        {isInvoiceOverdue(selectedInvoice.dueDate) ? (
+                        {isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? (
                           <>
                             <AlertTriangleIcon className="mr-1 h-3 w-3" /> Overdue
                           </>
@@ -1269,7 +1290,8 @@ Best regards,
               if (!invoice) return null;
               
               const isPaid = invoice.status === 'paid';
-              const isOverdue = new Date(invoice.dueDate) < new Date() && invoice.status === 'pending';
+              // Only consider an invoice overdue if it's both past due date AND has pending status
+              const isOverdue = new Date(invoice.dueDate) < new Date() && (invoice.status === 'pending' || invoice.status === 'overdue');
               
               // Get days overdue or days until due
               const today = new Date();
@@ -1278,13 +1300,18 @@ Best regards,
               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
               const isDaysOverdue = diffDays < 0;
               const daysText = isDaysOverdue ? Math.abs(diffDays) : diffDays;
+              const dueDatePastToday = today > dueDate;
+              
+              console.log("Invoice status:", invoice.status);
+              console.log("Due date past today:", dueDatePastToday);
+              console.log("Is invoice considered overdue:", isOverdue);
               
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 h-full">
                   {/* Left Column - Invoice Details */}
                   <div className={`p-6 flex flex-col ${isPaid 
                     ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-r border-green-100' 
-                    : isOverdue
+                    : isOverdue // Only use overdue styling if actually overdue
                       ? 'bg-gradient-to-br from-red-50 to-orange-50 border-r border-red-100'
                       : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-r border-blue-100'
                   }`}>
