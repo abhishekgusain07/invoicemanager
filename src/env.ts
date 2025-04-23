@@ -8,5 +8,9 @@ export const env = {
   NEXT_PUBLIC_STRIPE_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "",
   NEXT_PUBLIC_STRIPE_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || "",
   FRONTEND_URL: process.env.FRONTEND_URL || "",
-  NODE_ENV: process.env.NODE_ENV || "development"
+  NODE_ENV: process.env.NODE_ENV || "development",
+  RESEND_API_KEY: process.env.RESEND_API_KEY || "",
+  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || "",
+  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || "",
+  UPSTASH_ACCOUNT: process.env.UPSTASH_ACCOUNT || "",
 }; 
