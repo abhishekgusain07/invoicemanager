@@ -57,6 +57,13 @@
       "when": 1745258523603,
       "tag": "0007_military_captain_universe",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1745392677040,
+      "tag": "0008_classy_peter_quill",
+      "breakpoints": true
     }
   ]
 }

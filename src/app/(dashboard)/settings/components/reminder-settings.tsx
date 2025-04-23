@@ -12,9 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ClockIcon, HelpCircleIcon, MessageSquareIcon } from "lucide-react";
+import { ClockIcon, HelpCircleIcon, MessageSquareIcon, PlayIcon } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { type ReminderSettingsValues } from "@/lib/validations/settings";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface ReminderSettingsProps {
   settings: any;
@@ -29,6 +31,7 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
   const [firstTone, setFirstTone] = useState("polite");
   const [secondTone, setSecondTone] = useState("firm");
   const [thirdTone, setThirdTone] = useState("urgent");
+  const [isRunningReminders, setIsRunningReminders] = useState(false);
 
   // Initialize local state from settings
   useEffect(() => {
@@ -89,6 +92,32 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
     updateSetting('thirdReminderTone', value);
   };
 
+  // Add function to manually run the reminders
+  const runScheduledReminders = async () => {
+    try {
+      setIsRunningReminders(true);
+      const response = await fetch("/api/cron/reminders", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success("Scheduled reminders processed successfully");
+      } else {
+        toast.error(result.message || "Failed to process reminders");
+      }
+    } catch (error) {
+      console.error("Error running scheduled reminders:", error);
+      toast.error("An error occurred while processing reminders");
+    } finally {
+      setIsRunningReminders(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Section header */}
@@ -107,9 +136,14 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
             <CardContent className="pt-6 h-full">
               <div className="space-y-6">
                 {/* Automated Reminders Toggle */}
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="automated-reminders"
+                      checked={isAutomated}
+                      onCheckedChange={handleAutomatedChange}
+                    />
+                    <div className="flex items-center gap-1">
                       <Label htmlFor="automated-reminders" className="text-base font-medium">
                         Enable Automated Reminders
                       </Label>
@@ -118,11 +152,25 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                       </Tooltip>
                     </div>
                   </div>
-                  <Switch
-                    id="automated-reminders"
-                    checked={isAutomated}
-                    onCheckedChange={handleAutomatedChange}
-                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    disabled={isRunningReminders}
+                    onClick={runScheduledReminders}
+                    className="flex items-center gap-1"
+                  >
+                    {isRunningReminders ? (
+                      <>
+                        <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <PlayIcon className="h-3 w-3" />
+                        Run Now
+                      </>
+                    )}
+                  </Button>
                 </div>
 
                 {/* First Reminder */}

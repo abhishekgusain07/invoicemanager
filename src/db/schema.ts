@@ -87,6 +87,17 @@ export const featureStatusEnum = pgEnum('feature_status', [
 	'declined'
 ]);
 
+// Define email delivery status enum
+export const emailDeliveryStatusEnum = pgEnum('email_delivery_status', [
+	'sent',
+	'delivered',
+	'failed',
+	'opened',
+	'clicked',
+	'replied',
+	'bounced'
+]);
+
 // User Settings schema
 export const userSettings = pgTable("user_settings", {
 	id: text("id").primaryKey(),
@@ -205,4 +216,24 @@ export const featureRequests = pgTable("feature_requests", {
 	status: featureStatusEnum("status").notNull().default("new"),
 	adminNotes: text("admin_notes"),
 	upvotes: integer("upvotes").default(0)
+});
+
+// Invoice Reminders tracking schema
+export const invoiceReminders = pgTable("invoice_reminders", {
+	id: text("id").primaryKey(),
+	invoiceId: text("invoice_id").notNull().references(() => clientInvoices.id, { onDelete: 'cascade' }),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	reminderNumber: integer("reminder_number").notNull(), // 1st, 2nd, 3rd reminder
+	sentAt: timestamp("sent_at").defaultNow().notNull(),
+	tone: reminderToneEnum("tone").notNull(), // polite, firm, urgent
+	emailSubject: text("email_subject").notNull(),
+	emailContent: text("email_content").notNull(),
+	status: emailDeliveryStatusEnum("status").default("sent"),
+	deliveredAt: timestamp("delivered_at"),
+	openedAt: timestamp("opened_at"),
+	clickedAt: timestamp("clicked_at"),
+	responseReceived: boolean("response_received").default(false),
+	responseReceivedAt: timestamp("response_received_at"),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
