@@ -701,6 +701,21 @@ Best regards,
     );
   }, [refreshReminders]);
 
+  // Add this function to check if invoice is overdue
+  const isInvoiceOverdue = (dueDate: Date) => {
+    const now = new Date();
+    return new Date(dueDate) < now;
+  };
+  
+  // Add this function to get days overdue or days until due
+  const getInvoiceDays = (dueDate: Date) => {
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
       {/* Header and Actions */}
@@ -1113,15 +1128,15 @@ Best regards,
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-3">
                   <div className={cn(
                     "rounded-lg p-4 text-center border h-fit",
-                    getDaysOverdue(selectedInvoice.dueDate) > 0 
+                    isInvoiceOverdue(selectedInvoice.dueDate)
                       ? "bg-gradient-to-br from-red-50 to-orange-50 border-red-100" 
                       : "bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-100"
                   )}>
                     <div className={cn(
                       "inline-flex h-10 w-10 items-center justify-center rounded-full mb-2",
-                      getDaysOverdue(selectedInvoice.dueDate) > 0 ? "bg-red-100" : "bg-yellow-100"
+                      isInvoiceOverdue(selectedInvoice.dueDate) ? "bg-red-100" : "bg-yellow-100"
                     )}>
-                      {getDaysOverdue(selectedInvoice.dueDate) > 0 ? (
+                      {isInvoiceOverdue(selectedInvoice.dueDate) ? (
                         <AlertTriangleIcon className="h-6 w-6 text-red-600" />
                       ) : (
                         <Clock8Icon className="h-6 w-6 text-yellow-600" />
@@ -1129,25 +1144,28 @@ Best regards,
                     </div>
                     <h3 className={cn(
                       "text-lg font-semibold",
-                      getDaysOverdue(selectedInvoice.dueDate) > 0 ? "text-red-800" : "text-yellow-800"
+                      isInvoiceOverdue(selectedInvoice.dueDate) ? "text-red-800" : "text-yellow-800"
                     )}>
-                      {getDaysOverdue(selectedInvoice.dueDate) > 0 
-                        ? `Overdue by ${getDaysOverdue(selectedInvoice.dueDate)} days` 
+                      {isInvoiceOverdue(selectedInvoice.dueDate)
+                        ? `Payment Overdue by ${getDaysOverdue(selectedInvoice.dueDate)} days` 
                         : "Payment Pending"}
                     </h3>
-                    <p className={cn("text-sm", getDaysOverdue(selectedInvoice.dueDate) > 0 ? "text-red-700" : "text-yellow-700")}>
-                      {getDaysOverdue(selectedInvoice.dueDate) > 0 
+                    <p className={cn(
+                      "text-sm", 
+                      isInvoiceOverdue(selectedInvoice.dueDate) ? "text-red-700" : "text-yellow-700"
+                    )}>
+                      {isInvoiceOverdue(selectedInvoice.dueDate)
                         ? `This invoice was due on ${formatDate(selectedInvoice.dueDate)}.` 
                         : `This invoice is due on ${formatDate(selectedInvoice.dueDate)}.`}
                     </p>
                     <div className="mt-3 flex justify-center gap-2">
                       <Badge className={cn(
                         "py-0.5 text-xs",
-                        getDaysOverdue(selectedInvoice.dueDate) > 0 
+                        isInvoiceOverdue(selectedInvoice.dueDate)
                           ? "bg-red-100 text-red-800 hover:bg-red-200" 
                           : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                       )}>
-                        {getDaysOverdue(selectedInvoice.dueDate) > 0 ? (
+                        {isInvoiceOverdue(selectedInvoice.dueDate) ? (
                           <>
                             <AlertTriangleIcon className="mr-1 h-3 w-3" /> Overdue
                           </>
@@ -1256,8 +1274,10 @@ Best regards,
               // Get days overdue or days until due
               const today = new Date();
               const dueDate = new Date(invoice.dueDate);
-              const diffTime = Math.abs(today.getTime() - dueDate.getTime());
+              const diffTime = dueDate.getTime() - today.getTime();
               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              const isDaysOverdue = diffDays < 0;
+              const daysText = isDaysOverdue ? Math.abs(diffDays) : diffDays;
               
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 h-full">
@@ -1265,33 +1285,33 @@ Best regards,
                   <div className={`p-6 flex flex-col ${isPaid 
                     ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-r border-green-100' 
                     : isOverdue
-                      ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-r border-amber-100'
+                      ? 'bg-gradient-to-br from-red-50 to-orange-50 border-r border-red-100'
                       : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-r border-blue-100'
                   }`}>
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className={`text-xl font-bold ${isPaid ? 'text-green-800' : isOverdue ? 'text-amber-800' : 'text-blue-800'}`}>
+                        <h3 className={`text-xl font-bold ${isPaid ? 'text-green-800' : isOverdue ? 'text-red-800' : 'text-blue-800'}`}>
                           {isPaid ? 'Payment Received' : isOverdue ? 'Payment Overdue' : 'Payment Due Soon'}
                         </h3>
-                        <p className={`text-sm ${isPaid ? 'text-green-600' : isOverdue ? 'text-amber-600' : 'text-blue-600'}`}>
+                        <p className={`text-sm ${isPaid ? 'text-green-600' : isOverdue ? 'text-red-600' : 'text-blue-600'}`}>
                           {isPaid 
                             ? 'This invoice has been paid in full.'
                             : isOverdue
-                              ? `This invoice is ${diffDays} day${diffDays !== 1 ? 's' : ''} overdue.`
-                              : `This invoice is due in ${diffDays} day${diffDays !== 1 ? 's' : ''}.`
+                              ? `This invoice is ${daysText} day${daysText !== 1 ? 's' : ''} overdue.`
+                              : `This invoice is due in ${daysText} day${daysText !== 1 ? 's' : ''}.`
                           }
                         </p>
                       </div>
                       <div className={`rounded-full p-3 ${isPaid 
                         ? 'bg-green-100' 
                         : isOverdue 
-                          ? 'bg-amber-100'
+                          ? 'bg-red-100'
                           : 'bg-blue-100'
                       }`}>
                         {isPaid 
                           ? <CheckCircleIcon className="h-6 w-6 text-green-600" />
                           : isOverdue 
-                            ? <AlertTriangleIcon className="h-6 w-6 text-amber-600" />
+                            ? <AlertTriangleIcon className="h-6 w-6 text-red-600" />
                             : <Clock8Icon className="h-6 w-6 text-blue-600" />
                         }
                       </div>
