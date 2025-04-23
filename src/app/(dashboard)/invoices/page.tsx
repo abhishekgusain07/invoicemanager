@@ -8,7 +8,13 @@ import {
   CheckCircleIcon, MailIcon, TrashIcon, 
   ChevronDownIcon, ChevronUpIcon,
   AlertTriangleIcon,
-  CheckIcon
+  CheckIcon,
+  CalendarIcon,
+  SendIcon,
+  XIcon,
+  Clock8Icon,
+  HeartIcon,
+  ThumbsUpIcon
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
@@ -29,6 +35,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { logDebug } from "@/utils/debug";
 
 export default function InvoicesPage() {
   const { user, isLoading: isUserLoading } = useUser();
@@ -51,11 +62,16 @@ export default function InvoicesPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("pending");
   const [currentInvoiceStatus, setCurrentInvoiceStatus] = useState<string>("");
   const [editingInvoice, setEditingInvoice] = useState<any | null>(null);
+  
+  // New state for reminder modal
+  const [reminderModalOpen, setReminderModalOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("polite");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [thankYouSent, setThankYouSent] = useState(false);
 
-  // First, add utility log function for better debugging
-  const logDebug = (message: string, data?: any) => {
-    console.log(`[INVOICE DEBUG] ${message}`, data || '');
-  };
+  // Add a new state for edited template content
+  const [editedEmailContent, setEditedEmailContent] = useState<string>("");
 
   // Fetch invoices
   useEffect(() => {
@@ -64,12 +80,7 @@ export default function InvoicesPage() {
       
       setIsLoading(true);
       try {
-        logDebug(`Fetching invoices with status filter: ${statusFilter}`);
         const data = await getInvoicesByStatus(statusFilter as any);
-        logDebug(`Received ${data.length} invoices`);
-        data.forEach(invoice => {
-          logDebug(`Invoice ID: ${invoice.id}, Status: ${invoice.status}, Client: ${invoice.clientName}`);
-        });
         
         setInvoices(data);
         setFilteredInvoices(data);
@@ -126,6 +137,8 @@ export default function InvoicesPage() {
     // Check if pending invoice is overdue
     const now = new Date();
     const isOverdue = status === "pending" && new Date(dueDate) < now;
+    
+    // Important: Update the display status but don't modify the actual status property
     const displayStatus = isOverdue ? "overdue" : status;
     
     switch (displayStatus) {
@@ -200,8 +213,19 @@ export default function InvoicesPage() {
   };
 
   const handleSendReminder = (invoiceId: string) => {
-    // Placeholder for send reminder action
-    toast.info("Send reminder feature coming soon");
+    // Find the selected invoice
+    const invoice = invoices.find(inv => inv.id === invoiceId);
+    if (invoice) {
+      setSelectedInvoice(invoice);
+      // Check if the thank you email has been sent (this would be stored in your DB)
+      setThankYouSent(invoice.thankYouEmailSent || false);
+      // Initialize the edited content based on template
+      const initialTemplate = invoice.status === 'paid' ? 'thankYou' : 'polite';
+      setEditedEmailContent(getEmailContent(initialTemplate, invoice));
+      setReminderModalOpen(true);
+    } else {
+      toast.error("Invoice not found");
+    }
   };
 
   const openDeleteModal = (invoiceId: string) => {
@@ -213,17 +237,16 @@ export default function InvoicesPage() {
     if (!invoiceToDelete) return;
     
     setIsDeletingInvoice(true);
-    toast.custom((id) => (
-      <div className="bg-red-500 text-white p-4 rounded-md" key={id}>
-        Deleting invoice {invoiceToDelete}
-      </div>
-    ));
     try {
       const result = await deleteInvoice(invoiceToDelete);
       if (result.success) {
         toast.success("Invoice deleted successfully");
-        setInvoices(prev => prev.filter(inv => inv.id !== invoiceToDelete));
-        setFilteredInvoices(prev => prev.filter(inv => inv.id !== invoiceToDelete));
+        // Remove the invoice ONLY from the main local state
+        const updatedInvoices = invoices.filter(invoice => invoice.id !== invoiceToDelete);
+        setInvoices(updatedInvoices);
+        
+        // // Remove direct update to filteredInvoices
+        // setFilteredInvoices(filteredInvoices.filter(invoice => invoice.id !== invoiceToDelete));
       } else {
         toast.error(result.error || "Failed to delete invoice");
       }
@@ -239,21 +262,11 @@ export default function InvoicesPage() {
 
   // Update status modal
   const openUpdateStatusModal = (invoiceId: string, currentStatus: string) => {
-    logDebug(`Opening status modal for invoice ID: ${invoiceId}`);
-    
-    // Log all invoices first to verify state
-    logDebug("Current invoices in state:", 
-      invoices.map(inv => ({ id: inv.id, status: inv.status, client: inv.clientName }))
-    );
-    
     const targetInvoice = invoices.find(inv => inv.id === invoiceId);
     if (!targetInvoice) {
-      logDebug(`ERROR: Invoice with ID ${invoiceId} not found in current state`);
       toast.error("Invoice not found");
       return;
     }
-    
-    logDebug(`Found target invoice:`, targetInvoice);
     setInvoiceToUpdate(invoiceId);
     setSelectedStatus(targetInvoice.status);
     setCurrentInvoiceStatus(targetInvoice.status);
@@ -261,52 +274,28 @@ export default function InvoicesPage() {
   };
 
   const handleUpdateStatusConfirm = async () => {
-    if (!invoiceToUpdate) {
-      logDebug(`Cannot update status: invoiceToUpdate is null`);
-      return;
-    }
-    
-    logDebug(`Updating invoice ${invoiceToUpdate} to status: ${selectedStatus}`);
-    logDebug(`Current status is: ${currentInvoiceStatus}`);
+    if (!invoiceToUpdate) return;
     
     setIsUpdatingStatus(true);
     try {
-      // Log invoices before update
-      logDebug("Invoices before update:", 
-        invoices.map(inv => ({ id: inv.id, status: inv.status }))
-      );
-      
       const result = await updateInvoiceStatus(invoiceToUpdate, selectedStatus as any);
-      logDebug(`Server response:`, result);
       
       if (result.success) {
         toast.success(`Invoice status updated to ${selectedStatus} successfully`);
         
-        // Update the invoice in the local state - with extra logging
-        setInvoices(prev => {
-          const updated = prev.map(inv => {
-            const shouldUpdate = inv.id === invoiceToUpdate;
-            logDebug(`Checking invoice ${inv.id} against ${invoiceToUpdate}: ${shouldUpdate ? 'UPDATING' : 'SKIPPING'}`);
-            return inv.id === invoiceToUpdate ? {...inv, status: selectedStatus} : inv;
-          });
-          
-          logDebug("Invoices after local update:", 
-            updated.map(inv => ({ id: inv.id, status: inv.status }))
-          );
-          
-          return updated;
-        });
+        // Update the invoice in the local state
+        setInvoices(prev => prev.map(inv => 
+          inv.id === invoiceToUpdate ? {...inv, status: selectedStatus} : inv
+        ));
         
         // Update filtered invoices too
         setFilteredInvoices(prev => prev.map(inv => 
           inv.id === invoiceToUpdate ? {...inv, status: selectedStatus} : inv
         ));
       } else {
-        logDebug(`Update failed:`, result.error);
         toast.error(result.error || "Failed to update invoice status");
       }
     } catch (error) {
-      logDebug(`Error during update:`, error);
       console.error("Error updating invoice status:", error);
       toast.error("An error occurred while updating the invoice");
     } finally {
@@ -344,6 +333,127 @@ export default function InvoicesPage() {
       });
   }, [statusFilter, setInvoices, setFilteredInvoices, setIsModalOpen, setEditingInvoice]);
 
+  // Update the template selection to also update edited content
+  const handleTemplateChange = (value: string) => {
+    setSelectedTemplate(value);
+    if (selectedInvoice) {
+      setEditedEmailContent(getEmailContent(value, selectedInvoice));
+    }
+  };
+
+  // Update the sendEmail function to use edited content
+  const sendEmail = async (templateType: string) => {
+    if (!selectedInvoice) return;
+    
+    setIsSendingEmail(true);
+    
+    try {
+      // This would be your server action to send the email
+      // const result = await sendInvoiceEmail({
+      //   invoiceId: selectedInvoice.id,
+      //   templateType,
+      //   clientEmail: selectedInvoice.clientEmail,
+      //   clientName: selectedInvoice.clientName,
+      //   emailContent: editedEmailContent // Use the edited content
+      // });
+      
+      // For now, simulate API call with a timeout
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // If paid invoice, mark that thank you email was sent
+      if (selectedInvoice.status === 'paid') {
+        // Update local state
+        setThankYouSent(true);
+        
+        // You'd also want to update this in your database
+        // await updateInvoice(selectedInvoice.id, { thankYouEmailSent: true });
+        
+        // Update the invoice in local state
+        const updatedInvoices = invoices.map(inv => 
+          inv.id === selectedInvoice.id 
+            ? { ...inv, thankYouEmailSent: true } 
+            : inv
+        );
+        setInvoices(updatedInvoices);
+        setFilteredInvoices(filteredInvoices.map(inv => 
+          inv.id === selectedInvoice.id 
+            ? { ...inv, thankYouEmailSent: true } 
+            : inv
+        ));
+      }
+      
+      toast.success(`Email sent successfully to ${selectedInvoice.clientName}`);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      toast.error("Failed to send email");
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  // Function to calculate days overdue
+  const getDaysOverdue = (dueDate: string) => {
+    const due = new Date(dueDate);
+    const today = new Date();
+    const diffTime = today.getTime() - due.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  // Function to get email content based on template
+  const getEmailContent = (templateType: string, invoice: any) => {
+    const templates = {
+      polite: `
+Dear ${invoice.clientName},
+
+I hope this email finds you well. I wanted to send a gentle reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} was due on ${formatDate(invoice.dueDate)}.
+
+If you've already sent the payment, please disregard this message. Otherwise, I would appreciate it if you could process this payment at your earliest convenience.
+
+Thank you for your attention to this matter.
+
+Best regards,
+[Your Company Name]
+      `,
+      firm: `
+Dear ${invoice.clientName},
+
+This is a reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
+
+Please process this payment as soon as possible to avoid any late fees.
+
+If you have any questions about this invoice, please don't hesitate to contact us.
+
+Regards,
+[Your Company Name]
+      `,
+      urgent: `
+Dear ${invoice.clientName},
+
+URGENT REMINDER: Invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
+
+This requires your immediate attention. Please process this payment within 48 hours to avoid additional late fees and potential service interruptions.
+
+If you're experiencing difficulties with payment, please contact us immediately to discuss payment options.
+
+Sincerely,
+[Your Company Name]
+      `,
+      thankYou: `
+Dear ${invoice.clientName},
+
+Thank you for your prompt payment of invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}.
+
+We greatly appreciate your business and look forward to working with you again in the future.
+
+Best regards,
+[Your Company Name]
+      `
+    };
+    
+    return templates[templateType as keyof typeof templates] || templates.polite;
+  };
+
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
       {/* Header and Actions */}
@@ -380,8 +490,11 @@ export default function InvoicesPage() {
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="paid">Paid</SelectItem>
             <SelectItem value="overdue">Overdue</SelectItem>
+            <SelectItem value="paid">Paid</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+            <SelectItem value="partially_paid">Partially Paid</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -641,6 +754,241 @@ export default function InvoicesPage() {
           isEditing={!!editingInvoice}
         />
       )}
+
+      {/* Reminder Modal */}
+      <Dialog open={reminderModalOpen} onOpenChange={setReminderModalOpen}>
+        <DialogContent 
+          className="w-[70%] h-[70%] max-h-[80vh] max-w-[1400px] !min-w-[80vw] !mx-auto overflow-hidden"
+          style={{ width: '60%', maxWidth: '90vw', height: 'fit-content', maxHeight: '99vh' }}
+        >
+          {selectedInvoice && (
+            <>
+              <DialogHeader className="pb-2">
+                <DialogTitle className="flex items-center gap-2 text-xl">
+                  <MailIcon className="h-5 w-5 text-primary" />
+                  <span>
+                    {selectedInvoice.status === 'paid' ? 'Send Thank You Email' : 'Send Payment Reminder'}
+                  </span>
+                </DialogTitle>
+                <DialogDescription>
+                  Invoice #{selectedInvoice.invoiceNumber} for {selectedInvoice.clientName}
+                </DialogDescription>
+              </DialogHeader>
+
+              {/* For paid invoices */}
+              {selectedInvoice.status === 'paid' ? (
+                <div className="py-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="mb-4 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-4 text-center border border-green-100">
+                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-green-100 mb-2">
+                      <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-green-800">Payment Received</h3>
+                    <p className="text-green-700 text-sm">
+                      This invoice has been paid in full on {formatDate(selectedInvoice.paidDate || new Date())}.
+                    </p>
+                    <div className="mt-3 flex justify-center gap-2">
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-200 py-0.5 text-xs">
+                        <CheckIcon className="mr-1 h-3 w-3" /> Paid
+                      </Badge>
+                      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 py-0.5 text-xs">
+                        <CalendarIcon className="mr-1 h-3 w-3" /> {formatDate(selectedInvoice.paidDate || new Date())}
+                      </Badge>
+                      <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 py-0.5 text-xs">
+                        <ThumbsUpIcon className="mr-1 h-3 w-3" /> {selectedInvoice.currency} {parseFloat(selectedInvoice.amount).toFixed(2)}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <Card className="border-green-100 shadow-sm">
+                    <CardHeader className="pb-2 pt-3">
+                      <CardTitle className="text-base text-green-700 flex items-center gap-2">
+                        <HeartIcon className="h-4 w-4" /> Thank You Email Preview
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Send a thank you email to your client for their payment
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pb-3">
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs text-muted-foreground">Edit email content below:</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 text-xs"
+                            onClick={() => setEditedEmailContent(getEmailContent('thankYou', selectedInvoice))}
+                          >
+                            Reset to default
+                          </Button>
+                        </div>
+                        <textarea 
+                          className="rounded-md border bg-slate-50 p-3 font-mono text-sm w-full min-h-[250px] resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+                          value={editedEmailContent}
+                          onChange={(e) => setEditedEmailContent(e.target.value)}
+                          disabled={isSendingEmail}
+                        />
+                      </div>
+                    </CardContent>
+                    <CardFooter className="pt-0">
+                      <Button 
+                        onClick={() => sendEmail('thankYou')} 
+                        disabled={thankYouSent || isSendingEmail}
+                        className={cn(
+                          "w-full gap-2", 
+                          thankYouSent ? "bg-gray-100 text-gray-500" : "bg-green-600 hover:bg-green-700 text-white"
+                        )}
+                        size="sm"
+                      >
+                        {isSendingEmail ? (
+                          <>
+                            <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                            Sending...
+                          </>
+                        ) : thankYouSent ? (
+                          <>
+                            <CheckCircleIcon className="h-3.5 w-3.5" />
+                            Thank You Email Already Sent
+                          </>
+                        ) : (
+                          <>
+                            <SendIcon className="h-3.5 w-3.5" />
+                            Send Thank You Email
+                          </>
+                        )}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
+              ) : (
+                // For pending/overdue invoices
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-3">
+                  <div className={cn(
+                    "rounded-lg p-4 text-center border h-fit",
+                    getDaysOverdue(selectedInvoice.dueDate) > 0 
+                      ? "bg-gradient-to-br from-red-50 to-orange-50 border-red-100" 
+                      : "bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-100"
+                  )}>
+                    <div className={cn(
+                      "inline-flex h-10 w-10 items-center justify-center rounded-full mb-2",
+                      getDaysOverdue(selectedInvoice.dueDate) > 0 ? "bg-red-100" : "bg-yellow-100"
+                    )}>
+                      {getDaysOverdue(selectedInvoice.dueDate) > 0 ? (
+                        <AlertTriangleIcon className="h-6 w-6 text-red-600" />
+                      ) : (
+                        <Clock8Icon className="h-6 w-6 text-yellow-600" />
+                      )}
+                    </div>
+                    <h3 className={cn(
+                      "text-lg font-semibold",
+                      getDaysOverdue(selectedInvoice.dueDate) > 0 ? "text-red-800" : "text-yellow-800"
+                    )}>
+                      {getDaysOverdue(selectedInvoice.dueDate) > 0 
+                        ? `Overdue by ${getDaysOverdue(selectedInvoice.dueDate)} days` 
+                        : "Payment Pending"}
+                    </h3>
+                    <p className={cn("text-sm", getDaysOverdue(selectedInvoice.dueDate) > 0 ? "text-red-700" : "text-yellow-700")}>
+                      {getDaysOverdue(selectedInvoice.dueDate) > 0 
+                        ? `This invoice was due on ${formatDate(selectedInvoice.dueDate)}.` 
+                        : `This invoice is due on ${formatDate(selectedInvoice.dueDate)}.`}
+                    </p>
+                    <div className="mt-3 flex justify-center gap-2">
+                      <Badge className={cn(
+                        "py-0.5 text-xs",
+                        getDaysOverdue(selectedInvoice.dueDate) > 0 
+                          ? "bg-red-100 text-red-800 hover:bg-red-200" 
+                          : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                      )}>
+                        {getDaysOverdue(selectedInvoice.dueDate) > 0 ? (
+                          <>
+                            <AlertTriangleIcon className="mr-1 h-3 w-3" /> Overdue
+                          </>
+                        ) : (
+                          <>
+                            <Clock8Icon className="mr-1 h-3 w-3" /> Pending
+                          </>
+                        )}
+                      </Badge>
+                      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 py-0.5 text-xs">
+                        <CalendarIcon className="mr-1 h-3 w-3" /> Due: {formatDate(selectedInvoice.dueDate)}
+                      </Badge>
+                      <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 py-0.5 text-xs">
+                        {selectedInvoice.currency} {parseFloat(selectedInvoice.amount).toFixed(2)}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <Card className="shadow-sm h-fit">
+                    <CardHeader className="pb-2 pt-3">
+                      <CardTitle className="text-base text-primary flex items-center gap-2">
+                        <MailIcon className="h-4 w-4" /> Email Reminder
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        Choose a template tone for your reminder
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pb-3">
+                      <Tabs defaultValue="polite" value={selectedTemplate} onValueChange={handleTemplateChange}>
+                        <TabsList className="w-full grid grid-cols-3 mb-3 h-8">
+                          <TabsTrigger value="polite" className="text-xs data-[state=active]:bg-blue-100 data-[state=active]:text-blue-800">
+                            Polite
+                          </TabsTrigger>
+                          <TabsTrigger value="firm" className="text-xs data-[state=active]:bg-amber-100 data-[state=active]:text-amber-800">
+                            Firm
+                          </TabsTrigger>
+                          <TabsTrigger value="urgent" className="text-xs data-[state=active]:bg-red-100 data-[state=active]:text-red-800">
+                            Urgent
+                          </TabsTrigger>
+                        </TabsList>
+
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-muted-foreground">Edit email content below:</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 text-xs"
+                              onClick={() => setEditedEmailContent(getEmailContent(selectedTemplate, selectedInvoice))}
+                            >
+                              Reset to default
+                            </Button>
+                          </div>
+                          <textarea 
+                            className="rounded-md border bg-slate-50 p-3 font-mono text-sm w-full min-h-[250px] resize-none focus:outline-none focus:ring-1 focus:ring-primary" 
+                            value={editedEmailContent}
+                            onChange={(e) => setEditedEmailContent(e.target.value)}
+                            disabled={isSendingEmail}
+                          />
+                        </div>
+                      </Tabs>
+                    </CardContent>
+                    <CardFooter className="pt-0">
+                      <Button 
+                        onClick={() => sendEmail(selectedTemplate)} 
+                        disabled={isSendingEmail}
+                        className="w-full gap-2"
+                        size="sm"
+                        variant={selectedTemplate === 'polite' ? 'default' : selectedTemplate === 'firm' ? 'secondary' : 'destructive'}
+                      >
+                        {isSendingEmail ? (
+                          <>
+                            <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <SendIcon className="h-3.5 w-3.5" />
+                            Send {selectedTemplate.charAt(0).toUpperCase() + selectedTemplate.slice(1)} Reminder
+                          </>
+                        )}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </div>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

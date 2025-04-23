@@ -134,58 +134,38 @@ export async function getInvoiceStats() {
 }
 
 export async function getInvoicesByStatus(status: "pending" | "paid" | "overdue" | "all") {
-  console.log(`[SERVER ACTION] getInvoicesByStatus called with status=${status}`);
-  
   // Check if user is authenticated
   const session = await auth.api.getSession({
     headers: await headers()
   });
 
   if (!session?.user) {
-    console.log(`[SERVER ACTION] getInvoicesByStatus: No authenticated user`);
     return [];
   }
-  
-  console.log(`[SERVER ACTION] getInvoicesByStatus: User authenticated: ${session.user.id}`);
 
   try {
     // Fetch all user invoices
-    console.log(`[SERVER ACTION] Fetching invoices for user ${session.user.id}`);
     const userInvoices = await db
     .select()
     .from(clientInvoices)
     .where(eq(clientInvoices.userId, session.user.id));
-    
-    console.log(`[SERVER ACTION] Found ${userInvoices.length} total invoices for user`);
-    // Log each invoice ID and status to track issues
-    userInvoices.forEach(invoice => {
-      console.log(`[SERVER ACTION] Invoice ${invoice.id}: status=${invoice.status}, client=${invoice.clientName}`);
-    });
 
     const now = new Date();
     let filteredInvoices;
     
     if (status === "all") {
       filteredInvoices = userInvoices;
-      console.log(`[SERVER ACTION] Returning all ${filteredInvoices.length} invoices`);
     } else if (status === "overdue") {
       filteredInvoices = userInvoices.filter(
         invoice => invoice.status === "pending" && invoice.dueDate < now
       );
-      console.log(`[SERVER ACTION] Returning ${filteredInvoices.length} overdue invoices`);
     } else {
       filteredInvoices = userInvoices.filter(invoice => invoice.status === status);
-      console.log(`[SERVER ACTION] Returning ${filteredInvoices.length} ${status} invoices`);
     }
-    
-    // Log final output
-    filteredInvoices.forEach(invoice => {
-      console.log(`[SERVER ACTION] Returning invoice ${invoice.id}: status=${invoice.status}, client=${invoice.clientName}`);
-    });
     
     return filteredInvoices;
   } catch (error) {
-    console.error(`[SERVER ACTION] Error fetching ${status} invoices:`, error);
+    console.error(`Error fetching ${status} invoices:`, error);
     return [];
   }
 }
@@ -237,23 +217,17 @@ export async function getMonthlyInvoiceData() {
 }
 
 export async function deleteInvoice(invoiceId: string) {
-  console.log(`[SERVER ACTION] deleteInvoice called for invoiceId=${invoiceId}`);
-  
   // Check if user is authenticated
   const session = await auth.api.getSession({
     headers: await headers()
   });
   
   if (!session?.user) {
-    console.log(`[SERVER ACTION] deleteInvoice: Authentication failed - no user session`);
     return { success: false, error: "Unauthorized. Please sign in to delete an invoice." };
   }
-  
-  console.log(`[SERVER ACTION] deleteInvoice: User authenticated: ${session.user.id}`);
 
   try {
     // First check if the invoice belongs to the user
-    console.log(`[SERVER ACTION] Checking if invoice ${invoiceId} belongs to user ${session.user.id}`);
     const invoice = await db
       .select()
       .from(clientInvoices)
@@ -263,16 +237,12 @@ export async function deleteInvoice(invoiceId: string) {
           eq(clientInvoices.userId, session.user.id)
         )
       );
-
-    console.log(`[SERVER ACTION] Found invoice check result: ${invoice.length} matching invoices`);
     
     if (invoice.length === 0) {
-      console.log(`[SERVER ACTION] Invoice not found or not owned by user`);
       return { success: false, error: "Invoice not found or you don't have permission to delete it." };
     }
 
     // Delete the invoice
-    console.log(`[SERVER ACTION] Deleting invoice ${invoiceId}`);
     const deleteResult = await db
       .delete(clientInvoices)
       .where(
@@ -281,17 +251,14 @@ export async function deleteInvoice(invoiceId: string) {
           eq(clientInvoices.userId, session.user.id)
         )
       );
-    
-    console.log(`[SERVER ACTION] Delete completed with result:`, deleteResult);
 
     // Revalidate dashboard and invoices pages
-    console.log(`[SERVER ACTION] Revalidating paths`);
     revalidatePath("/dashboard");
     revalidatePath("/invoices");
     
     return { success: true };
   } catch (error) {
-    console.error("[SERVER ACTION] Error deleting invoice:", error);
+    console.error("Error deleting invoice:", error);
     return { success: false, error: "Failed to delete invoice" };
   }
 }
@@ -351,30 +318,23 @@ export async function updateInvoiceStatus(
   invoiceId: string, 
   status: "pending" | "paid" | "overdue" | "cancelled" | "draft" | "partially_paid"
 ) {
-  console.log(`[SERVER ACTION] updateInvoiceStatus called with invoiceId=${invoiceId}, status=${status}`);
-  
   // Check if user is authenticated
   const session = await auth.api.getSession({
     headers: await headers()
   });
   
   if (!session?.user) {
-    console.log(`[SERVER ACTION] Authentication failed - no user session`);
     return { success: false, error: "Unauthorized. Please sign in to update an invoice." };
   }
-  
-  console.log(`[SERVER ACTION] User authenticated: ${session.user.id}`);
 
   // Validate that the status is valid
   const validStatuses = invoiceStatusEnum.enumValues;
   if (!validStatuses.includes(status)) {
-    console.log(`[SERVER ACTION] Invalid status: ${status}`);
     return { success: false, error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` };
   }
 
   try {
     // First check if the invoice belongs to the user
-    console.log(`[SERVER ACTION] Checking if invoice ${invoiceId} belongs to user ${session.user.id}`);
     const invoice = await db
       .select()
       .from(clientInvoices)
@@ -384,19 +344,13 @@ export async function updateInvoiceStatus(
           eq(clientInvoices.userId, session.user.id)
         )
       );
-
-    console.log(`[SERVER ACTION] Found invoice check result: ${invoice.length} matching invoices`);
     
     if (invoice.length === 0) {
-      console.log(`[SERVER ACTION] Invoice not found or not owned by user`);
       return { success: false, error: "Invoice not found or you don't have permission to update it." };
     }
-    
-    console.log(`[SERVER ACTION] Found invoice:`, invoice[0]);
 
     // Update the invoice status
-    console.log(`[SERVER ACTION] Updating invoice ${invoiceId} status to ${status}`);
-    const updateResult = await db
+    await db
       .update(clientInvoices)
       .set({ 
         status,
@@ -408,30 +362,14 @@ export async function updateInvoiceStatus(
           eq(clientInvoices.userId, session.user.id)
         )
       );
-    
-    console.log(`[SERVER ACTION] Update completed with result:`, updateResult);
-
-    // Verify the update worked by retrieving the invoice again
-    const updatedInvoice = await db
-      .select()
-      .from(clientInvoices)
-      .where(
-        and(
-          eq(clientInvoices.id, invoiceId),
-          eq(clientInvoices.userId, session.user.id)
-        )
-      );
-    
-    console.log(`[SERVER ACTION] After update, invoice has status: ${updatedInvoice[0]?.status}`);
 
     // Revalidate dashboard and invoices pages
-    console.log(`[SERVER ACTION] Revalidating paths`);
     revalidatePath("/dashboard");
     revalidatePath("/invoices");
     
     return { success: true };
   } catch (error) {
-    console.error("[SERVER ACTION] Error updating invoice status:", error);
+    console.error("Error updating invoice status:", error);
     return { success: false, error: "Failed to update invoice status" };
   }
 }
