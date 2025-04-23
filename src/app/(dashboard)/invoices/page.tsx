@@ -52,6 +52,11 @@ export default function InvoicesPage() {
   const [currentInvoiceStatus, setCurrentInvoiceStatus] = useState<string>("");
   const [editingInvoice, setEditingInvoice] = useState<any | null>(null);
 
+  // First, add utility log function for better debugging
+  const logDebug = (message: string, data?: any) => {
+    console.log(`[INVOICE DEBUG] ${message}`, data || '');
+  };
+
   // Fetch invoices
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -59,8 +64,13 @@ export default function InvoicesPage() {
       
       setIsLoading(true);
       try {
+        logDebug(`Fetching invoices with status filter: ${statusFilter}`);
         const data = await getInvoicesByStatus(statusFilter as any);
-        console.log("invoice response", data);
+        logDebug(`Received ${data.length} invoices`);
+        data.forEach(invoice => {
+          logDebug(`Invoice ID: ${invoice.id}, Status: ${invoice.status}, Client: ${invoice.clientName}`);
+        });
+        
         setInvoices(data);
         setFilteredInvoices(data);
       } catch (error) {
@@ -203,14 +213,17 @@ export default function InvoicesPage() {
     if (!invoiceToDelete) return;
     
     setIsDeletingInvoice(true);
+    toast.custom((id) => (
+      <div className="bg-red-500 text-white p-4 rounded-md" key={id}>
+        Deleting invoice {invoiceToDelete}
+      </div>
+    ));
     try {
       const result = await deleteInvoice(invoiceToDelete);
       if (result.success) {
         toast.success("Invoice deleted successfully");
-        // Remove the invoice from the local state
-        const updatedInvoices = invoices.filter(invoice => invoice.id !== invoiceToDelete);
-        setInvoices(updatedInvoices);
-        setFilteredInvoices(filteredInvoices.filter(invoice => invoice.id !== invoiceToDelete));
+        setInvoices(prev => prev.filter(inv => inv.id !== invoiceToDelete));
+        setFilteredInvoices(prev => prev.filter(inv => inv.id !== invoiceToDelete));
       } else {
         toast.error(result.error || "Failed to delete invoice");
       }
@@ -226,39 +239,74 @@ export default function InvoicesPage() {
 
   // Update status modal
   const openUpdateStatusModal = (invoiceId: string, currentStatus: string) => {
+    logDebug(`Opening status modal for invoice ID: ${invoiceId}`);
+    
+    // Log all invoices first to verify state
+    logDebug("Current invoices in state:", 
+      invoices.map(inv => ({ id: inv.id, status: inv.status, client: inv.clientName }))
+    );
+    
+    const targetInvoice = invoices.find(inv => inv.id === invoiceId);
+    if (!targetInvoice) {
+      logDebug(`ERROR: Invoice with ID ${invoiceId} not found in current state`);
+      toast.error("Invoice not found");
+      return;
+    }
+    
+    logDebug(`Found target invoice:`, targetInvoice);
     setInvoiceToUpdate(invoiceId);
-    setSelectedStatus(currentStatus);
-    setCurrentInvoiceStatus(currentStatus);
+    setSelectedStatus(targetInvoice.status);
+    setCurrentInvoiceStatus(targetInvoice.status);
     setStatusModalOpen(true);
   };
 
   const handleUpdateStatusConfirm = async () => {
-    if (!invoiceToUpdate) return;
+    if (!invoiceToUpdate) {
+      logDebug(`Cannot update status: invoiceToUpdate is null`);
+      return;
+    }
+    
+    logDebug(`Updating invoice ${invoiceToUpdate} to status: ${selectedStatus}`);
+    logDebug(`Current status is: ${currentInvoiceStatus}`);
     
     setIsUpdatingStatus(true);
     try {
+      // Log invoices before update
+      logDebug("Invoices before update:", 
+        invoices.map(inv => ({ id: inv.id, status: inv.status }))
+      );
+      
       const result = await updateInvoiceStatus(invoiceToUpdate, selectedStatus as any);
+      logDebug(`Server response:`, result);
+      
       if (result.success) {
         toast.success(`Invoice status updated to ${selectedStatus} successfully`);
         
-        // Update the invoice in the local state
-        const updatedInvoices = invoices.map(invoice => 
-          invoice.id === invoiceToUpdate 
-            ? { ...invoice, status: selectedStatus } 
-            : invoice
-        );
-        setInvoices(updatedInvoices);
+        // Update the invoice in the local state - with extra logging
+        setInvoices(prev => {
+          const updated = prev.map(inv => {
+            const shouldUpdate = inv.id === invoiceToUpdate;
+            logDebug(`Checking invoice ${inv.id} against ${invoiceToUpdate}: ${shouldUpdate ? 'UPDATING' : 'SKIPPING'}`);
+            return inv.id === invoiceToUpdate ? {...inv, status: selectedStatus} : inv;
+          });
+          
+          logDebug("Invoices after local update:", 
+            updated.map(inv => ({ id: inv.id, status: inv.status }))
+          );
+          
+          return updated;
+        });
         
         // Update filtered invoices too
-        setFilteredInvoices(filteredInvoices.map(invoice => 
-          invoice.id === invoiceToUpdate 
-            ? { ...invoice, status: selectedStatus } 
-            : invoice
+        setFilteredInvoices(prev => prev.map(inv => 
+          inv.id === invoiceToUpdate ? {...inv, status: selectedStatus} : inv
         ));
       } else {
+        logDebug(`Update failed:`, result.error);
         toast.error(result.error || "Failed to update invoice status");
       }
     } catch (error) {
+      logDebug(`Error during update:`, error);
       console.error("Error updating invoice status:", error);
       toast.error("An error occurred while updating the invoice");
     } finally {
