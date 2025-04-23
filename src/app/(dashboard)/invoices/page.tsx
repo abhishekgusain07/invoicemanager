@@ -42,17 +42,20 @@ import { cn } from "@/lib/utils";
 import { logDebug } from "@/utils/debug";
 import { getLastReminderSent, sendInvoiceReminder } from "@/actions/reminder";
 
-// Add a component to handle the last reminder with suspense
+// Define the LastReminderCell component without the refreshTrigger implementation yet
 const LastReminderCell = ({ invoice }: { invoice: any }) => {
   const [reminderText, setReminderText] = useState<string>("Loading...");
+  const [reminderCount, setReminderCount] = useState<number>(0);
   
   useEffect(() => {
     const fetchReminderInfo = async () => {
       try {
-        const text = await getLastReminderSent(invoice.id).then(lastReminder => {
-          if (!lastReminder) {
-            return "—";
-          }
+        // Fetch the last reminder
+        const lastReminder = await getLastReminderSent(invoice.id);
+        
+        // Get the reminder count from the reminder number (if exists)
+        if (lastReminder) {
+          setReminderCount(lastReminder.reminderNumber);
           
           // Format the time since the reminder was sent
           const now = new Date();
@@ -60,35 +63,52 @@ const LastReminderCell = ({ invoice }: { invoice: any }) => {
           const diffTime = Math.abs(now.getTime() - sentDate.getTime());
           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
           
+          let timeText = "";
           if (diffDays === 0) {
             // If sent today, show hours
             const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
             if (diffHours === 0) {
-              return "Just now";
+              timeText = "Just now";
+            } else {
+              timeText = `${diffHours}h ago`;
             }
-            return `${diffHours}h ago`;
           } else if (diffDays === 1) {
-            return "Yesterday";
+            timeText = "Yesterday";
           } else {
-            return `${diffDays} days ago`;
+            timeText = `${diffDays} days ago`;
           }
-        });
-        
-        setReminderText(text);
+          
+          setReminderText(timeText);
+        } else {
+          setReminderText("—");
+          setReminderCount(0);
+        }
       } catch (error) {
         console.error("Error fetching reminder info:", error);
         setReminderText("—");
+        setReminderCount(0);
       }
     };
     
     fetchReminderInfo();
-  }, [invoice]);
+  }, [invoice]); // Remove refreshTrigger for now
   
-  return <span className="text-muted-foreground">{reminderText}</span>;
+  return (
+    <div className="flex flex-col">
+      <span className="text-muted-foreground">{reminderText}</span>
+      {reminderCount > 0 && (
+        <span className="text-xs font-medium text-muted-foreground">
+          {reminderCount} sent
+        </span>
+      )}
+    </div>
+  );
 };
 
 export default function InvoicesPage() {
   const { user, isLoading: isUserLoading } = useUser();
+  // Add the refreshReminders state inside the component
+  const [refreshReminders, setRefreshReminders] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -309,40 +329,19 @@ export default function InvoicesPage() {
     // Generate email subject based on tone
     let emailSubject = "";
     if (tone === "polite") {
-      emailSubject = `Friendly reminder: Invoice #${invoice.invoiceNumber} due soon`;
+      emailSubject = `Friendly reminder: Invoice #${invoice.invoiceNumber} payment due`;
     } else if (tone === "firm") {
-      emailSubject = `Reminder: Invoice #${invoice.invoiceNumber} is now overdue`;
+      emailSubject = `REMINDER: Invoice #${invoice.invoiceNumber} is overdue`;
     } else {
       emailSubject = `URGENT: Invoice #${invoice.invoiceNumber} payment required`;
     }
     
-    // Generate email content template
-    const emailContent = `
-Dear ${invoice.clientName},
-
-${tone === "polite" 
-  ? `I hope this email finds you well. This is a friendly reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is due on ${formatDate(invoice.dueDate)}.` 
-  : tone === "firm" 
-    ? `This is a reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} was due on ${formatDate(invoice.dueDate)} and is now ${diffDays} days overdue.` 
-    : `URGENT REMINDER: Invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${diffDays} days overdue and requires your immediate attention.`}
-
-${tone === "polite" 
-  ? "If you've already sent your payment, please disregard this message. Otherwise, I would appreciate your prompt attention to this matter." 
-  : tone === "firm" 
-    ? "Please process this payment as soon as possible to avoid any late fees or further action." 
-    : "Please process this payment within 48 hours to avoid additional late fees and potential service interruptions."}
-
-${tone === "urgent" ? "If you're experiencing difficulties with payment, please contact us immediately to discuss payment options." : ""}
-
-Thank you for your business.
-
-Best regards,
-[Your Company Name]
-    `;
+    // Generate email content based on tone
+    const emailContent = getEmailContent(tone, invoice);
     
     // Call the server action to send and record the reminder
     try {
-      toast.loading("Sending reminder...");
+      const loadingToastId = toast.loading("Sending reminder...");
       const result = await sendInvoiceReminder({
         invoiceId,
         emailSubject,
@@ -350,13 +349,18 @@ Best regards,
         tone
       });
       
+      toast.dismiss(loadingToastId);
+      
       if (result.success) {
         toast.success(`Reminder #${result.reminderNumber} sent successfully`);
+        // Increment refresh trigger to update reminder counts
+        setRefreshReminders(prev => prev + 1);
       } else {
         toast.error(result.error || "Failed to send reminder");
       }
     } catch (error) {
       console.error("Error sending reminder:", error);
+      toast.dismiss(); // Dismiss any existing loading toasts
       toast.error("An error occurred while sending the reminder");
     }
   };
@@ -587,6 +591,69 @@ Best regards,
     return templates[templateType as keyof typeof templates] || templates.polite;
   };
 
+  // Create the enhanced LastReminderCell that uses refreshTrigger
+  const EnhancedLastReminderCell = useCallback(({ invoice }: { invoice: any }) => {
+    const [reminderText, setReminderText] = useState<string>("Loading...");
+    const [reminderCount, setReminderCount] = useState<number>(0);
+    
+    useEffect(() => {
+      const fetchReminderInfo = async () => {
+        try {
+          // Fetch the last reminder
+          const lastReminder = await getLastReminderSent(invoice.id);
+          
+          // Get the reminder count from the reminder number (if exists)
+          if (lastReminder) {
+            setReminderCount(lastReminder.reminderNumber);
+            
+            // Format the time since the reminder was sent
+            const now = new Date();
+            const sentDate = new Date(lastReminder.sentAt);
+            const diffTime = Math.abs(now.getTime() - sentDate.getTime());
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            let timeText = "";
+            if (diffDays === 0) {
+              // If sent today, show hours
+              const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+              if (diffHours === 0) {
+                timeText = "Just now";
+              } else {
+                timeText = `${diffHours}h ago`;
+              }
+            } else if (diffDays === 1) {
+              timeText = "Yesterday";
+            } else {
+              timeText = `${diffDays} days ago`;
+            }
+            
+            setReminderText(timeText);
+          } else {
+            setReminderText("—");
+            setReminderCount(0);
+          }
+        } catch (error) {
+          console.error("Error fetching reminder info:", error);
+          setReminderText("—");
+          setReminderCount(0);
+        }
+      };
+      
+      fetchReminderInfo();
+    }, [invoice, refreshReminders]); // Include refreshReminders dependency
+    
+    return (
+      <div className="flex flex-col">
+        <span className="text-muted-foreground">{reminderText}</span>
+        {reminderCount > 0 && (
+          <span className="text-xs font-medium text-muted-foreground">
+            {reminderCount} sent
+          </span>
+        )}
+      </div>
+    );
+  }, [refreshReminders]);
+
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
       {/* Header and Actions */}
@@ -702,7 +769,7 @@ Best regards,
                   <td className="p-4">{formatDate(invoice.dueDate)}</td>
                   <td className="p-4">{getStatusBadge(invoice.status, invoice.dueDate)}</td>
                   <td className="p-4">
-                    <LastReminderCell invoice={invoice} />
+                    <EnhancedLastReminderCell invoice={invoice} />
                   </td>
                   <td className="p-4">
                     <div className="flex items-center space-x-1">
