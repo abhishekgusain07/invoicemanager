@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -14,7 +14,11 @@ import {
   XIcon,
   Clock8Icon,
   HeartIcon,
-  ThumbsUpIcon
+  ThumbsUpIcon,
+  UserCogIcon,
+  HistoryIcon,
+  RefreshCcwIcon,
+  ClockIcon
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
@@ -41,18 +45,22 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { logDebug } from "@/utils/debug";
 import { getLastReminderSent, sendInvoiceReminder } from "@/actions/reminder";
+import { Label } from "@/components/ui/label";
 
-// Add a component to handle the last reminder with suspense
+// Define the LastReminderCell component without the refreshTrigger implementation yet
 const LastReminderCell = ({ invoice }: { invoice: any }) => {
   const [reminderText, setReminderText] = useState<string>("Loading...");
+  const [reminderCount, setReminderCount] = useState<number>(0);
   
   useEffect(() => {
     const fetchReminderInfo = async () => {
       try {
-        const text = await getLastReminderSent(invoice.id).then(lastReminder => {
-          if (!lastReminder) {
-            return "—";
-          }
+        // Fetch the last reminder
+        const lastReminder = await getLastReminderSent(invoice.id);
+        
+        // Get the reminder count from the reminder number (if exists)
+        if (lastReminder) {
+          setReminderCount(lastReminder.reminderNumber);
           
           // Format the time since the reminder was sent
           const now = new Date();
@@ -60,35 +68,52 @@ const LastReminderCell = ({ invoice }: { invoice: any }) => {
           const diffTime = Math.abs(now.getTime() - sentDate.getTime());
           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
           
+          let timeText = "";
           if (diffDays === 0) {
             // If sent today, show hours
             const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
             if (diffHours === 0) {
-              return "Just now";
+              timeText = "Just now";
+            } else {
+              timeText = `${diffHours}h ago`;
             }
-            return `${diffHours}h ago`;
           } else if (diffDays === 1) {
-            return "Yesterday";
+            timeText = "Yesterday";
           } else {
-            return `${diffDays} days ago`;
+            timeText = `${diffDays} days ago`;
           }
-        });
-        
-        setReminderText(text);
+          
+          setReminderText(timeText);
+        } else {
+          setReminderText("—");
+          setReminderCount(0);
+        }
       } catch (error) {
         console.error("Error fetching reminder info:", error);
         setReminderText("—");
+        setReminderCount(0);
       }
     };
     
     fetchReminderInfo();
-  }, [invoice]);
+  }, [invoice]); // Remove refreshTrigger for now
   
-  return <span className="text-muted-foreground">{reminderText}</span>;
+  return (
+    <div className="flex flex-col">
+      <span className="text-muted-foreground">{reminderText}</span>
+      {reminderCount > 0 && (
+        <span className="text-xs font-medium text-muted-foreground">
+          {reminderCount} sent
+        </span>
+      )}
+    </div>
+  );
 };
 
 export default function InvoicesPage() {
   const { user, isLoading: isUserLoading } = useUser();
+  // Add the refreshReminders state inside the component
+  const [refreshReminders, setRefreshReminders] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -105,7 +130,7 @@ export default function InvoicesPage() {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [invoiceToUpdate, setInvoiceToUpdate] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<string>("pending");
+  const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [currentInvoiceStatus, setCurrentInvoiceStatus] = useState<string>("");
   const [editingInvoice, setEditingInvoice] = useState<any | null>(null);
   
@@ -118,6 +143,13 @@ export default function InvoicesPage() {
 
   // Add a new state for edited template content
   const [editedEmailContent, setEditedEmailContent] = useState<string>("");
+  const [customizedEmailContent, setCustomizedEmailContent] = useState<string>("");
+
+  // Add new state variables for the reminder template modal
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [currentInvoiceId, setCurrentInvoiceId] = useState<string | null>(null);
+  const [selectedTemplateType, setSelectedTemplateType] = useState<"polite" | "firm" | "urgent">("polite");
+  const [isSendingTemplate, setIsSendingTemplate] = useState(false);
 
   // Fetch invoices
   useEffect(() => {
@@ -127,6 +159,13 @@ export default function InvoicesPage() {
       setIsLoading(true);
       try {
         const data = await getInvoicesByStatus(statusFilter as any);
+        
+        console.log("Fetched invoices:", data);
+        
+        // Verify the statuses of each invoice
+        data.forEach((invoice: any) => {
+          console.log(`Invoice ${invoice.invoiceNumber}: status=${invoice.status}, dueDate=${invoice.dueDate}`);
+        });
         
         setInvoices(data);
         setFilteredInvoices(data);
@@ -205,7 +244,9 @@ export default function InvoicesPage() {
   const getStatusBadge = (status: string, dueDate: Date) => {
     // Check if pending invoice is overdue
     const now = new Date();
-    const isOverdue = status === "pending" && new Date(dueDate) < now;
+    // Only consider it overdue for display if specifically marked as overdue in database
+    // or if it's both pending AND past due date
+    const isOverdue = status === "overdue" || (status === "pending" && new Date(dueDate) < now);
     
     // Important: Update the display status but don't modify the actual status property
     const displayStatus = isOverdue ? "overdue" : status;
@@ -281,84 +322,118 @@ export default function InvoicesPage() {
     }
   };
 
-  const handleSendReminder = async (invoiceId: string) => {
-    // Find the invoice to send a reminder for
+  // Update the handleSendReminder function to open the template selection modal
+  const handleSendReminder = (invoiceId: string) => {
+    // Find the invoice
     const invoice = invoices.find(inv => inv.id === invoiceId);
     if (!invoice) {
       toast.error("Invoice not found");
       return;
     }
 
-    // Determine appropriate tone based on invoice status and due date
-    let tone: "polite" | "firm" | "urgent" = "polite";
+    // Determine default tone based on how overdue it is
+    let defaultTone: "polite" | "firm" | "urgent" = "polite";
     
     const now = new Date();
     const dueDate = new Date(invoice.dueDate);
     const diffTime = now.getTime() - dueDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    // If overdue by more than 14 days, use urgent tone
-    if (diffDays > 14) {
-      tone = "urgent";
-    } 
-    // If overdue by more than 7 days but less than 14, use firm tone
-    else if (diffDays > 7) {
-      tone = "firm";
+    // Only set firm/urgent tones if the invoice is actually overdue
+    // Check both the due date and the status
+    const isActuallyOverdue = invoice.status === "overdue" || 
+      (invoice.status === "pending" && diffDays > 0);
+    
+    // Set default tone based on how overdue (only if it's actually overdue)
+    if (isActuallyOverdue) {
+      if (diffDays > 14) {
+        defaultTone = "urgent";
+      } else if (diffDays > 7) {
+        defaultTone = "firm";
+      }
     }
     
-    // Generate email subject based on tone
+    // Set initial template
+    setSelectedTemplateType(defaultTone);
+    
+    // Initialize both state variables with the same content
+    const initialEmailContent = getEmailContent(defaultTone, invoice);
+    setCustomizedEmailContent(initialEmailContent);
+    setEditedEmailContent(initialEmailContent);
+    
+    // Store the current invoice ID and open the modal
+    setCurrentInvoiceId(invoiceId);
+    setTemplateModalOpen(true);
+  };
+
+  // Create a new function to actually send the reminder
+  const sendReminderWithTemplate = async () => {
+    if (!currentInvoiceId) return;
+    
+    // Find the invoice
+    const invoice = invoices.find(inv => inv.id === currentInvoiceId);
+    if (!invoice) {
+      toast.error("Invoice not found");
+      return;
+    }
+    
+    // Generate email subject based on selected template
     let emailSubject = "";
-    if (tone === "polite") {
-      emailSubject = `Friendly reminder: Invoice #${invoice.invoiceNumber} due soon`;
-    } else if (tone === "firm") {
-      emailSubject = `Reminder: Invoice #${invoice.invoiceNumber} is now overdue`;
+    if (selectedTemplateType === "polite") {
+      emailSubject = `Friendly reminder: Invoice #${invoice.invoiceNumber} payment due`;
+    } else if (selectedTemplateType === "firm") {
+      emailSubject = `REMINDER: Invoice #${invoice.invoiceNumber} is overdue`;
     } else {
       emailSubject = `URGENT: Invoice #${invoice.invoiceNumber} payment required`;
     }
     
-    // Generate email content template
-    const emailContent = `
-Dear ${invoice.clientName},
-
-${tone === "polite" 
-  ? `I hope this email finds you well. This is a friendly reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is due on ${formatDate(invoice.dueDate)}.` 
-  : tone === "firm" 
-    ? `This is a reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} was due on ${formatDate(invoice.dueDate)} and is now ${diffDays} days overdue.` 
-    : `URGENT REMINDER: Invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${diffDays} days overdue and requires your immediate attention.`}
-
-${tone === "polite" 
-  ? "If you've already sent your payment, please disregard this message. Otherwise, I would appreciate your prompt attention to this matter." 
-  : tone === "firm" 
-    ? "Please process this payment as soon as possible to avoid any late fees or further action." 
-    : "Please process this payment within 48 hours to avoid additional late fees and potential service interruptions."}
-
-${tone === "urgent" ? "If you're experiencing difficulties with payment, please contact us immediately to discuss payment options." : ""}
-
-Thank you for your business.
-
-Best regards,
-[Your Company Name]
-    `;
+    setIsSendingTemplate(true);
     
-    // Call the server action to send and record the reminder
     try {
-      toast.loading("Sending reminder...");
+      const loadingToastId = toast.loading("Sending reminder...");
       const result = await sendInvoiceReminder({
-        invoiceId,
+        invoiceId: currentInvoiceId,
         emailSubject,
-        emailContent,
-        tone
+        emailContent: customizedEmailContent,
+        tone: selectedTemplateType as any
       });
+      
+      toast.dismiss(loadingToastId);
       
       if (result.success) {
         toast.success(`Reminder #${result.reminderNumber} sent successfully`);
+        setTemplateModalOpen(false);
+        // Increment refresh trigger to update reminder counts
+        setRefreshReminders(prev => prev + 1);
       } else {
         toast.error(result.error || "Failed to send reminder");
       }
     } catch (error) {
       console.error("Error sending reminder:", error);
+      toast.dismiss(); // Dismiss any existing loading toasts
       toast.error("An error occurred while sending the reminder");
+    } finally {
+      setIsSendingTemplate(false);
     }
+  };
+
+  // Update the handleTemplateChange function
+  const handleTemplateChange = (type: string) => {
+    // Validate that the type is one of the allowed values
+    if (type !== "polite" && type !== "firm" && type !== "urgent") return;
+    
+    setSelectedTemplateType(type as "polite" | "firm" | "urgent");
+    
+    // Get the current invoice
+    const invoice = invoices.find(inv => inv.id === currentInvoiceId);
+    if (!invoice) return;
+    
+    // Get the new email content
+    const newEmailContent = getEmailContent(type as "polite" | "firm" | "urgent", invoice);
+    
+    // Update both state variables
+    setCustomizedEmailContent(newEmailContent);
+    setEditedEmailContent(newEmailContent);
   };
 
   const openDeleteModal = (invoiceId: string) => {
@@ -466,14 +541,6 @@ Best regards,
       });
   }, [statusFilter, setInvoices, setFilteredInvoices, setIsModalOpen, setEditingInvoice]);
 
-  // Update the template selection to also update edited content
-  const handleTemplateChange = (value: string) => {
-    setSelectedTemplate(value);
-    if (selectedInvoice) {
-      setEditedEmailContent(getEmailContent(value, selectedInvoice));
-    }
-  };
-
   // Update the sendEmail function to use edited content
   const sendEmail = async (templateType: string) => {
     if (!selectedInvoice) return;
@@ -546,7 +613,7 @@ If you've already sent the payment, please disregard this message. Otherwise, I 
 Thank you for your attention to this matter.
 
 Best regards,
-[Your Company Name]
+${user?.name}
       `,
       firm: `
 Dear ${invoice.clientName},
@@ -558,7 +625,7 @@ Please process this payment as soon as possible to avoid any late fees.
 If you have any questions about this invoice, please don't hesitate to contact us.
 
 Regards,
-[Your Company Name]
+${user?.name}
       `,
       urgent: `
 Dear ${invoice.clientName},
@@ -570,7 +637,7 @@ This requires your immediate attention. Please process this payment within 48 ho
 If you're experiencing difficulties with payment, please contact us immediately to discuss payment options.
 
 Sincerely,
-[Your Company Name]
+${user?.name}
       `,
       thankYou: `
 Dear ${invoice.clientName},
@@ -585,6 +652,89 @@ Best regards,
     };
     
     return templates[templateType as keyof typeof templates] || templates.polite;
+  };
+
+  // Create the enhanced LastReminderCell that uses refreshTrigger
+  const EnhancedLastReminderCell = useCallback(({ invoice }: { invoice: any }) => {
+    const [reminderText, setReminderText] = useState<string>("Loading...");
+    const [reminderCount, setReminderCount] = useState<number>(0);
+    
+    useEffect(() => {
+      const fetchReminderInfo = async () => {
+        try {
+          // Fetch the last reminder
+          const lastReminder = await getLastReminderSent(invoice.id);
+          
+          // Get the reminder count from the reminder number (if exists)
+          if (lastReminder) {
+            setReminderCount(lastReminder.reminderNumber);
+            
+            // Format the time since the reminder was sent
+            const now = new Date();
+            const sentDate = new Date(lastReminder.sentAt);
+            const diffTime = Math.abs(now.getTime() - sentDate.getTime());
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            let timeText = "";
+            if (diffDays === 0) {
+              // If sent today, show hours
+              const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+              if (diffHours === 0) {
+                timeText = "Just now";
+              } else {
+                timeText = `${diffHours}h ago`;
+              }
+            } else if (diffDays === 1) {
+              timeText = "Yesterday";
+            } else {
+              timeText = `${diffDays} days ago`;
+            }
+            
+            setReminderText(timeText);
+          } else {
+            setReminderText("—");
+            setReminderCount(0);
+          }
+        } catch (error) {
+          console.error("Error fetching reminder info:", error);
+          setReminderText("—");
+          setReminderCount(0);
+        }
+      };
+      
+      fetchReminderInfo();
+    }, [invoice, refreshReminders]); // Include refreshReminders dependency
+    
+    return (
+      <div className="flex flex-col">
+        <span className="text-muted-foreground">{reminderText}</span>
+        {reminderCount > 0 && (
+          <span className="text-xs font-medium text-muted-foreground">
+            {reminderCount} sent
+          </span>
+        )}
+      </div>
+    );
+  }, [refreshReminders]);
+
+  // Add this function to check if invoice is overdue
+  const isInvoiceOverdue = (dueDate: Date, status?: string) => {
+    const now = new Date();
+    // If status is provided, only consider overdue if it's explicitly "overdue" or if it's "pending" and past due date
+    if (status) {
+      return status === "overdue" || (status === "pending" && new Date(dueDate) < now);
+    }
+    // For backward compatibility with existing calls
+    return new Date(dueDate) < now;
+  };
+  
+  // Add this function to get days overdue or days until due
+  const getInvoiceDays = (dueDate: Date) => {
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   return (
@@ -702,7 +852,7 @@ Best regards,
                   <td className="p-4">{formatDate(invoice.dueDate)}</td>
                   <td className="p-4">{getStatusBadge(invoice.status, invoice.dueDate)}</td>
                   <td className="p-4">
-                    <LastReminderCell invoice={invoice} />
+                    <EnhancedLastReminderCell invoice={invoice} />
                   </td>
                   <td className="p-4">
                     <div className="flex items-center space-x-1">
@@ -999,15 +1149,15 @@ Best regards,
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-3">
                   <div className={cn(
                     "rounded-lg p-4 text-center border h-fit",
-                    getDaysOverdue(selectedInvoice.dueDate) > 0 
+                    isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status)
                       ? "bg-gradient-to-br from-red-50 to-orange-50 border-red-100" 
                       : "bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-100"
                   )}>
                     <div className={cn(
                       "inline-flex h-10 w-10 items-center justify-center rounded-full mb-2",
-                      getDaysOverdue(selectedInvoice.dueDate) > 0 ? "bg-red-100" : "bg-yellow-100"
+                      isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? "bg-red-100" : "bg-yellow-100"
                     )}>
-                      {getDaysOverdue(selectedInvoice.dueDate) > 0 ? (
+                      {isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? (
                         <AlertTriangleIcon className="h-6 w-6 text-red-600" />
                       ) : (
                         <Clock8Icon className="h-6 w-6 text-yellow-600" />
@@ -1015,25 +1165,28 @@ Best regards,
                     </div>
                     <h3 className={cn(
                       "text-lg font-semibold",
-                      getDaysOverdue(selectedInvoice.dueDate) > 0 ? "text-red-800" : "text-yellow-800"
+                      isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? "text-red-800" : "text-yellow-800"
                     )}>
-                      {getDaysOverdue(selectedInvoice.dueDate) > 0 
-                        ? `Overdue by ${getDaysOverdue(selectedInvoice.dueDate)} days` 
+                      {isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status)
+                        ? `Payment Overdue by ${getDaysOverdue(selectedInvoice.dueDate)} days` 
                         : "Payment Pending"}
                     </h3>
-                    <p className={cn("text-sm", getDaysOverdue(selectedInvoice.dueDate) > 0 ? "text-red-700" : "text-yellow-700")}>
-                      {getDaysOverdue(selectedInvoice.dueDate) > 0 
+                    <p className={cn(
+                      "text-sm", 
+                      isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? "text-red-700" : "text-yellow-700"
+                    )}>
+                      {isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status)
                         ? `This invoice was due on ${formatDate(selectedInvoice.dueDate)}.` 
                         : `This invoice is due on ${formatDate(selectedInvoice.dueDate)}.`}
                     </p>
                     <div className="mt-3 flex justify-center gap-2">
                       <Badge className={cn(
                         "py-0.5 text-xs",
-                        getDaysOverdue(selectedInvoice.dueDate) > 0 
+                        isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status)
                           ? "bg-red-100 text-red-800 hover:bg-red-200" 
                           : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                       )}>
-                        {getDaysOverdue(selectedInvoice.dueDate) > 0 ? (
+                        {isInvoiceOverdue(selectedInvoice.dueDate, selectedInvoice.status) ? (
                           <>
                             <AlertTriangleIcon className="mr-1 h-3 w-3" /> Overdue
                           </>
@@ -1124,6 +1277,316 @@ Best regards,
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Template Selection Modal */}
+      <Dialog open={templateModalOpen} onOpenChange={setTemplateModalOpen}>
+        <DialogContent 
+          className="p-0 !mx-auto overflow-hidden rounded-xl"
+          style={{ width: '85%', maxWidth: '1200px', height: 'fit-content', maxHeight: '90vh' }}
+        >
+          {currentInvoiceId && (
+            (() => {
+              const invoice = invoices.find(inv => inv.id === currentInvoiceId);
+              if (!invoice) return null;
+              
+              const isPaid = invoice.status === 'paid';
+              // Only consider an invoice overdue if it's both past due date AND has pending status
+              const isOverdue = new Date(invoice.dueDate) < new Date() && (invoice.status === 'pending' || invoice.status === 'overdue');
+              
+              // Get days overdue or days until due
+              const today = new Date();
+              const dueDate = new Date(invoice.dueDate);
+              const diffTime = dueDate.getTime() - today.getTime();
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              const isDaysOverdue = diffDays < 0;
+              const daysText = isDaysOverdue ? Math.abs(diffDays) : diffDays;
+              const dueDatePastToday = today > dueDate;
+              
+              console.log("Invoice status:", invoice.status);
+              console.log("Due date past today:", dueDatePastToday);
+              console.log("Is invoice considered overdue:", isOverdue);
+              
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 h-full">
+                  {/* Left Column - Invoice Details */}
+                  <div className={`p-6 flex flex-col ${isPaid 
+                    ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-r border-green-100' 
+                    : isOverdue // Only use overdue styling if actually overdue
+                      ? 'bg-gradient-to-br from-red-50 to-orange-50 border-r border-red-100'
+                      : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-r border-blue-100'
+                  }`}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className={`text-xl font-bold ${isPaid ? 'text-green-800' : isOverdue ? 'text-red-800' : 'text-blue-800'}`}>
+                          {isPaid ? 'Payment Received' : isOverdue ? 'Payment Overdue' : 'Payment Due Soon'}
+                        </h3>
+                        <p className={`text-sm ${isPaid ? 'text-green-600' : isOverdue ? 'text-red-600' : 'text-blue-600'}`}>
+                          {isPaid 
+                            ? 'This invoice has been paid in full.'
+                            : isOverdue
+                              ? `This invoice is ${daysText} day${daysText !== 1 ? 's' : ''} overdue.`
+                              : `This invoice is due in ${daysText} day${daysText !== 1 ? 's' : ''}.`
+                          }
+                        </p>
+                      </div>
+                      <div className={`rounded-full p-3 ${isPaid 
+                        ? 'bg-green-100' 
+                        : isOverdue 
+                          ? 'bg-red-100'
+                          : 'bg-blue-100'
+                      }`}>
+                        {isPaid 
+                          ? <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                          : isOverdue 
+                            ? <AlertTriangleIcon className="h-6 w-6 text-red-600" />
+                            : <Clock8Icon className="h-6 w-6 text-blue-600" />
+                        }
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white/50 rounded-lg p-4 mb-5 shadow-sm">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Invoice Number</p>
+                          <p className="font-mono text-sm font-bold">{invoice.invoiceNumber}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Amount</p>
+                          <p className="font-bold">{formatCurrency(invoice.amount, invoice.currency)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Issue Date</p>
+                          <p className="text-sm">{formatDate(invoice.issueDate)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Due Date</p>
+                          <p className={`text-sm font-medium ${isOverdue ? 'text-red-600' : ''}`}>
+                            {formatDate(invoice.dueDate)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                        <UserCogIcon className="h-3.5 w-3.5" /> Client Information
+                      </h4>
+                      <div className="bg-white/50 rounded-lg p-4 shadow-sm">
+                        <p className="font-medium">{invoice.clientName}</p>
+                        <p className="text-sm text-muted-foreground">{invoice.clientEmail}</p>
+                        {invoice.clientPhone && (
+                          <p className="text-sm text-muted-foreground">{invoice.clientPhone}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Reminder History Section */}
+                    <div className="mt-auto">
+                      <h4 className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                        <HistoryIcon className="h-3.5 w-3.5" /> Previous Reminders
+                      </h4>
+                      <div className="bg-white/50 rounded-lg p-4 shadow-sm">
+                        <LastReminderCellDetailed invoiceId={invoice.id} refreshTrigger={refreshReminders} />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Right Column - Email Template */}
+                  <div className="p-6 flex flex-col">
+                    <div className="mb-6">
+                      <h3 className="text-xl font-bold mb-1">
+                        {isPaid ? 'Send Thank You Email' : 'Send Payment Reminder'}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isPaid 
+                          ? 'Send a thank you note to show your appreciation for the payment.'
+                          : 'Customize your reminder email before sending it to the client.'
+                        }
+                      </p>
+                    </div>
+                    
+                    {!isPaid && (
+                      <div className="flex justify-between items-center mb-4">
+                        <Label htmlFor="template-type" className="text-sm font-medium">Template Tone</Label>
+                        <Select value={selectedTemplateType} onValueChange={handleTemplateChange}>
+                          <SelectTrigger id="template-type" className="w-[180px]">
+                            <SelectValue placeholder="Select template" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="polite">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                                <span>Polite</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="firm">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                                <span>Firm</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="urgent">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-red-500"></div>
+                                <span>Urgent</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    
+                    <div className="flex-grow flex flex-col space-y-2">
+                      <div className="flex justify-between items-center">
+                        <Label htmlFor="email-content" className="text-sm font-medium">Email Content</Label>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 text-xs"
+                          onClick={() => {
+                            if (isPaid) {
+                              setCustomizedEmailContent(getEmailContent('thankYou', invoice));
+                            } else {
+                              setCustomizedEmailContent(getEmailContent(selectedTemplateType, invoice));
+                            }
+                          }}
+                        >
+                          <RefreshCcwIcon className="h-3 w-3 mr-1" />
+                          Reset to default
+                        </Button>
+                      </div>
+                      
+                      <div className="relative flex-grow rounded-md border overflow-hidden mb-6">
+                        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-50"></div>
+                        <textarea 
+                          id="email-content"
+                          className="absolute inset-0 bg-transparent p-4 font-mono text-sm w-full resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+                          value={customizedEmailContent}
+                          onChange={(e) => setCustomizedEmailContent(e.target.value)}
+                          disabled={isSendingTemplate}
+                          style={{minHeight: "280px"}}
+                        />
+                      </div>
+                    </div>
+                    
+                    <DialogFooter className="flex justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
+                      <Button
+                        variant="outline"
+                        onClick={() => setTemplateModalOpen(false)}
+                        disabled={isSendingTemplate}
+                        className="cursor-pointer hover:bg-gray-100"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        variant={isPaid ? "default" : "default"}
+                        onClick={isPaid ? () => sendEmail('thankYou') : sendReminderWithTemplate}
+                        disabled={isSendingTemplate}
+                        className={`gap-2 cursor-pointer px-6 ${isPaid 
+                          ? 'bg-green-600 hover:bg-green-700 text-white' 
+                          : isOverdue && selectedTemplateType === 'urgent'
+                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                            : ''
+                        }`}
+                      >
+                        {isSendingTemplate ? (
+                          <>
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <SendIcon className="h-4 w-4" />
+                            {isPaid ? 'Send Thank You' : 'Send Reminder'}
+                          </>
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </div>
+                </div>
+              );
+            })() as ReactNode
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+// Create a more detailed LastReminderCell component for the modal
+const LastReminderCellDetailed = ({ invoiceId, refreshTrigger }: { invoiceId: string, refreshTrigger: number }) => {
+  const [reminders, setReminders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchReminderHistory = async () => {
+      try {
+        setLoading(true);
+        // This would ideally be a separate function to get all reminders
+        // For now, we'll just show the last one from getLastReminderSent
+        const lastReminder = await getLastReminderSent(invoiceId);
+        
+        if (lastReminder) {
+          setReminders([lastReminder]);
+        } else {
+          setReminders([]);
+        }
+      } catch (error) {
+        console.error("Error fetching reminder history:", error);
+        setReminders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchReminderHistory();
+  }, [invoiceId, refreshTrigger]);
+  
+  if (loading) {
+    return <div className="animate-pulse h-12 bg-gray-200 rounded-md"></div>;
+  }
+  
+  if (reminders.length === 0) {
+    return (
+      <div className="py-2 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+        <MailIcon className="h-3.5 w-3.5 opacity-70" />
+        <span>No reminders sent yet</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="space-y-3">
+      {reminders.map((reminder, index) => {
+        const sentDate = new Date(reminder.sentAt);
+        const formattedDate = new Intl.DateTimeFormat('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }).format(sentDate);
+        
+        return (
+          <div key={index} className="flex items-start gap-3">
+            <div className={`rounded-full p-1.5 ${
+              reminder.tone === 'urgent' 
+                ? 'bg-red-100 text-red-600' 
+                : reminder.tone === 'firm'
+                  ? 'bg-amber-100 text-amber-600'
+                  : 'bg-blue-100 text-blue-600'
+            }`}>
+              <MailIcon className="h-3 w-3" />
+            </div>
+            <div className="text-sm flex-1">
+              <div className="flex justify-between">
+                <span className="font-medium">Reminder #{reminder.reminderNumber}</span>
+                <span className="text-xs text-muted-foreground">{formattedDate}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 capitalize">{reminder.tone} tone</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
