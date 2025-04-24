@@ -4,7 +4,8 @@ import {
   BookOpenIcon, 
   CompassIcon, 
   HelpCircle, 
-  Mail
+  Mail,
+  ThumbsUpIcon
 } from "lucide-react";
 
 export function HelpSkeleton() {
@@ -32,6 +33,7 @@ export function HelpSkeleton() {
           <TabSkeleton icon={<CompassIcon className="h-4 w-4 text-muted-foreground/40" />} text="Features" />
           <TabSkeleton icon={<HelpCircle className="h-4 w-4 text-muted-foreground/40" />} text="FAQs" />
           <TabSkeleton icon={<Mail className="h-4 w-4 text-muted-foreground/40" />} text="Support" />
+          <TabSkeleton icon={<ThumbsUpIcon className="size-4 text-muted-foreground/40" />} text="Feedback"/>
         </div>
 
         {/* Content Skeleton - Getting Started */}
