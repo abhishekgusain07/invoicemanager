@@ -24,7 +24,7 @@ export default function Component() {
       >
         {steps.map((step) => (
           <StepperItem key={step} step={step} className="not-last:flex-1">
-            <StepperTrigger asChild>
+            <StepperTrigger>
               <StepperIndicator />
             </StepperTrigger>
             {step < steps.length && <StepperSeparator />}

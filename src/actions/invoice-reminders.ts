@@ -1,8 +1,11 @@
-import { db } from "@/lib/db";
-import { invoiceReminders } from "@/lib/db/schema";
-import { auth } from "@clerk/nextjs/server";
+"use server"
+import { db } from "@/db/drizzle";
+import { invoiceReminders } from "@/db/schema";
+import { auth } from "@/lib/auth";
+import { serverDebug } from "@/utils/debug";
+import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
-import { serverDebug } from "@/lib/utils/debug";
+import { headers } from "next/headers";
 
 /**
  * Log a reminder sent for an invoice
@@ -18,24 +21,27 @@ export async function logInvoiceReminder({
   emailSubject: string;
   reminderType: string;
 }) {
-  const { userId } = auth();
-
-  if (!userId) {
-    return {
-      error: "Unauthorized",
-      success: false,
-    };
+  const session = await auth.api.getSession({
+    headers:  await headers()
+  });
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized. Please sign in to create an invoice." };
   }
 
   try {
     // Insert the reminder record
     await db.insert(invoiceReminders).values({
+      id: uuidv4(),
+      userId: session.user.id,
       invoiceId,
-      userId,
       emailContent,
       emailSubject,
-      reminderType,
+      reminderNumber: 1, // Assuming this is the first reminder if not specified
+      tone: reminderType as any, // Cast the string to the enum type
+      status: "sent", // Default email delivery status
+      sentAt: new Date(),
       createdAt: new Date(),
+      updatedAt: new Date()
     });
 
     // Revalidate the invoice page path to reflect the change

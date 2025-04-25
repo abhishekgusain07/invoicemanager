@@ -1,4 +1,4 @@
-import { pgTable, text, integer, timestamp, boolean, decimal, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, boolean, decimal, pgEnum, unique } from "drizzle-orm/pg-core";
 			
 export const user = pgTable("user", {
 	id: text("id").primaryKey(),
@@ -9,6 +9,27 @@ export const user = pgTable("user", {
 	createdAt: timestamp('created_at').notNull(),
 	subscription: text("subscription"),
 	updatedAt: timestamp('updated_at').notNull()
+});
+
+export const gmailConnection = pgTable("gmail_connection", {
+	id: text("id").primaryKey(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => user.id),
+	email: text("email").notNull(),
+	name: text("name"),
+	picture: text("picture"),
+	accessToken: text("access_token").notNull(),
+	refreshToken: text("refresh_token"),
+	scope: text("scope").notNull(),
+	providerId: text("provider_id").notNull().default("google"),
+	expiresAt: timestamp("expires_at").notNull(),
+	createdAt: timestamp("created_at").notNull().defaultNow(),
+	updatedAt: timestamp("updated_at").notNull(),
+}, (table) => {
+	return {
+		userEmailIdx: unique().on(table.userId, table.email)
+	};
 });
 
 export const session = pgTable("session", {
