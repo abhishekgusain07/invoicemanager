@@ -71,6 +71,13 @@
       "when": 1745558974610,
       "tag": "0009_regular_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1745571952814,
+      "tag": "0010_amused_talon",
+      "breakpoints": true
     }
   ]
 }

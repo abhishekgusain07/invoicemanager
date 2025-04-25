@@ -1,4 +1,4 @@
-import { BellDotIcon, Calendar, CircleHelp, FileText, Home, Inbox, LayoutDashboard, Search, Settings, Settings2 } from "lucide-react"
+import { BellDotIcon, Calendar, CircleHelp, FileText, Home, Inbox, LayoutDashboard, MailboxIcon, Search, Settings, Settings2 } from "lucide-react"
 
 import {
   Sidebar,
@@ -27,6 +27,11 @@ const items = [
     title: "Templates",
     url: "/templates",
     icon: BellDotIcon,
+  },
+  {
+    title: "Connect",
+    url: "/connect",
+    icon: MailboxIcon
   },
   {
     title: "Setting",

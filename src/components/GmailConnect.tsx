@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from './ui/button';
+import { Mail, Plus, Loader2 } from 'lucide-react';
 
 interface GmailConnectProps {
   userId: string;
@@ -38,8 +39,20 @@ export function GmailConnect({ userId, onSuccess }: GmailConnectProps) {
     <Button 
       onClick={handleConnect}
       disabled={isLoading}
+      className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-5 py-2 rounded-full transition-colors"
+      size="lg"
     >
-      {isLoading ? 'Connecting...' : 'Connect Gmail Account'}
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Connecting...
+        </>
+      ) : (
+        <>
+          <Plus className="mr-2 h-4 w-4" />
+          Connect Gmail
+        </>
+      )}
     </Button>
   );
 }

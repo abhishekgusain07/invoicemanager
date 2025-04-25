@@ -8,6 +8,7 @@ export const user = pgTable("user", {
 	image: text('image'),
 	createdAt: timestamp('created_at').notNull(),
 	subscription: text("subscription"),
+	gmailConnected: boolean('gmail_connected').default(false),
 	updatedAt: timestamp('updated_at').notNull()
 });
 

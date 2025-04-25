@@ -1,0 +1,1 @@
+ALTER TABLE "user" ADD COLUMN "gmail_connected" boolean DEFAULT false;
