@@ -6,10 +6,9 @@ import { serverDebug } from "@/utils/debug";
 import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { and, eq, desc } from "drizzle-orm";
 
-/**
- * Log a reminder sent for an invoice
- */
+
 export async function logInvoiceReminder({
   invoiceId,
   emailContent,
@@ -28,11 +27,14 @@ export async function logInvoiceReminder({
     return { success: false, error: "Unauthorized. Please sign in to create an invoice." };
   }
 
+
   try {
+
+    
     // Insert the reminder record
     await db.insert(invoiceReminders).values({
       id: uuidv4(),
-      userId: session.user.id,
+      userId: session.user.id as string,
       invoiceId,
       emailContent,
       emailSubject,
@@ -52,7 +54,7 @@ export async function logInvoiceReminder({
       success: true,
     };
   } catch (error) {
-    serverDebug("Error logging invoice reminder:", error);
+    serverDebug("Error logging invoice reminder:","");
     return {
       error: "Failed to log invoice reminder",
       success: false,
@@ -64,22 +66,26 @@ export async function logInvoiceReminder({
  * Get reminder history for an invoice
  */
 export async function getInvoiceReminderHistory(invoiceId: string) {
-  const { userId } = auth();
-
-  if (!userId) {
-    return [];
+  const session = await auth.api.getSession({
+    headers:  await headers()
+  });
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized. Please login first" };
   }
 
   try {
-    const reminderHistory = await db.query.invoiceReminders.findMany({
-      where: (reminders: any, { eq, and }: any) => 
-        and(eq(reminders.invoiceId, invoiceId), eq(reminders.userId, userId)),
-      orderBy: (reminders: any, { desc }: any) => [desc(reminders.createdAt)]
-    });
+    const reminderHistory = await db
+      .select()
+      .from(invoiceReminders)
+      .where(and(
+        eq(invoiceReminders.invoiceId, invoiceId), 
+        eq(invoiceReminders.userId, session.user.id as string)
+      ))
+      .orderBy(desc(invoiceReminders.createdAt));
 
     return reminderHistory;
   } catch (error) {
-    serverDebug("Error fetching invoice reminder history:", error);
+    serverDebug("Error fetching invoice reminder history:","");
     return [];
   }
 }
@@ -88,22 +94,28 @@ export async function getInvoiceReminderHistory(invoiceId: string) {
  * Get the last reminder for an invoice
  */
 export async function getLastInvoiceReminder(invoiceId: string) {
-  const { userId } = auth();
-
-  if (!userId) {
-    return null;
+  const session = await auth.api.getSession({
+    headers:  await headers()
+  });
+  if (!session?.user) {
+    return { success: false, error: "Unauthorized. Please login first" };
   }
 
   try {
-    const lastReminder = await db.query.invoiceReminders.findFirst({
-      where: (reminders: any, { eq, and }: any) => 
-        and(eq(reminders.invoiceId, invoiceId), eq(reminders.userId, userId)),
-      orderBy: (reminders: any, { desc }: any) => [desc(reminders.createdAt)]
-    });
+    const lastReminder = await db
+      .select()
+      .from(invoiceReminders)
+      .where(and(
+        eq(invoiceReminders.invoiceId, invoiceId),
+        eq(invoiceReminders.userId, session.user.id as string)
+      ))
+      .orderBy(desc(invoiceReminders.createdAt))
+      .limit(1)
+      .then(results => results[0] || null);
 
     return lastReminder;
   } catch (error) {
-    serverDebug("Error fetching last invoice reminder:", error);
+    serverDebug("Error fetching last invoice reminder:", "");
     return null;
   }
 } 
