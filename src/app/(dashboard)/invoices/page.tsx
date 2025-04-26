@@ -660,6 +660,7 @@ Best regards,
     const [reminderCount, setReminderCount] = useState<number>(0);
     
     useEffect(() => {
+      
       const fetchReminderInfo = async () => {
         try {
           // Fetch the last reminder
