@@ -51,6 +51,7 @@ import { Label } from "@/components/ui/label";
 const LastReminderCell = ({ invoice }: { invoice: any }) => {
   const [reminderText, setReminderText] = useState<string>("Loading...");
   const [reminderCount, setReminderCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
   useEffect(() => {
     const fetchReminderInfo = async () => {
@@ -88,10 +89,12 @@ const LastReminderCell = ({ invoice }: { invoice: any }) => {
           setReminderText("—");
           setReminderCount(0);
         }
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching reminder info:", error);
         setReminderText("—");
         setReminderCount(0);
+        setIsLoading(false);
       }
     };
     
@@ -100,11 +103,20 @@ const LastReminderCell = ({ invoice }: { invoice: any }) => {
   
   return (
     <div className="flex flex-col">
-      <span className="text-muted-foreground">{reminderText}</span>
-      {reminderCount > 0 && (
-        <span className="text-xs font-medium text-muted-foreground">
-          {reminderCount} sent
-        </span>
+      {isLoading ? (
+        <div className="flex items-center text-muted-foreground">
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent mr-1"></div>
+          <span className="text-xs">Loading</span>
+        </div>
+      ) : (
+        <>
+          <span className="text-muted-foreground">{reminderText}</span>
+          {reminderCount > 0 && (
+            <span className="text-xs font-medium text-muted-foreground">
+              {reminderCount} sent
+            </span>
+          )}
+        </>
       )}
     </div>
   );
