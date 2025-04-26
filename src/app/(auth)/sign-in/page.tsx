@@ -173,7 +173,6 @@ export default function SignIn() {
               <span className="bg-white px-2 text-gray-500">Or continue with</span>
             </div>
           </div>
-          Uncomment this section when you enable social providers in auth.ts
           
           <div className="mt-6 grid grid-cols-1 gap-3">
             <button
