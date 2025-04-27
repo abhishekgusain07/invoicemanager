@@ -9,7 +9,7 @@ import { User } from "better-auth";
 import { toast } from "sonner";
 import { checkGmailConnection } from "@/actions/gmail";
 import type { GmailConnectionData } from "@/actions/gmail";
-
+import { ConnectSkeleton } from "./components/ConnectSkeleton";
 export default function ConnectPage() {
     const [user, setUser] = useState<User|null>(null);
     const [loadingUser, setLoadingUser] = useState<boolean>(true);
@@ -60,12 +60,9 @@ export default function ConnectPage() {
 
     if(loadingUser || checkingConnection) {
         return (
-            <div className="h-screen w-full flex items-center justify-center">
-                <div className="flex flex-col items-center gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                    <p className="text-muted-foreground">Loading...</p>
-                </div>
-            </div>
+           <>
+            <ConnectSkeleton />
+           </>
         );
     }
 
