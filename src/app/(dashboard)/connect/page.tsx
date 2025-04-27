@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { checkGmailConnection } from "@/actions/gmail";
 import type { GmailConnectionData } from "@/actions/gmail";
 import { ConnectSkeleton } from "./components/ConnectSkeleton";
+import { GmailConnectSkeleton } from "./components/GmailConnectSkeleton";
+
 export default function ConnectPage() {
     const [user, setUser] = useState<User|null>(null);
     const [loadingUser, setLoadingUser] = useState<boolean>(true);
@@ -59,11 +61,7 @@ export default function ConnectPage() {
     }, [user]);
 
     if(loadingUser || checkingConnection) {
-        return (
-           <>
-            <ConnectSkeleton />
-           </>
-        );
+        return <GmailConnectSkeleton />;
     }
 
     if(!user) {
