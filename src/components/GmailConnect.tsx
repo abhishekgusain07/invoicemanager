@@ -3,14 +3,16 @@
 
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Mail, Plus, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 interface GmailConnectProps {
   userId: string;
   onSuccess?: () => void;
+  showDescription?: boolean;
 }
 
-export function GmailConnect({ userId, onSuccess }: GmailConnectProps) {
+export function GmailConnect({ userId, onSuccess, showDescription = false }: GmailConnectProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConnect = async () => {
@@ -36,23 +38,32 @@ export function GmailConnect({ userId, onSuccess }: GmailConnectProps) {
   };
 
   return (
-    <Button 
-      onClick={handleConnect}
-      disabled={isLoading}
-      className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-5 py-2 rounded-full transition-colors"
-      size="lg"
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Connecting...
-        </>
-      ) : (
-        <>
-          <Plus className="mr-2 h-4 w-4" />
-          Connect Gmail
-        </>
+    <div className="flex flex-col items-center">
+      <Button 
+        onClick={handleConnect}
+        disabled={isLoading}
+        className="flex items-center justify-center gap-2 w-64 bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 font-medium py-2 px-4 rounded-md shadow-sm"
+        size="lg"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <span>Connecting...</span>
+          </>
+        ) : (
+          <>
+            <Image src="/gmail.svg" alt="Gmail" width={20} height={20} />
+            <span>Connect your Gmail</span>
+          </>
+        )}
+      </Button>
+      
+      {showDescription && (
+        <div className="mt-4 max-w-md text-sm text-gray-500 text-center">
+          <p>Connect your Gmail account to automatically send invoice reminders and follow-ups to clients. 
+          InvoiceManager will only request access to send emails on your behalf.</p>
+        </div>
       )}
-    </Button>
+    </div>
   );
 }
