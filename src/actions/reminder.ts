@@ -8,29 +8,32 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, desc, and } from "drizzle-orm";
 import { serverDebug } from "@/utils/debug";
+import { sendEmail } from "@/lib/email/send-email";
 
-type ReminderParams = {
+// Define the reminder parameters type
+export type ReminderParams = {
   invoiceId: string;
   emailSubject: string;
   emailContent: string;
-  tone: "polite" | "friendly" | "neutral" | "firm" | "direct" | "assertive" | "urgent" | "final" | "serious";
+  tone: 'polite' | 'firm' | 'urgent';
+  isHtml?: boolean; // Add this field to support HTML content
 };
 
 /**
  * Send a reminder for an invoice and record it in the database
  */
 export async function sendInvoiceReminder(params: ReminderParams) {
-  const { invoiceId, emailSubject, emailContent, tone } = params;
+  const { invoiceId, emailSubject, emailContent, tone, isHtml = true } = params;
   
   // Get authenticated user
   const session = await auth.api.getSession({
     headers: await headers()
   });
-  
+
   if (!session?.user) {
     return { success: false, error: "Unauthorized. Please sign in to send reminders." };
   }
-  
+
   try {
     // Check if invoice exists and belongs to user
     const invoice = await db
@@ -42,7 +45,7 @@ export async function sendInvoiceReminder(params: ReminderParams) {
           eq(clientInvoices.userId, session.user.id)
         )
       );
-    
+
     if (invoice.length === 0) {
       return { success: false, error: "Invoice not found or you don't have permission." };
     }
@@ -56,10 +59,25 @@ export async function sendInvoiceReminder(params: ReminderParams) {
     
     const reminderNumber = previousReminders.length + 1;
     
-    // In a real implementation, you would integrate with your email service here
-    // For example: await sendEmail(invoice[0].clientEmail, emailSubject, emailContent);
-    serverDebug("ReminderAction", `Sending reminder ${reminderNumber} for invoice ${invoiceId} with tone ${tone}`);
+    // Prepare the email data with proper HTML/plain text handling
+    const emailData = {
+      to: {
+        email: invoice[0].clientEmail,
+        name: invoice[0].clientName
+      },
+      subject: emailSubject,
+      html: isHtml ? emailContent : `<pre style="font-family: sans-serif; white-space: pre-wrap;">${emailContent}</pre>`,
+    };
     
+    // Send the email using our email service
+    try {
+      await sendEmail(emailData);
+      serverDebug("ReminderAction", `Reminder ${reminderNumber} sent successfully for invoice ${invoiceId}`);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      return { success: false, error: "Failed to send email. Please try again." };
+    }
+
     // Record the reminder in the database
     await db.insert(invoiceReminders).values({
       id: uuidv4(),
@@ -78,7 +96,7 @@ export async function sendInvoiceReminder(params: ReminderParams) {
     // Revalidate related paths
     revalidatePath("/invoices");
     revalidatePath(`/invoices/${invoiceId}`);
-    
+
     return { 
       success: true, 
       reminderNumber,

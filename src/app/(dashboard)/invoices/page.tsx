@@ -50,6 +50,7 @@ import { Label } from "@/components/ui/label";
 import { checkGmailConnection } from "@/actions/gmail";
 import Link from "next/link";
 import Image from "next/image";
+import { Switch } from "@/components/ui/switch";
 
 // Define the LastReminderCell component without the refreshTrigger implementation yet
 const LastReminderCell = ({ invoice }: { invoice: any }) => {
@@ -166,6 +167,14 @@ export default function InvoicesPage() {
   const [currentInvoiceId, setCurrentInvoiceId] = useState<string | null>(null);
   const [selectedTemplateType, setSelectedTemplateType] = useState<"polite" | "firm" | "urgent">("polite");
   const [isSendingTemplate, setIsSendingTemplate] = useState(false);
+  
+  // New state variables for HTML mode
+  const [isHtmlMode, setIsHtmlMode] = useState<boolean>(true);
+  const [htmlEmailContent, setHtmlEmailContent] = useState<string>("");
+  const [plainTextEmailContent, setPlainTextEmailContent] = useState<string>("");
+
+  // New state for iframe key to force refresh when content changes
+  const [previewKey, setPreviewKey] = useState<number>(0);
 
   // New state for Gmail connection status
   const [isGmailConnected, setIsGmailConnected] = useState<boolean>(false);
@@ -395,14 +404,54 @@ export default function InvoicesPage() {
     // Set initial template
     setSelectedTemplateType(defaultTone);
     
-    // Initialize both state variables with the same content
-    const initialEmailContent = getEmailContent(defaultTone, invoice);
-    setCustomizedEmailContent(initialEmailContent);
-    setEditedEmailContent(initialEmailContent);
+    // Initialize both plain text and HTML content
+    const initialPlainTextContent = getEmailContent(defaultTone, invoice);
+    const initialHtmlContent = getHtmlEmailContent(defaultTone, invoice);
+    
+    setPlainTextEmailContent(initialPlainTextContent);
+    setHtmlEmailContent(initialHtmlContent);
+    
+    // Set the content based on current mode
+    setCustomizedEmailContent(isHtmlMode ? initialHtmlContent : initialPlainTextContent);
+    
+    // Reset preview key
+    setPreviewKey(0);
     
     // Store the current invoice ID and open the modal
     setCurrentInvoiceId(invoiceId);
     setTemplateModalOpen(true);
+  };
+
+  // Update the handleTemplateChange function
+  const handleTemplateChange = (type: string) => {
+    // Validate that the type is one of the allowed values
+    if (type !== "polite" && type !== "firm" && type !== "urgent") return;
+    
+    setSelectedTemplateType(type as "polite" | "firm" | "urgent");
+    
+    // Get the current invoice
+    const invoice = invoices.find(inv => inv.id === currentInvoiceId);
+    if (!invoice) return;
+    
+    // Get the new plain text email content
+    const newPlainTextContent = getEmailContent(type as "polite" | "firm" | "urgent", invoice);
+    
+    // Get the new HTML email content
+    const newHtmlContent = getHtmlEmailContent(type as "polite" | "firm" | "urgent", invoice);
+    
+    // Update state variables
+    setPlainTextEmailContent(newPlainTextContent);
+    setHtmlEmailContent(newHtmlContent);
+    
+    // Update current view content based on mode
+    if (isHtmlMode) {
+      setCustomizedEmailContent(newHtmlContent);
+    } else {
+      setCustomizedEmailContent(newPlainTextContent);
+    }
+    
+    // Force preview refresh
+    setPreviewKey(prev => prev + 1);
   };
 
   // Create a new function to actually send the reminder
@@ -430,11 +479,17 @@ export default function InvoicesPage() {
     
     try {
       const loadingToastId = toast.loading("Sending reminder...");
+      
+      // Use the correct content based on mode
+      const emailContent = isHtmlMode ? customizedEmailContent : 
+                          `<pre style="font-family: sans-serif; white-space: pre-wrap;">${customizedEmailContent}</pre>`;
+      
       const result = await sendInvoiceReminder({
         invoiceId: currentInvoiceId,
         emailSubject,
-        emailContent: customizedEmailContent,
-        tone: selectedTemplateType as any
+        emailContent,
+        tone: selectedTemplateType as any,
+        isHtml: isHtmlMode // Add a flag to indicate if it's HTML content
       });
       
       toast.dismiss(loadingToastId);
@@ -454,25 +509,6 @@ export default function InvoicesPage() {
     } finally {
       setIsSendingTemplate(false);
     }
-  };
-
-  // Update the handleTemplateChange function
-  const handleTemplateChange = (type: string) => {
-    // Validate that the type is one of the allowed values
-    if (type !== "polite" && type !== "firm" && type !== "urgent") return;
-    
-    setSelectedTemplateType(type as "polite" | "firm" | "urgent");
-    
-    // Get the current invoice
-    const invoice = invoices.find(inv => inv.id === currentInvoiceId);
-    if (!invoice) return;
-    
-    // Get the new email content
-    const newEmailContent = getEmailContent(type as "polite" | "firm" | "urgent", invoice);
-    
-    // Update both state variables
-    setCustomizedEmailContent(newEmailContent);
-    setEditedEmailContent(newEmailContent);
   };
 
   const openDeleteModal = (invoiceId: string) => {
@@ -643,54 +679,212 @@ export default function InvoicesPage() {
   const getEmailContent = (templateType: string, invoice: any) => {
     const templates = {
       polite: `
-Dear ${invoice.clientName},
+      Dear ${invoice.clientName},
 
-I hope this email finds you well. I wanted to send a gentle reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} was due on ${formatDate(invoice.dueDate)}.
+      I hope this email finds you well. I wanted to send a gentle reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} was due on ${formatDate(invoice.dueDate)}.
 
-If you've already sent the payment, please disregard this message. Otherwise, I would appreciate it if you could process this payment at your earliest convenience.
+      If you've already sent the payment, please disregard this message. Otherwise, I would appreciate it if you could process this payment at your earliest convenience.
 
-Thank you for your attention to this matter.
+      Thank you for your attention to this matter.
 
-Best regards,
-${user?.name}
-      `,
-      firm: `
-Dear ${invoice.clientName},
+      Best regards,
+      ${user?.name}
+            `,
+            firm: `
+      Dear ${invoice.clientName},
 
-This is a reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
+      This is a reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
 
-Please process this payment as soon as possible to avoid any late fees.
+      Please process this payment as soon as possible to avoid any late fees.
 
-If you have any questions about this invoice, please don't hesitate to contact us.
+      If you have any questions about this invoice, please don't hesitate to contact us.
 
-Regards,
-${user?.name}
-      `,
-      urgent: `
-Dear ${invoice.clientName},
+      Regards,
+      ${user?.name}
+            `,
+            urgent: `
+      Dear ${invoice.clientName},
 
-URGENT REMINDER: Invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
+      URGENT REMINDER: Invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
 
-This requires your immediate attention. Please process this payment within 48 hours to avoid additional late fees and potential service interruptions.
+      This requires your immediate attention. Please process this payment within 48 hours to avoid additional late fees and potential service interruptions.
 
-If you're experiencing difficulties with payment, please contact us immediately to discuss payment options.
+      If you're experiencing difficulties with payment, please contact us immediately to discuss payment options.
 
-Sincerely,
-${user?.name}
-      `,
-      thankYou: `
-Dear ${invoice.clientName},
+      Sincerely,
+      ${user?.name}
+            `,
+            thankYou: `
+      Dear ${invoice.clientName},
 
-Thank you for your prompt payment of invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}.
+      Thank you for your prompt payment of invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}.
 
-We greatly appreciate your business and look forward to working with you again in the future.
+      We greatly appreciate your business and look forward to working with you again in the future.
 
-Best regards,
-[Your Company Name]
+      Best regards,
+      [Your Company Name]
       `
     };
     
     return templates[templateType as keyof typeof templates] || templates.polite;
+  };
+
+  // NEW: Function to get HTML email content based on template
+  const getHtmlEmailContent = (templateType: string, invoice: any) => {
+    // Define common CSS styles for all templates
+    const headerColor = templateType === 'urgent' ? '#e53e3e' : templateType === 'firm' ? '#dd6b20' : '#3182ce';
+    const accentColor = templateType === 'urgent' ? '#fc8181' : templateType === 'firm' ? '#fbd38d' : '#90cdf4';
+    
+    const baseStyles = `
+      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; line-height: 1.6; }
+      .email-container { max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; }
+      .header { padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid ${accentColor}; }
+      .header h2 { color: ${headerColor}; margin: 0; font-weight: 600; }
+      .content { padding: 15px 0; }
+      .content p { margin: 10px 0; }
+      .highlight { font-weight: bold; color: ${headerColor}; }
+      .footer { padding-top: 15px; margin-top: 15px; border-top: 1px solid #e2e8f0; font-size: 0.9em; color: #718096; }
+      .details { background-color: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid ${accentColor}; margin: 15px 0; }
+      .details .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+      .details .detail-label { font-weight: 500; color: #4a5568; }
+      .details .detail-value { font-weight: 600; }
+      .cta-button { display: inline-block; background-color: ${headerColor}; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: 500; margin-top: 15px; }
+    `;
+
+    // Create header title based on the template type
+    let headerTitle = '';
+    if (templateType === 'polite') headerTitle = 'Friendly Payment Reminder';
+    else if (templateType === 'firm') headerTitle = 'REMINDER: Invoice Payment Overdue';
+    else if (templateType === 'urgent') headerTitle = 'URGENT: Invoice Payment Required';
+    else if (templateType === 'thankYou') headerTitle = 'Payment Received - Thank You';
+
+    // Create specific content based on template type
+    let specificContent = '';
+    
+    if (templateType === 'polite') {
+      specificContent = `
+        <p>Dear ${invoice.clientName},</p>
+        <p>I hope this email finds you well. I wanted to send a gentle reminder that invoice <span class="highlight">#${invoice.invoiceNumber}</span> for <span class="highlight">${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}</span> was due on <span class="highlight">${formatDate(invoice.dueDate)}</span>.</p>
+        <div class="details">
+          <div class="detail-row">
+            <span class="detail-label">Invoice Number:</span>
+            <span class="detail-value">#${invoice.invoiceNumber}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount Due:</span>
+            <span class="detail-value">${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Due Date:</span>
+            <span class="detail-value">${formatDate(invoice.dueDate)}</span>
+          </div>
+        </div>
+        <p>If you've already sent the payment, please disregard this message. Otherwise, I would appreciate it if you could process this payment at your earliest convenience.</p>
+        <p>Thank you for your attention to this matter.</p>
+        <p>Best regards,<br>${user?.name}</p>
+      `;
+    } else if (templateType === 'firm') {
+      specificContent = `
+        <p>Dear ${invoice.clientName},</p>
+        <p>This is a reminder that invoice <span class="highlight">#${invoice.invoiceNumber}</span> for <span class="highlight">${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}</span> is now <span class="highlight">${getDaysOverdue(invoice.dueDate)} days overdue</span>.</p>
+        <div class="details">
+          <div class="detail-row">
+            <span class="detail-label">Invoice Number:</span>
+            <span class="detail-value">#${invoice.invoiceNumber}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount Due:</span>
+            <span class="detail-value">${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Due Date:</span>
+            <span class="detail-value">${formatDate(invoice.dueDate)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Days Overdue:</span>
+            <span class="detail-value">${getDaysOverdue(invoice.dueDate)}</span>
+          </div>
+        </div>
+        <p>Please process this payment as soon as possible to avoid any late fees.</p>
+        <p>If you have any questions about this invoice, please don't hesitate to contact us.</p>
+        <p>Regards,<br>${user?.name}</p>
+      `;
+    } else if (templateType === 'urgent') {
+      specificContent = `
+        <p>Dear ${invoice.clientName},</p>
+        <p><strong>URGENT REMINDER:</strong> Invoice <span class="highlight">#${invoice.invoiceNumber}</span> for <span class="highlight">${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}</span> is now <span class="highlight">${getDaysOverdue(invoice.dueDate)} days overdue</span>.</p>
+        <div class="details">
+          <div class="detail-row">
+            <span class="detail-label">Invoice Number:</span>
+            <span class="detail-value">#${invoice.invoiceNumber}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount Due:</span>
+            <span class="detail-value">${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Due Date:</span>
+            <span class="detail-value">${formatDate(invoice.dueDate)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Days Overdue:</span>
+            <span class="detail-value">${getDaysOverdue(invoice.dueDate)}</span>
+          </div>
+        </div>
+        <p>This requires your <strong>immediate attention</strong>. Please process this payment within 48 hours to avoid additional late fees and potential service interruptions.</p>
+        <p>If you're experiencing difficulties with payment, please contact us immediately to discuss payment options.</p>
+        <p>Sincerely,<br>${user?.name}</p>
+      `;
+    } else if (templateType === 'thankYou') {
+      specificContent = `
+        <p>Dear ${invoice.clientName},</p>
+        <p>Thank you for your prompt payment of invoice <span class="highlight">#${invoice.invoiceNumber}</span> for <span class="highlight">${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}</span>.</p>
+        <div class="details">
+          <div class="detail-row">
+            <span class="detail-label">Invoice Number:</span>
+            <span class="detail-value">#${invoice.invoiceNumber}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount Paid:</span>
+            <span class="detail-value">${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Payment Date:</span>
+            <span class="detail-value">${formatDate(invoice.paidDate || new Date())}</span>
+          </div>
+        </div>
+        <p>We greatly appreciate your business and look forward to working with you again in the future.</p>
+        <p>Best regards,<br>${user?.name || "Your Company"}</p>
+      `;
+    }
+
+    // Assemble the full HTML email
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${headerTitle}</title>
+        <style>
+          ${baseStyles}
+        </style>
+      </head>
+      <body>
+        <div class="email-container">
+          <div class="header">
+            <h2>${headerTitle}</h2>
+          </div>
+          <div class="content">
+            ${specificContent}
+          </div>
+          <div class="footer">
+            <p>This is an automated message from InvoiceManager.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
   };
 
   // Create the enhanced LastReminderCell that uses refreshTrigger
@@ -1139,7 +1333,7 @@ Best regards,
       <Dialog open={reminderModalOpen} onOpenChange={setReminderModalOpen}>
         <DialogContent 
           className="w-[70%] h-[70%] max-h-[80vh] max-w-[1400px] !min-w-[80vw] !mx-auto overflow-hidden"
-          style={{ width: '60%', maxWidth: '90vw', height: 'fit-content', maxHeight: '99vh' }}
+          style={{ width: '60%', maxWidth: '90vw', height: '90%', maxHeight: '99vh' }}
         >
           {selectedInvoice && (
             <>
@@ -1377,7 +1571,7 @@ Best regards,
       <Dialog open={templateModalOpen} onOpenChange={setTemplateModalOpen}>
         <DialogContent 
           className="p-0 !mx-auto overflow-hidden rounded-xl"
-          style={{ width: '85%', maxWidth: '1200px', height: 'fit-content', maxHeight: '90vh' }}
+          style={{ width: '90%', maxWidth: '1200px', height: 'fit-content', maxHeight: '90vh' }}
         >
           {currentInvoiceId && (
             (() => {
@@ -1396,10 +1590,6 @@ Best regards,
               const isDaysOverdue = diffDays < 0;
               const daysText = isDaysOverdue ? Math.abs(diffDays) : diffDays;
               const dueDatePastToday = today > dueDate;
-              
-              console.log("Invoice status:", invoice.status);
-              console.log("Due date past today:", dueDatePastToday);
-              console.log("Is invoice considered overdue:", isOverdue);
               
               return (
                 <div className="grid grid-cols-1 md:grid-cols-2 h-full">
@@ -1487,7 +1677,7 @@ Best regards,
                   </div>
                   
                   {/* Right Column - Email Template */}
-                  <div className="p-6 flex flex-col">
+                  <div className="p-6 flex flex-col h-full overflow-y-auto">
                     <div className="mb-6">
                       <h3 className="text-xl font-bold mb-1">
                         {isPaid ? 'Send Thank You Email' : 'Send Payment Reminder'}
@@ -1531,38 +1721,110 @@ Best regards,
                       </div>
                     )}
                     
-                    <div className="flex-grow flex flex-col space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Label htmlFor="email-content" className="text-sm font-medium">Email Content</Label>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 text-xs"
-                          onClick={() => {
-                            if (isPaid) {
-                              setCustomizedEmailContent(getEmailContent('thankYou', invoice));
-                            } else {
-                              setCustomizedEmailContent(getEmailContent(selectedTemplateType, invoice));
-                            }
-                          }}
-                        >
-                          <RefreshCcwIcon className="h-3 w-3 mr-1" />
-                          Reset to default
-                        </Button>
+                    {/* HTML/Plain Text Toggle */}
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="html-mode" className="text-sm font-medium">
+                          {isHtmlMode ? "HTML Mode" : "Plain Text Mode"}
+                        </Label>
+                        <Badge variant="outline" className={cn(
+                          "ml-2 px-2 py-0 h-5 text-xs",
+                          isHtmlMode ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                        )}>
+                          {isHtmlMode ? "HTML" : "Text"}
+                        </Badge>
                       </div>
-                      
-                      <div className="relative flex-grow rounded-md border overflow-hidden mb-6">
-                        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-50"></div>
-                        <textarea 
-                          id="email-content"
-                          className="absolute inset-0 bg-transparent p-4 font-mono text-sm w-full resize-none focus:outline-none focus:ring-1 focus:ring-primary"
-                          value={customizedEmailContent}
-                          onChange={(e) => setCustomizedEmailContent(e.target.value)}
-                          disabled={isSendingTemplate}
-                          style={{minHeight: "280px"}}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Plain Text</span>
+                        <Switch
+                          id="html-mode"
+                          checked={isHtmlMode}
+                          onCheckedChange={(checked) => {
+                            setIsHtmlMode(checked);
+                            // Update content based on the new mode
+                            setCustomizedEmailContent(checked ? htmlEmailContent : plainTextEmailContent);
+                            // Force preview refresh
+                            setPreviewKey(prev => prev + 1);
+                          }}
                         />
+                        <span className="text-xs text-muted-foreground">HTML</span>
                       </div>
                     </div>
+                    
+                    <Tabs defaultValue="edit" className="flex-grow flex flex-col">
+                      <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="edit">Edit Template</TabsTrigger>
+                        <TabsTrigger value="preview">Preview</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="edit" className="flex-grow flex flex-col">
+                        <div className="flex justify-between items-center mb-2">
+                          <Label htmlFor="email-content" className="text-sm font-medium">Email Content</Label>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 text-xs"
+                            onClick={() => {
+                              if (isPaid) {
+                                const resetContent = isHtmlMode 
+                                  ? getHtmlEmailContent('thankYou', invoice) 
+                                  : getEmailContent('thankYou', invoice);
+                                setCustomizedEmailContent(resetContent);
+                              } else {
+                                const resetContent = isHtmlMode 
+                                  ? getHtmlEmailContent(selectedTemplateType, invoice) 
+                                  : getEmailContent(selectedTemplateType, invoice);
+                                setCustomizedEmailContent(resetContent);
+                              }
+                              // Force preview refresh
+                              setPreviewKey(prev => prev + 1);
+                            }}
+                          >
+                            <RefreshCcwIcon className="h-3 w-3 mr-1" />
+                            Reset to default
+                          </Button>
+                        </div>
+                        
+                        <div className="relative flex-grow rounded-md border overflow-hidden mb-6">
+                          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-50"></div>
+                          <textarea 
+                            id="email-content"
+                            className="absolute inset-0 bg-transparent p-4 font-mono text-sm w-full resize-none focus:outline-none focus:ring-1 focus:ring-primary overflow-auto"
+                            value={customizedEmailContent}
+                            onChange={(e) => {
+                              setCustomizedEmailContent(e.target.value);
+                              // Update the appropriate content based on mode
+                              if (isHtmlMode) {
+                                setHtmlEmailContent(e.target.value);
+                              } else {
+                                setPlainTextEmailContent(e.target.value);
+                              }
+                              // Force preview refresh
+                              setPreviewKey(prev => prev + 1);
+                            }}
+                            disabled={isSendingTemplate}
+                            style={{minHeight: "280px"}}
+                          />
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="preview" className="flex-grow rounded-md border overflow-hidden bg-white">
+                        {isHtmlMode ? (
+                          <div className="w-full h-full min-h-[480px]">
+                            <iframe 
+                              key={previewKey}
+                              srcDoc={customizedEmailContent}
+                              title="Email Preview"
+                              className="w-full h-full border-0"
+                            />
+                          </div>
+                        ) : (
+                          <div className="p-6 font-sans whitespace-pre-wrap overflow-auto h-full min-h-[480px]">
+                            {customizedEmailContent}
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
                     
                     <DialogFooter className="flex justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
                       <Button
