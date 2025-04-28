@@ -11,56 +11,42 @@ import { checkGmailConnection } from "@/actions/gmail";
 import type { GmailConnectionData } from "@/actions/gmail";
 import { ConnectSkeleton } from "./components/ConnectSkeleton";
 import { GmailConnectSkeleton } from "./components/GmailConnectSkeleton";
+import Image from "next/image";
 
 export default function ConnectPage() {
     const [user, setUser] = useState<User|null>(null);
-    const [loadingUser, setLoadingUser] = useState<boolean>(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const [connectionData, setConnectionData] = useState<GmailConnectionData | null>(null);
-    const [checkingConnection, setCheckingConnection] = useState<boolean>(false);
 
     useEffect(() => {
-        const loadUser = async() => {
+        const initialize = async() => {
             try {
                 const {data: session, error} = await authClient.getSession();
                 if (!session || !session.user) {
                     throw new Error("Unauthorized, sign in before connecting gmail account");
                 }
-                setUser(session.user);
-            } catch(error) {
-                console.log(error);
-                toast.error("User is not authorized, sign in before connecting gmail account");
-            } finally {
-                setLoadingUser(false);
-            }
-        };
-        loadUser();
-    }, []);
-
-    // Check if user has a Gmail connection using server action
-    useEffect(() => {
-        const fetchGmailConnection = async () => {
-            if (!user) return;
-            
-            try {
-                setCheckingConnection(true);
+                
+                const currentUser = session.user;
+                setUser(currentUser);
+                
                 const { isConnected: connected, connectionData: data } = 
-                    await checkGmailConnection(user.id);
+                    await checkGmailConnection(currentUser.id);
                 
                 setIsConnected(connected);
                 setConnectionData(data);
-            } catch (error) {
-                console.error("Error checking Gmail connection:", error);
-                toast.error("Failed to check Gmail connection status");
+            } catch(error) {
+                console.error("Error:", error);
+                toast.error("Failed to initialize page");
             } finally {
-                setCheckingConnection(false);
+                setIsLoading(false);
             }
         };
         
-        fetchGmailConnection();
-    }, [user]);
+        initialize();
+    }, []);
 
-    if(loadingUser || checkingConnection) {
+    if(isLoading) {
         return <GmailConnectSkeleton />;
     }
 
@@ -87,8 +73,10 @@ export default function ConnectPage() {
                 <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="bg-blue-100 p-2.5 rounded-lg">
-                                <Mail className="h-5 w-5 text-blue-600" />
+                            <div className="p-2.5 rounded-lg">
+                                <Image src="/gmail.svg" alt="Gmail" width={20} height={20} 
+                                    className="size-9"
+                                />
                             </div>
                             <div>
                                 <CardTitle className="text-lg font-medium">Gmail Connection</CardTitle>
