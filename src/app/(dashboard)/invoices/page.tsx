@@ -1570,8 +1570,8 @@ export default function InvoicesPage() {
       {/* Template Selection Modal */}
       <Dialog open={templateModalOpen} onOpenChange={setTemplateModalOpen}>
         <DialogContent 
-          className="p-0 !mx-auto overflow-hidden rounded-xl"
-          style={{ width: '90%', maxWidth: '1200px', height: 'fit-content', maxHeight: '90vh' }}
+          className="p-0 !mx-auto overflow-hidden rounded-xl flex flex-col max-h-[95vh]"
+          style={{ width: '90%', maxWidth: '1200px' }}
         >
           {currentInvoiceId && (
             (() => {
@@ -1592,9 +1592,9 @@ export default function InvoicesPage() {
               const dueDatePastToday = today > dueDate;
               
               return (
-                <div className="grid grid-cols-1 md:grid-cols-2 h-full">
+                <div className="grid grid-cols-1 md:grid-cols-5 h-full max-h-[calc(95vh-120px)] overflow-hidden">
                   {/* Left Column - Invoice Details */}
-                  <div className={`p-6 flex flex-col ${isPaid 
+                  <div className={`p-6 flex flex-col col-span-2 overflow-y-auto ${isPaid 
                     ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-r border-green-100' 
                     : isOverdue // Only use overdue styling if actually overdue
                       ? 'bg-gradient-to-br from-red-50 to-orange-50 border-r border-red-100'
@@ -1677,7 +1677,8 @@ export default function InvoicesPage() {
                   </div>
                   
                   {/* Right Column - Email Template */}
-                  <div className="p-6 flex flex-col h-full overflow-y-auto">
+                  <div className="p-6 flex flex-col col-span-3 overflow-y-auto"
+                       style={{ maxHeight: 'calc(95vh - 120px)' }}>
                     <div className="mb-6">
                       <h3 className="text-xl font-bold mb-1">
                         {isPaid ? 'Send Thank You Email' : 'Send Payment Reminder'}
@@ -1785,7 +1786,7 @@ export default function InvoicesPage() {
                           </Button>
                         </div>
                         
-                        <div className="relative flex-grow rounded-md border overflow-hidden mb-6">
+                        <div className="relative flex-grow rounded-md border overflow-hidden mb-6" style={{ height: "400px" }}>
                           <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-50"></div>
                           <textarea 
                             id="email-content"
@@ -1803,14 +1804,14 @@ export default function InvoicesPage() {
                               setPreviewKey(prev => prev + 1);
                             }}
                             disabled={isSendingTemplate}
-                            style={{minHeight: "280px"}}
+                            style={{height: "100%"}}
                           />
                         </div>
                       </TabsContent>
                       
                       <TabsContent value="preview" className="flex-grow rounded-md border overflow-hidden bg-white">
                         {isHtmlMode ? (
-                          <div className="w-full h-full min-h-[480px]">
+                          <div className="w-full h-full" style={{ height: "400px" }}>
                             <iframe 
                               key={previewKey}
                               srcDoc={customizedEmailContent}
@@ -1819,14 +1820,14 @@ export default function InvoicesPage() {
                             />
                           </div>
                         ) : (
-                          <div className="p-6 font-sans whitespace-pre-wrap overflow-auto h-full min-h-[480px]">
+                          <div className="p-6 font-sans whitespace-pre-wrap overflow-auto h-full" style={{ height: "400px" }}>
                             {customizedEmailContent}
                           </div>
                         )}
                       </TabsContent>
                     </Tabs>
                     
-                    <DialogFooter className="flex justify-between gap-4 mt-4 pt-4 border-t border-gray-100">
+                    <DialogFooter className="flex justify-between gap-4 mt-4 pt-4 border-t border-gray-100 sticky bottom-0 bg-white px-6 py-4">
                       <Button
                         variant="outline"
                         onClick={() => setTemplateModalOpen(false)}

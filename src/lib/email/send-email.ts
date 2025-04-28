@@ -27,6 +27,7 @@ export async function sendEmail(params: EmailParams) {
       contentLength: html.length
     }));
     
+    //TODO: priority
     // For now, just log success - this will be replaced with actual email sending code
     // Depending on your implementation, you might use:
     // - Gmail API for accounts connected via OAuth
