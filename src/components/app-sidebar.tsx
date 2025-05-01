@@ -1,5 +1,5 @@
 import { BellDotIcon, Calendar, CircleHelp, FileText, Home, Inbox, LayoutDashboard, MailboxIcon, Search, Settings, Settings2 } from "lucide-react"
-
+import Image from "next/image"
 import {
   Sidebar,
   SidebarContent,
@@ -50,7 +50,10 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Invoicemanager</SidebarGroupLabel>
+          <SidebarGroupLabel className="flex items-center justify-start gap-2 mb-6 mt-5">
+            <Image src="/logov4.png" alt="logo" width={30} height={30} className="rounded-lg" />
+            <span className="font-bold text-[1rem] text-black dark:text-white">Invoicemanager</span>
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
