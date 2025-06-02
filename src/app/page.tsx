@@ -130,7 +130,7 @@ export default function Home() {
       />
       <NavbarDemo>
         {/* Hero Section */}
-        <section className="relative pt-16 pb-20 overflow-hidden">
+        <section className="relative pt-8 pb-20 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/10 -z-10" />
           <div className="container px-4 md:px-6 mx-auto max-w-7xl">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
