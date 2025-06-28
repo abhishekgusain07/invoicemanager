@@ -153,42 +153,42 @@ export default function Home() {
       description:
         "Create and store detailed invoice records with client details, amounts, due dates, and custom notes.",
       link: "#invoice-management",
-      icon: FileText
+      icon: FileText as LucideIcon
     },
     {
       title: "Dashboard Overview",
       description:
         "At-a-glance visualization with color-coded indicators showing on-time, approaching due date, and overdue invoices.",
       link: "#dashboard",
-      icon: PieChart
+      icon: PieChart as LucideIcon
     },
     {
       title: "Automated Follow-ups",
       description:
         "Pre-designed email templates with escalating tones from soft reminders to final notices with dynamic client information.",
       link: "#follow-ups",
-      icon: MailCheck
+      icon: MailCheck as LucideIcon
     },
     {
       title: "Client Management",
       description:
         "Detailed client profiles with payment history, behavior patterns, and communication logs for all payment interactions.",
       link: "#client-management",
-      icon: Users
+      icon: Users as LucideIcon
     },
     {
       title: "Payment Analytics",
       description:
         "Track average days-to-payment metrics and identify problematic accounts to improve your cash flow management.",
       link: "#analytics",
-      icon: DollarSign
+      icon: DollarSign as LucideIcon
     },
     {
       title: "Mobile Responsive",
       description:
         "Manage your invoices on the go with a fully responsive design that works on desktop, tablet, and mobile devices.",
       link: "#responsive",
-      icon: Clock
+      icon: Clock as LucideIcon
     },
   ];
 
@@ -197,6 +197,8 @@ export default function Home() {
       <Suspense fallback={null}>
         {showAnnouncement && (
           <Announcement
+            show={showAnnouncement}
+            key={announcement.message}
             message={announcement.message}
             link={announcement.link}
             emoji={announcement.emoji}
@@ -265,8 +267,6 @@ export default function Home() {
                 <Badge className="mb-4 bg-secondary/20 text-secondary-foreground hover:bg-secondary/30 transition-colors">Features</Badge>
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">Powerful Invoice Management</h2>
                 <p className="text-muted-foreground">Everything you need to streamline your invoicing workflow and get paid on time.</p>
-                    </Link>
-                  </Button>
                   <Button asChild variant="outline" size="lg" className="font-medium text-lg">
                     <Link href="#features">See Features</Link>
                   </Button>
@@ -295,7 +295,6 @@ export default function Home() {
                   />
                 </div>
               </div>
-            </div>
             <h2 className="text-3xl font-bold mb-6">Ready to Improve Your Cash Flow?</h2>
             <p className="text-xl text-muted-foreground mb-8">
               Transform invoice collection from a time-consuming burden into a streamlined workflow.
@@ -303,10 +302,12 @@ export default function Home() {
             <Link href="/sign-up" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-md font-medium inline-block">
               Start Your Free Trial
             </Link>
-          </div>
-        </section>
-        <Footer />
-      </NavbarDemo>
-    </div>
+          </section>
+        </NavbarDemo>
+      </Suspense>
+      <Suspense fallback={<div className="h-16 w-full bg-background" />}>
+        <LazyFooter />
+      </Suspense>
+    </main>
   );
 }
