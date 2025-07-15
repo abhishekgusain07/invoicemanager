@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate } from "../utils/invoiceUtils";
 import { useEmailTemplates } from "../hooks/useEmailTemplates";
+import { getInvoiceReminderHistory } from "@/actions/reminder";
 
 interface EmailTemplateModalProps {
   isOpen: boolean;
@@ -86,13 +87,79 @@ export const EmailTemplateModal = ({
   };
 
   // Create a detailed reminder history component
-  const LastReminderCellDetailed = ({ invoiceId }: { invoiceId: string }) => (
-    <div className="space-y-3">
-      <div className="py-2 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
-        <span>No reminders sent yet</span>
+  const LastReminderCellDetailed = ({ invoiceId }: { invoiceId: string }) => {
+    const [reminders, setReminders] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+      const fetchReminders = async () => {
+        setIsLoading(true);
+        try {
+          const result = await getInvoiceReminderHistory(invoiceId);
+          if (result.success) {
+            setReminders(result.data);
+          }
+        } catch (error) {
+          console.error("Error fetching reminder history:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchReminders();
+    }, [invoiceId, refreshReminders]);
+
+    if (isLoading) {
+      return (
+        <div className="space-y-2">
+          <div className="h-4 w-full animate-pulse bg-muted/50 rounded"></div>
+          <div className="h-3 w-3/4 animate-pulse bg-muted/50 rounded"></div>
+        </div>
+      );
+    }
+
+    if (reminders.length === 0) {
+      return (
+        <div className="space-y-3">
+          <div className="py-2 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+            <span>No reminders sent yet</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3 max-h-32 overflow-y-auto">
+        {reminders.map((reminder, index) => (
+          <div key={reminder.id} className="flex items-center justify-between py-2 px-3 bg-white/30 rounded-md">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium">#{reminder.reminderNumber}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${
+                  reminder.tone === 'urgent' ? 'bg-red-100 text-red-800' :
+                  reminder.tone === 'firm' ? 'bg-orange-100 text-orange-800' :
+                  'bg-blue-100 text-blue-800'
+                }`}>
+                  {reminder.tone}
+                </span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {formatDate(reminder.sentAt)}
+              </span>
+            </div>
+            <div className="text-right">
+              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                reminder.status === 'sent' ? 'bg-green-100 text-green-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {reminder.status}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
