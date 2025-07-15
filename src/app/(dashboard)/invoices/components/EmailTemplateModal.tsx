@@ -472,20 +472,63 @@ export const EmailTemplateModal = ({
                     </TabsContent>
                     
                     <TabsContent value="preview" className="flex-grow rounded-md border overflow-hidden bg-white">
-                      {isHtmlMode ? (
-                        <div className="w-full h-full" style={{ height: "400px" }}>
-                          <iframe 
-                            key={previewKey}
-                            srcDoc={customizedEmailContent}
-                            title="Email Preview"
-                            className="w-full h-full border-0"
-                          />
-                        </div>
-                      ) : (
-                        <div className="p-6 font-sans whitespace-pre-wrap overflow-auto h-full" style={{ height: "400px" }}>
-                          {customizedEmailContent}
-                        </div>
-                      )}
+                      <div className="w-full h-full" style={{ height: "400px" }}>
+                        <iframe 
+                          key={previewKey}
+                          srcDoc={(() => {
+                            if (isHtmlMode) {
+                              // For HTML mode, return complete HTML document
+                              return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      color: #374151;
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  ${customizedEmailContent}
+</body>
+</html>`;
+                            } else {
+                              // For text mode, return complete HTML document with text content
+                              return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: monospace;
+      line-height: 1.6;
+      color: #374151;
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${customizedEmailContent}</pre>
+</body>
+</html>`;
+                            }
+                          })()}
+                          title="Email Preview"
+                          className="w-full h-full border-0"
+                          sandbox="allow-same-origin"
+                        />
+                      </div>
                     </TabsContent>
                   </Tabs>
                   

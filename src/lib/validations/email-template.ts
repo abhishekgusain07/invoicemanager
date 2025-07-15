@@ -14,7 +14,7 @@ export const emailTemplateSchema = z.object({
   subject: z.string().min(1, "Subject is required").max(150),
   
   // Enhanced content support
-  content: z.string().min(1, "Template content is required").max(10000),
+  content: z.string().min(1, "Template content is required").max(100000),
   htmlContent: z.string().optional(),
   textContent: z.string().optional(),
   

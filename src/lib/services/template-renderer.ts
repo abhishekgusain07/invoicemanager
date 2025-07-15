@@ -173,6 +173,90 @@ export class TemplateRenderer {
       invoiceLink: `${process.env.NEXT_PUBLIC_APP_URL}/invoice/${invoice.id}`,
     };
   }
+
+  /**
+   * Populate template with real invoice data
+   */
+  static populateTemplateWithInvoiceData(
+    templateContent: string, 
+    invoice: any, 
+    senderName: string = "Your Company",
+    companyName?: string,
+    isHtml: boolean = true
+  ): string {
+    const renderData = this.fromInvoiceData(invoice, senderName, companyName);
+    const renderer = new TemplateRenderer(renderData);
+    
+    return isHtml ? renderer.renderHtml(templateContent) : renderer.renderText(templateContent);
+  }
+
+  /**
+   * Create enhanced preview with real invoice data for EmailTemplateModal
+   */
+  static createInvoicePreview(
+    templateContent: string,
+    invoice: any,
+    isHtml: boolean = true
+  ): string {
+    const senderName = "Your Company"; // TODO: Get from user settings
+    const companyName = "Your Company"; // TODO: Get from user settings
+    
+    const populatedContent = this.populateTemplateWithInvoiceData(
+      templateContent,
+      invoice,
+      senderName,
+      companyName,
+      isHtml
+    );
+
+    if (isHtml) {
+      // Return complete HTML document for iframe
+      return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      color: #374151;
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  ${populatedContent}
+</body>
+</html>`;
+    } else {
+      // Return complete HTML document with text content
+      return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Preview</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: monospace;
+      line-height: 1.6;
+      color: #374151;
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${populatedContent}</pre>
+</body>
+</html>`;
+    }
+  }
 }
 
 /**

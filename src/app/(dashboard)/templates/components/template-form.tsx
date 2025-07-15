@@ -61,7 +61,7 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
   const [previewKey, setPreviewKey] = useState(0);
   const [previewData] = useState(() => TemplateRenderer.createPreviewData());
 
-  // Auto-update preview when content changes
+  // Auto-update preview when content changes and sync content field
   useEffect(() => {
     const timer = setTimeout(() => {
       setPreviewKey(prev => prev + 1);
@@ -69,6 +69,12 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
     
     return () => clearTimeout(timer);
   }, [htmlContent, textContent, contentMode]);
+
+  // Sync content field with current content mode
+  useEffect(() => {
+    const currentContent = contentMode === 'html' ? htmlContent : textContent;
+    setContent(currentContent);
+  }, [contentMode, htmlContent, textContent]);
 
   const isEditMode = !!template;
 
@@ -79,7 +85,7 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
     } else {
       setTextContent(value);
     }
-    setContent(value);
+    setContent(value); // Always update content field with current value
   }, [contentMode]);
 
   // Manual preview refresh handler
@@ -103,10 +109,10 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
       const formData = new FormData();
       formData.append("name", name);
       formData.append("subject", subject);
-      formData.append("content", currentContent); // Legacy field
-      formData.append("htmlContent", htmlContent);
-      formData.append("textContent", textContent);
-      formData.append("description", description);
+      formData.append("content", currentContent); // This is required by validation schema
+      formData.append("htmlContent", htmlContent || "");
+      formData.append("textContent", textContent || "");
+      formData.append("description", description || "");
       formData.append("tone", tone);
       formData.append("category", category);
       formData.append("isDefault", isDefault.toString());
@@ -124,7 +130,14 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
         router.refresh();
         onCancel(); // Close the form
       } else {
-        toast.error(result.error || "Failed to save template");
+        // Show detailed error message
+        const errorMessage = result.error || "Failed to save template";
+        toast.error(errorMessage);
+        
+        // Log validation errors for debugging
+        if (result.errors) {
+          console.error("Template validation errors:", result.errors);
+        }
       }
     } catch (error) {
       console.error("Error saving template:", error);
@@ -148,11 +161,11 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
         placeholder + 
         currentContent.substring(cursorPos);
       
+      // Update content field with new content
+      setContent(newContent);
       return newContent;
     });
     
-    // Also update legacy content field
-    setContent(contentMode === 'html' ? htmlContent : textContent);
     setPreviewKey(prev => prev + 1);
   };
 
@@ -212,9 +225,12 @@ Thank you for your business!
 Best regards,
 {sender_name}`;
 
-    setHtmlContent(sampleHtml.trim());
-    setTextContent(sampleText.trim());
-    setContent(contentMode === 'html' ? sampleHtml.trim() : sampleText.trim());
+    const trimmedHtml = sampleHtml.trim();
+    const trimmedText = sampleText.trim();
+    
+    setHtmlContent(trimmedHtml);
+    setTextContent(trimmedText);
+    setContent(contentMode === 'html' ? trimmedHtml : trimmedText);
     setPreviewKey(prev => prev + 1);
     toast.success("Sample template generated!");
   };

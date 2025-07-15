@@ -6,6 +6,7 @@ import { db } from "@/db/drizzle";
 import { emailTemplates } from "@/db/schema";
 import { 
   createTemplateSchema,
+  updateTemplateSchema,
   emailTemplateSchema,
   type EmailTemplate
 } from "@/lib/validations/email-template";
@@ -108,10 +109,31 @@ export async function createTemplate(formData: FormData) {
     const validationResult = createTemplateSchema.safeParse(dataWithUserId);
     
     if (!validationResult.success) {
+      const errorDetails = validationResult.error.flatten();
+      console.error("Template creation validation failed:", {
+        formErrors: errorDetails.formErrors,
+        fieldErrors: errorDetails.fieldErrors,
+        rawData: dataWithUserId
+      });
+      
+      // Create user-friendly error message
+      const fieldErrors = errorDetails.fieldErrors;
+      const errorMessages = [];
+      
+      if (fieldErrors.name) errorMessages.push(`Name: ${fieldErrors.name.join(', ')}`);
+      if (fieldErrors.subject) errorMessages.push(`Subject: ${fieldErrors.subject.join(', ')}`);
+      if (fieldErrors.content) errorMessages.push(`Content: ${fieldErrors.content.join(', ')}`);
+      if (fieldErrors.tone) errorMessages.push(`Tone: ${fieldErrors.tone.join(', ')}`);
+      if (fieldErrors.category) errorMessages.push(`Category: ${fieldErrors.category.join(', ')}`);
+      
+      const userFriendlyError = errorMessages.length > 0 
+        ? `Validation failed: ${errorMessages.join('; ')}`
+        : "Invalid template data. Please check your input.";
+      
       return { 
         success: false, 
-        error: "Invalid template data", 
-        errors: validationResult.error.flatten().fieldErrors 
+        error: userFriendlyError, 
+        errors: errorDetails.fieldErrors 
       };
     }
 
@@ -175,25 +197,65 @@ export async function updateTemplate(id: string, formData: FormData) {
       return { success: false, error: "Template not found" };
     }
 
-    // Convert FormData to object
+    // Convert FormData to object with proper type conversions
     const rawData = Object.fromEntries(formData.entries());
     
-    // Add userId and id to the data
-    const dataWithUserIdAndId = {
-      ...rawData,
-      userId,
+    // Prepare data for update with proper type conversions
+    const updateData = {
       id,
-      isDefault: rawData.isDefault === 'true'
+      userId,
+      name: rawData.name as string,
+      subject: rawData.subject as string,
+      content: rawData.content as string,
+      htmlContent: rawData.htmlContent as string || undefined,
+      textContent: rawData.textContent as string || undefined,
+      description: rawData.description as string || undefined,
+      tone: rawData.tone as string,
+      category: rawData.category as string,
+      isDefault: rawData.isDefault === 'true',
+      // Don't update system fields
+      templateType: undefined,
+      isActive: undefined,
+      usageCount: undefined,
+      tags: undefined,
+      createdAt: undefined,
+      updatedAt: undefined
     };
     
-    // Parse and validate with Zod
-    const validationResult = emailTemplateSchema.safeParse(dataWithUserIdAndId);
+    // Remove undefined values
+    const cleanUpdateData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    );
+    
+    // Parse and validate with update schema
+    const validationResult = updateTemplateSchema.safeParse(cleanUpdateData);
     
     if (!validationResult.success) {
+      const errorDetails = validationResult.error.flatten();
+      console.error("Template validation failed:", {
+        formErrors: errorDetails.formErrors,
+        fieldErrors: errorDetails.fieldErrors,
+        rawData: cleanUpdateData
+      });
+      
+      // Create user-friendly error message
+      const fieldErrors = errorDetails.fieldErrors;
+      const errorMessages = [];
+      
+      if (fieldErrors.name) errorMessages.push(`Name: ${fieldErrors.name.join(', ')}`);
+      if (fieldErrors.subject) errorMessages.push(`Subject: ${fieldErrors.subject.join(', ')}`);
+      if (fieldErrors.content) errorMessages.push(`Content: ${fieldErrors.content.join(', ')}`);
+      if (fieldErrors.tone) errorMessages.push(`Tone: ${fieldErrors.tone.join(', ')}`);
+      if (fieldErrors.category) errorMessages.push(`Category: ${fieldErrors.category.join(', ')}`);
+      
+      const userFriendlyError = errorMessages.length > 0 
+        ? `Validation failed: ${errorMessages.join('; ')}`
+        : "Invalid template data. Please check your input.";
+      
       return { 
         success: false, 
-        error: "Invalid template data", 
-        errors: validationResult.error.flatten().fieldErrors 
+        error: userFriendlyError, 
+        errors: errorDetails.fieldErrors 
       };
     }
 
@@ -212,16 +274,24 @@ export async function updateTemplate(id: string, formData: FormData) {
         );
     }
     
-    // Update the template
+    // Update the template with all provided fields
+    const updateFields: any = {
+      updatedAt: new Date()
+    };
+    
+    // Only update fields that are provided
+    if (validData.name) updateFields.name = validData.name;
+    if (validData.subject) updateFields.subject = validData.subject;
+    if (validData.content) updateFields.content = validData.content;
+    if (validData.htmlContent !== undefined) updateFields.htmlContent = validData.htmlContent;
+    if (validData.textContent !== undefined) updateFields.textContent = validData.textContent;
+    if (validData.description !== undefined) updateFields.description = validData.description;
+    if (validData.tone) updateFields.tone = validData.tone as any;
+    if (validData.category) updateFields.category = validData.category as any;
+    if (validData.isDefault !== undefined) updateFields.isDefault = validData.isDefault;
+    
     const updatedTemplate = await db.update(emailTemplates)
-      .set({
-        name: validData.name,
-        subject: validData.subject,
-        content: validData.content,
-        tone: validData.tone as any,
-        isDefault: validData.isDefault,
-        updatedAt: new Date()
-      })
+      .set(updateFields)
       .where(
         and(
           eq(emailTemplates.id, id),
