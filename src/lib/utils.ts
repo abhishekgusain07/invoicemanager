@@ -41,3 +41,25 @@ export function deepEqual(obj1: any, obj2: any): boolean {
 
   return true;
 }
+
+/**
+ * Format currency amount with proper currency symbol and formatting
+ */
+export function formatCurrency(amount: number, currency: string = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+  }).format(amount);
+}
+
+/**
+ * Format date string to localized date
+ */
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}

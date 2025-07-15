@@ -77,10 +77,15 @@ export default function TemplatesPage() {
 
       {/* Template Form Dialog */}
       <Dialog open={isTemplateFormOpen} onOpenChange={setIsTemplateFormOpen}>
-        <DialogContent className="w-[75vw] max-w-none p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle>{editTemplate ? "Edit Template" : "Create Template"}</DialogTitle>
-          </DialogHeader>
+        <DialogContent 
+          className="p-0 border-0 bg-transparent shadow-none" 
+          style={{ 
+            width: '95vw', 
+            height: '95vh', 
+            maxWidth: 'none',
+            maxHeight: 'none'
+          }}
+        >
           <TemplateForm
             template={editTemplate}
             onCancel={handleCloseTemplateForm}

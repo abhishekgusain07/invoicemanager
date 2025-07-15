@@ -149,15 +149,47 @@ export const userSettings = pgTable("user_settings", {
 	updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
 
+// Template type enum
+export const templateTypeEnum = pgEnum('template_type', [
+	'system',      // Built-in templates
+	'custom'       // User-created templates
+]);
+
+// Template category enum
+export const templateCategoryEnum = pgEnum('template_category', [
+	'reminder',    // Payment reminders
+	'thank_you',   // Thank you notes
+	'follow_up',   // Follow-up emails
+	'notice',      // Final notices
+	'welcome',     // Welcome emails
+	'custom'       // Custom category
+]);
+
 // Email Template schema
 export const emailTemplates = pgTable("email_templates", {
 	id: text("id").primaryKey(),
 	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
 	name: text("name").notNull(),
 	subject: text("subject").notNull(),
-	content: text("content").notNull(),
+	
+	// Enhanced content support
+	content: text("content").notNull(),           // Legacy text content
+	htmlContent: text("html_content"),           // Rich HTML content
+	textContent: text("text_content"),           // Plain text content
+	
+	// Template organization
 	tone: reminderToneEnum("tone").notNull(),
+	templateType: templateTypeEnum("template_type").default("custom"),
+	category: templateCategoryEnum("category").default("reminder"),
+	
+	// Template metadata
 	isDefault: boolean("is_default").default(false),
+	isActive: boolean("is_active").default(true),
+	usageCount: integer("usage_count").default(0),
+	description: text("description"),
+	tags: text("tags"),  // JSON array of tags
+	
+	// Timestamps
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 	updatedAt: timestamp("updated_at").defaultNow().notNull()
 });

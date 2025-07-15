@@ -25,7 +25,14 @@ import {
   SendIcon, 
   RefreshCcwIcon,
   UserCogIcon,
-  HistoryIcon
+  HistoryIcon,
+  Palette,
+  Sparkles,
+  Star,
+  Plus,
+  Mail,
+  Type,
+  Code
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate } from "../utils/invoiceUtils";
@@ -51,6 +58,10 @@ export const EmailTemplateModal = ({
 }: EmailTemplateModalProps) => {
   const {
     selectedTemplateType,
+    selectedCustomTemplate,
+    useCustomTemplate,
+    customTemplates,
+    loadingTemplates,
     isHtmlMode,
     customizedEmailContent,
     previewKey,
@@ -60,6 +71,10 @@ export const EmailTemplateModal = ({
     handleContentChange,
     sendReminderWithTemplate,
     initializeTemplateContent,
+    handleCustomTemplateSelect,
+    handleBuiltInTemplateSelect,
+    getAvailableTemplates,
+    getCurrentEmailSubject,
   } = useEmailTemplates();
 
   const handleSendReminder = async () => {
@@ -82,8 +97,14 @@ export const EmailTemplateModal = ({
     const invoice = invoices.find(inv => inv.id === currentInvoiceId);
     if (!invoice) return;
 
-    const templateType = invoice.status === 'paid' ? 'thankYou' : selectedTemplateType;
-    initializeTemplateContent(templateType, invoice);
+    if (useCustomTemplate && selectedCustomTemplate) {
+      // Reset to custom template
+      handleCustomTemplateSelect(selectedCustomTemplate);
+    } else {
+      // Reset to built-in template
+      const templateType = invoice.status === 'paid' ? 'thankYou' : selectedTemplateType;
+      initializeTemplateContent(templateType, invoice);
+    }
   };
 
   // Create a detailed reminder history component
@@ -284,41 +305,114 @@ export const EmailTemplateModal = ({
                   </div>
                   
                   {!isPaid && (
-                    <div className="flex justify-between items-center mb-4">
-                      <Label htmlFor="template-type" className="text-sm font-medium">Template Tone</Label>
-                      <Select value={selectedTemplateType} onValueChange={(value) => handleTemplateChange(value, invoice)}>
-                        <SelectTrigger id="template-type" className="w-[180px]">
-                          <SelectValue placeholder="Select template" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="polite">
-                            <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                              <span>Polite</span>
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Palette className="h-4 w-4 text-blue-600" />
+                          <Label className="text-sm font-medium">Choose Template</Label>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {useCustomTemplate ? 'Custom' : 'Built-in'}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {/* Built-in Templates */}
+                        <div>
+                          <h4 className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                            <Star className="h-3 w-3" />
+                            Built-in Templates
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {getAvailableTemplates().builtIn.map((template) => (
+                              <Button
+                                key={template.id}
+                                variant={!useCustomTemplate && selectedTemplateType === template.tone ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleBuiltInTemplateSelect(template.tone as any, invoice)}
+                                className={cn(
+                                  "flex items-center gap-2 h-auto p-3 justify-start",
+                                  !useCustomTemplate && selectedTemplateType === template.tone && "bg-blue-600 text-white"
+                                )}
+                              >
+                                <div className={cn(
+                                  "h-2 w-2 rounded-full",
+                                  template.tone === 'polite' && "bg-blue-500",
+                                  template.tone === 'firm' && "bg-amber-500",
+                                  template.tone === 'urgent' && "bg-red-500"
+                                )}></div>
+                                <span className="text-xs">{template.name}</span>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {/* Custom Templates */}
+                        <div>
+                          <h4 className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                            <Sparkles className="h-3 w-3" />
+                            Custom Templates
+                            {loadingTemplates && <div className="h-3 w-3 animate-spin rounded-full border border-gray-300 border-t-blue-600"></div>}
+                          </h4>
+                          
+                          {customTemplates.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {customTemplates.map((template) => (
+                                <Button
+                                  key={template.id}
+                                  variant={useCustomTemplate && selectedCustomTemplate?.id === template.id ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleCustomTemplateSelect(template)}
+                                  className={cn(
+                                    "flex items-center gap-2 h-auto p-3 justify-start",
+                                    useCustomTemplate && selectedCustomTemplate?.id === template.id && "bg-purple-600 text-white"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                                    <div className="text-left">
+                                      <div className="text-xs font-medium">{template.name}</div>
+                                      <div className="text-xs text-muted-foreground">{template.tone}</div>
+                                    </div>
+                                  </div>
+                                </Button>
+                              ))}
                             </div>
-                          </SelectItem>
-                          <SelectItem value="firm">
-                            <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 rounded-full bg-amber-500"></div>
-                              <span>Firm</span>
+                          ) : (
+                            <div className="text-center py-4 text-xs text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed">
+                              <Sparkles className="h-4 w-4 mx-auto mb-1 text-gray-400" />
+                              <p>No custom templates yet</p>
+                              <p className="mt-1">Create templates in the Templates section</p>
                             </div>
-                          </SelectItem>
-                          <SelectItem value="urgent">
-                            <div className="flex items-center gap-2">
-                              <div className="h-2 w-2 rounded-full bg-red-500"></div>
-                              <span>Urgent</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                   
-                  {/* HTML/Plain Text Toggle */}
+                  {/* Dynamic Subject Line */}
+                  <div className="mb-4">
+                    <Label className="text-sm font-medium flex items-center gap-2 mb-2">
+                      <Mail className="h-4 w-4 text-gray-500" />
+                      Email Subject
+                    </Label>
+                    <div className="bg-gray-50 rounded-lg p-3 border">
+                      <p className="text-sm font-medium text-gray-800">
+                        {getCurrentEmailSubject(invoice)}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Enhanced HTML/Plain Text Toggle */}
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="html-mode" className="text-sm font-medium">
-                        {isHtmlMode ? "HTML Mode" : "Plain Text Mode"}
+                      <Label htmlFor="html-mode" className="text-sm font-medium flex items-center gap-2">
+                        {isHtmlMode ? (
+                          <Code className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <Type className="h-4 w-4 text-amber-600" />
+                        )}
+                        Content Format
                       </Label>
                       <Badge variant="outline" className={cn(
                         "ml-2 px-2 py-0 h-5 text-xs",
@@ -328,13 +422,19 @@ export const EmailTemplateModal = ({
                       </Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Plain Text</span>
+                      <div className="flex items-center gap-1">
+                        <Type className="h-3 w-3 text-gray-500" />
+                        <span className="text-xs text-muted-foreground">Plain Text</span>
+                      </div>
                       <Switch
                         id="html-mode"
                         checked={isHtmlMode}
                         onCheckedChange={handleHtmlModeToggle}
                       />
-                      <span className="text-xs text-muted-foreground">HTML</span>
+                      <div className="flex items-center gap-1">
+                        <Code className="h-3 w-3 text-gray-500" />
+                        <span className="text-xs text-muted-foreground">HTML</span>
+                      </div>
                     </div>
                   </div>
                   
@@ -390,14 +490,32 @@ export const EmailTemplateModal = ({
                   </Tabs>
                   
                   <DialogFooter className="flex justify-between gap-4 mt-4 pt-4 border-t border-gray-100 sticky bottom-0 bg-white px-6 py-4">
-                    <Button
-                      variant="outline"
-                      onClick={onClose}
-                      disabled={isSendingTemplate}
-                      className="cursor-pointer hover:bg-gray-100"
-                    >
-                      Cancel
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={onClose}
+                        disabled={isSendingTemplate}
+                        className="cursor-pointer hover:bg-gray-100"
+                      >
+                        Cancel
+                      </Button>
+                      {/* Template Indicator */}
+                      <div className="text-xs text-gray-500 flex items-center gap-1">
+                        <span>Using:</span>
+                        {useCustomTemplate && selectedCustomTemplate ? (
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            {selectedCustomTemplate.name}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            <Star className="h-3 w-3 mr-1" />
+                            {selectedTemplateType.charAt(0).toUpperCase() + selectedTemplateType.slice(1)} Template
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    
                     <Button 
                       variant={isPaid ? "default" : "default"}
                       onClick={handleSendReminder}

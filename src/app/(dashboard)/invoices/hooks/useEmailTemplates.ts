@@ -1,78 +1,132 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useUser } from "@/hooks/useUser";
 import { sendInvoiceReminder } from "@/actions/reminder";
+import { getTemplates, getTemplatesByTone } from "@/actions/templates";
 import { toast } from "sonner";
 import { formatDate, getDaysOverdue } from "../utils/invoiceUtils";
+import { EmailTemplate } from "@/lib/validations/email-template";
+import { TemplateRenderer } from "@/lib/services/template-renderer";
 
 export const useEmailTemplates = () => {
   const { user } = useUser();
+  
+  // Template selection and management
   const [selectedTemplateType, setSelectedTemplateType] = useState<"polite" | "firm" | "urgent">("polite");
+  const [selectedCustomTemplate, setSelectedCustomTemplate] = useState<EmailTemplate | null>(null);
+  const [useCustomTemplate, setUseCustomTemplate] = useState<boolean>(false);
+  const [customTemplates, setCustomTemplates] = useState<EmailTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState<boolean>(false);
+  
+  // Content management
   const [isHtmlMode, setIsHtmlMode] = useState<boolean>(true);
   const [htmlEmailContent, setHtmlEmailContent] = useState<string>("");
   const [plainTextEmailContent, setPlainTextEmailContent] = useState<string>("");
   const [customizedEmailContent, setCustomizedEmailContent] = useState<string>("");
+  const [emailSubject, setEmailSubject] = useState<string>("");
+  
+  // UI state
   const [previewKey, setPreviewKey] = useState<number>(0);
   const [isSendingTemplate, setIsSendingTemplate] = useState(false);
 
-  // Function to get email content based on template
+  // Load custom templates on component mount
+  useEffect(() => {
+    loadCustomTemplates();
+  }, []);
+
+  const loadCustomTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const result = await getTemplates();
+      if (result.success && result.data) {
+        setCustomTemplates(result.data);
+      }
+    } catch (error) {
+      console.error("Failed to load custom templates:", error);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  // Enhanced template content generation
   const getEmailContent = useCallback((templateType: string, invoice: any) => {
+    // If using custom template, render it with invoice data
+    if (useCustomTemplate && selectedCustomTemplate) {
+      const renderData = TemplateRenderer.fromInvoiceData(
+        invoice, 
+        user?.name || "Your Name",
+        user?.name || "Your Company"
+      );
+      const renderer = new TemplateRenderer(renderData);
+      
+      // Use text content if available, otherwise fall back to legacy content
+      const templateContent = selectedCustomTemplate.textContent || selectedCustomTemplate.content;
+      return renderer.renderText(templateContent);
+    }
+
+    // Built-in templates (legacy support)
     const templates = {
-      polite: `
-      Dear ${invoice.clientName},
+      polite: `Dear ${invoice.clientName},
 
-      I hope this email finds you well. I wanted to send a gentle reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} was due on ${formatDate(invoice.dueDate)}.
+I hope this email finds you well. I wanted to send a gentle reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} was due on ${formatDate(invoice.dueDate)}.
 
-      If you've already sent the payment, please disregard this message. Otherwise, I would appreciate it if you could process this payment at your earliest convenience.
+If you've already sent the payment, please disregard this message. Otherwise, I would appreciate it if you could process this payment at your earliest convenience.
 
-      Thank you for your attention to this matter.
+Thank you for your attention to this matter.
 
-      Best regards,
-      ${user?.name}
-            `,
-            firm: `
-      Dear ${invoice.clientName},
+Best regards,
+${user?.name}`,
+      firm: `Dear ${invoice.clientName},
 
-      This is a reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
+This is a reminder that invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
 
-      Please process this payment as soon as possible to avoid any late fees.
+Please process this payment as soon as possible to avoid any late fees.
 
-      If you have any questions about this invoice, please don't hesitate to contact us.
+If you have any questions about this invoice, please don't hesitate to contact us.
 
-      Regards,
-      ${user?.name}
-            `,
-            urgent: `
-      Dear ${invoice.clientName},
+Regards,
+${user?.name}`,
+      urgent: `Dear ${invoice.clientName},
 
-      URGENT REMINDER: Invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
+URGENT REMINDER: Invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)} is now ${getDaysOverdue(invoice.dueDate)} days overdue.
 
-      This requires your immediate attention. Please process this payment within 48 hours to avoid additional late fees and potential service interruptions.
+This requires your immediate attention. Please process this payment within 48 hours to avoid additional late fees and potential service interruptions.
 
-      If you're experiencing difficulties with payment, please contact us immediately to discuss payment options.
+If you're experiencing difficulties with payment, please contact us immediately to discuss payment options.
 
-      Sincerely,
-      ${user?.name}
-            `,
-            thankYou: `
-      Dear ${invoice.clientName},
+Sincerely,
+${user?.name}`,
+      thankYou: `Dear ${invoice.clientName},
 
-      Thank you for your prompt payment of invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}.
+Thank you for your prompt payment of invoice #${invoice.invoiceNumber} for ${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}.
 
-      We greatly appreciate your business and look forward to working with you again in the future.
+We greatly appreciate your business and look forward to working with you again in the future.
 
-      Best regards,
-      ${user?.name || "Your Company"}
-      `
+Best regards,
+${user?.name || "Your Company"}`
     };
     
     return templates[templateType as keyof typeof templates] || templates.polite;
-  }, [user]);
+  }, [user, useCustomTemplate, selectedCustomTemplate]);
 
-  // Function to get HTML email content based on template
+  // Enhanced HTML email content generation
   const getHtmlEmailContent = useCallback((templateType: string, invoice: any) => {
-    // Define common CSS styles for all templates
+    // If using custom template, render it with invoice data
+    if (useCustomTemplate && selectedCustomTemplate) {
+      const renderData = TemplateRenderer.fromInvoiceData(
+        invoice, 
+        user?.name || "Your Name",
+        user?.name || "Your Company"
+      );
+      const renderer = new TemplateRenderer(renderData);
+      
+      // Use HTML content if available, otherwise fall back to legacy content
+      const templateContent = selectedCustomTemplate.htmlContent || selectedCustomTemplate.content;
+      return renderer.renderHtml(templateContent);
+    }
+
+    // Built-in templates (legacy support)
     const headerColor = templateType === 'urgent' ? '#e53e3e' : templateType === 'firm' ? '#dd6b20' : '#3182ce';
     const accentColor = templateType === 'urgent' ? '#fc8181' : templateType === 'firm' ? '#fbd38d' : '#90cdf4';
     
@@ -314,17 +368,96 @@ export const useEmailTemplates = () => {
     }
   }, [selectedTemplateType, isHtmlMode, customizedEmailContent]);
 
+  // Enhanced custom template handling
+  const handleCustomTemplateSelect = useCallback((template: EmailTemplate) => {
+    setSelectedCustomTemplate(template);
+    setUseCustomTemplate(true);
+    
+    // Initialize content with selected template
+    const renderData = TemplateRenderer.createPreviewData();
+    const renderer = new TemplateRenderer(renderData);
+    
+    // Set subject from template
+    setEmailSubject(renderer.renderText(template.subject));
+    
+    // Set content based on available formats
+    if (template.htmlContent) {
+      setHtmlEmailContent(template.htmlContent);
+      setIsHtmlMode(true);
+      setCustomizedEmailContent(template.htmlContent);
+    } else if (template.textContent) {
+      setPlainTextEmailContent(template.textContent);
+      setIsHtmlMode(false);
+      setCustomizedEmailContent(template.textContent);
+    } else {
+      // Fall back to legacy content
+      setPlainTextEmailContent(template.content);
+      setIsHtmlMode(false);
+      setCustomizedEmailContent(template.content);
+    }
+    
+    setPreviewKey(prev => prev + 1);
+    toast.success(`Template "${template.name}" selected`);
+  }, []);
+
+  const handleBuiltInTemplateSelect = useCallback((templateType: "polite" | "firm" | "urgent", invoice: any) => {
+    setUseCustomTemplate(false);
+    setSelectedCustomTemplate(null);
+    setSelectedTemplateType(templateType);
+    initializeTemplateContent(templateType, invoice);
+  }, [initializeTemplateContent]);
+
+  const getAvailableTemplates = useCallback(() => {
+    const builtInTemplates = [
+      { id: 'polite', name: 'Polite Reminder', tone: 'polite', isBuiltIn: true },
+      { id: 'firm', name: 'Firm Reminder', tone: 'firm', isBuiltIn: true },
+      { id: 'urgent', name: 'Urgent Reminder', tone: 'urgent', isBuiltIn: true }
+    ];
+    
+    const customReminders = customTemplates.filter(t => 
+      t.category === 'reminder' && t.isActive !== false
+    );
+    
+    return { builtIn: builtInTemplates, custom: customReminders };
+  }, [customTemplates]);
+
+  const getCurrentEmailSubject = useCallback((invoice: any) => {
+    if (useCustomTemplate && selectedCustomTemplate) {
+      const renderData = TemplateRenderer.fromInvoiceData(
+        invoice, 
+        user?.name || "Your Name",
+        user?.name || "Your Company"
+      );
+      const renderer = new TemplateRenderer(renderData);
+      return renderer.renderText(selectedCustomTemplate.subject);
+    }
+    
+    // Built-in template subjects
+    if (selectedTemplateType === "polite") {
+      return `Friendly reminder: Invoice #${invoice.invoiceNumber} payment due`;
+    } else if (selectedTemplateType === "firm") {
+      return `REMINDER: Invoice #${invoice.invoiceNumber} is overdue`;
+    } else {
+      return `URGENT: Invoice #${invoice.invoiceNumber} payment required`;
+    }
+  }, [useCustomTemplate, selectedCustomTemplate, selectedTemplateType, user]);
+
   return {
-    // State
+    // Enhanced State
     selectedTemplateType,
+    selectedCustomTemplate,
+    useCustomTemplate,
+    customTemplates,
+    loadingTemplates,
     isHtmlMode,
     htmlEmailContent,
     plainTextEmailContent,
     customizedEmailContent,
+    emailSubject,
     previewKey,
     isSendingTemplate,
 
-    // Actions
+    // Enhanced Actions
     getEmailContent,
     getHtmlEmailContent,
     initializeTemplateContent,
@@ -332,13 +465,23 @@ export const useEmailTemplates = () => {
     handleHtmlModeToggle,
     handleContentChange,
     sendReminderWithTemplate,
+    
+    // Custom Template Actions
+    handleCustomTemplateSelect,
+    handleBuiltInTemplateSelect,
+    getAvailableTemplates,
+    getCurrentEmailSubject,
+    loadCustomTemplates,
 
-    // Setters
+    // Enhanced Setters
     setSelectedTemplateType,
+    setSelectedCustomTemplate,
+    setUseCustomTemplate,
     setIsHtmlMode,
     setHtmlEmailContent,
     setPlainTextEmailContent,
     setCustomizedEmailContent,
+    setEmailSubject,
     setPreviewKey,
   };
 };
