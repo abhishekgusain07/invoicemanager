@@ -31,7 +31,12 @@ const nextConfig = {
     ignoreDuringBuilds: true
   },
   images: {
-    domains: ['assets.aceternity.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'assets.aceternity.com',
+      },
+    ],
   },
   async rewrites() {
     // Only set up PostHog rewrites if enabled

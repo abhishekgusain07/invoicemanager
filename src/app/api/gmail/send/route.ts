@@ -13,7 +13,10 @@ export async function POST(req: NextRequest) {
       headers:  await headers()
     });
     if (!session?.user) {
-      return { success: false, data: null, error: "Unauthorized" };
+      return NextResponse.json(
+        { success: false, data: null, error: "Unauthorized" },
+        { status: 401 }
+      );
     }
   
     const currentUserId = session.user.id;

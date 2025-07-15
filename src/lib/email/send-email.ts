@@ -1,5 +1,6 @@
-import { useSendEmail } from "@/hooks/sendEmail";
 import { serverDebug } from "@/utils/debug";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 type EmailRecipient = {
   email: string;
@@ -14,14 +15,21 @@ type EmailParams = {
 };
 
 /**
- * Sends an email using the configured email service
- * Can be expanded to use Gmail API, SendGrid, or any other email service
+ * Sends an email using the Gmail API through the /api/gmail/send endpoint
  */
 export async function sendEmail(params: EmailParams) {
   const { to, subject, html, text } = params;
   
-  const { sendEmail: sendEmailThroughGmail, isLoading, error } = useSendEmail();
   try {
+    // Get the current session to get the base URL
+    const session = await auth.api.getSession({
+      headers: await headers()
+    });
+
+    if (!session?.user) {
+      throw new Error("User not authenticated");
+    }
+
     // Log the email for debugging
     serverDebug("Sending email", JSON.stringify({
       to: `${to.name} <${to.email}>`,
@@ -29,34 +37,51 @@ export async function sendEmail(params: EmailParams) {
       contentLength: html.length
     }));
     
-    //TODO: priority
-    // For now, just log success - this will be replaced with actual email sending code
-    // Depending on your implementation, you might use:
-    // - Gmail API for accounts connected via OAuth
-    // - SendGrid, Mailgun, or other transactional email services
-    // - SMTP directly
+    // Get the base URL from the headers
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = headersList.get('x-forwarded-proto') || 'http';
+    const baseUrl = `${protocol}://${host}`;
     
-    // await sendEmailThroughGmail({
-    //   to: { email: "valorantgusain@gmail.com", name: "Gusain" },
-    //   subject: `Reminder: Invoice __ Payment Due`,
-    //   html: `
-    //     <div>
-    //       <h2>Invoice Payment Reminder</h2>
-    //       <p>Dear __,</p>
-    //       <p>This is a friendly reminder that payment for invoice #__ in the amount of $__ was due on __.</p>
-    //       <p>Please make your payment at your earliest convenience.</p>
-    //       <p>Thank you for your business!</p>
-    //     </div>
-    //   `,
-    // });
+    // Call the Gmail API endpoint
+    const response = await fetch(`${baseUrl}/api/gmail/send`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: session.user.id,
+        to: [{ email: 'valorantgusain@gmail.com', name: to.name }],
+        subject,
+        html,
+        body: text, // Plain text fallback
+      }),
+    });
+
+    if (!response.ok) {
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (jsonError) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    
+    serverDebug("Email sent successfully", JSON.stringify({
+      messageId: result.messageId,
+      to: `${to.name} <${to.email}>`,
+      subject
+    }));
 
     return {
       success: true,
-      messageId: `mock-${Date.now()}`
-      
+      messageId: result.messageId
     };
   } catch (error) {
     console.error("Failed to send email:", error);
-    throw new Error(`Failed to send email: ${error}`);
+    throw new Error(`Failed to send email: ${error instanceof Error ? error.message : String(error)}`);
   }
 } 

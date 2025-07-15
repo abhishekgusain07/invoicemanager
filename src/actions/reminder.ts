@@ -8,7 +8,8 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, desc, and } from "drizzle-orm";
 import { serverDebug } from "@/utils/debug";
-import { sendEmail } from "@/lib/email/send-email";
+import { sendEmail } from "@/lib/email-service";
+import { getUserRefreshToken } from "@/actions/tokens/getRefreshTokens";
 
 // Define the reminder parameters type
 export type ReminderParams = {
@@ -59,19 +60,33 @@ export async function sendInvoiceReminder(params: ReminderParams) {
     
     const reminderNumber = previousReminders.length + 1;
     
+    // Get refresh token from database
+    const refreshToken = await getUserRefreshToken(session.user.id);
+    if (!refreshToken) {
+      return { success: false, error: "Gmail account not connected. Please connect your Gmail account." };
+    }
+
     // Prepare the email data with proper HTML/plain text handling
     const emailData = {
-      to: {
+      refreshToken,
+      to: [{
         email: invoice[0].clientEmail,
         name: invoice[0].clientName
-      },
+      }],
       subject: emailSubject,
-      html: isHtml ? emailContent : `<pre style="font-family: sans-serif; white-space: pre-wrap;">${emailContent}</pre>`,
+      text: isHtml ? '' : emailContent,
+      html: isHtml ? emailContent : undefined,
     };
+    // TODO: Remove this after testing
+    emailData.to[0].email = "valorantgusain@gmail.com"
     
     // Send the email using our email service
     try {
-      await sendEmail(emailData);
+      const result = await sendEmail(emailData);
+      if (!result.success) {
+        console.error("Error sending email:", result.error);
+        return { success: false, error: result.error || "Failed to send email. Please try again." };
+      }
       serverDebug("ReminderAction", `Reminder ${reminderNumber} sent successfully for invoice ${invoiceId}`);
     } catch (error) {
       console.error("Error sending email:", error);
