@@ -217,53 +217,56 @@ export default function Pricing() {
 
   const plans = [
     {
-      title: "Starter",
-      monthlyPrice: 29,
-      yearlyPrice: 24,
+      title: "Freelancer",
+      monthlyPrice: 19,
+      yearlyPrice: 16,
       description:
-        "Perfect for indie developers launching their first SaaS project.",
+        "Perfect for solo freelancers managing multiple clients.",
       features: [
-        "All core features",
-        "Authentication & user management",
-        "Basic Stripe integration",
-        "Community support",
-        "1 team member"
+        "Unlimited invoices & clients",
+        "Client & payment tracking",
+        "Automated follow-ups",
+        "Stripe/PayPal integration",
+        "Beautiful dashboards",
+        "Email support"
       ],
       priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
       priceIdYearly: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
-      actionLabel: "Get Started",
+      actionLabel: "Start Free Trial",
     },
     {
-      title: "Pro",
-      monthlyPrice: 79,
-      yearlyPrice: 66,
-      description: "For growing startups that need more power and features.",
+      title: "Agency",
+      monthlyPrice: 49,
+      yearlyPrice: 41,
+      description: "For small agencies and growing freelancer teams.",
       features: [
-        "Everything in Starter",
+        "Everything in Freelancer",
+        "Role-based access control",
+        "Team member management",
         "Advanced analytics",
-        "Multi-tier subscription management",
-        "Priority email support",
-        "Up to 5 team members",
-        "Custom branding"
+        "Custom branding",
+        "Priority support",
+        "Up to 5 team members"
       ],
       priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
       priceIdYearly: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
-      actionLabel: "Upgrade to Pro",
+      actionLabel: "Upgrade to Agency",
       popular: true,
     },
     {
       title: "Enterprise",
-      monthlyPrice: 299,
-      yearlyPrice: 249,
-      description: "Custom solutions for high-scale SaaS applications.",
+      monthlyPrice: 149,
+      yearlyPrice: 125,
+      description: "Custom solutions for large agencies and enterprises.",
       features: [
-        "Everything in Pro",
+        "Everything in Agency",
         "Unlimited team members",
-        "24/7 dedicated support",
+        "AI Smart Invoicing (when available)",
         "Custom integrations",
-        "SLA guarantees",
+        "24/7 dedicated support",
         "White-labeling",
-        "Dedicated account manager"
+        "Dedicated account manager",
+        "Custom workflows"
       ],
       priceIdMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
       priceIdYearly: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID,
@@ -277,7 +280,7 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto">
         <PricingHeader
           title="Simple, Transparent Pricing"
-          subtitle="Launch your SaaS product faster with our complete template. All plans include the core infrastructure you need."
+          subtitle="Choose the perfect plan for your freelance business or agency. All plans include automated invoice management to get you paid faster."
         />
         <PricingSwitch onSwitch={togglePricingPeriod} />
         <motion.div

@@ -7,7 +7,7 @@ export const authClient = createAuthClient({
     /** the base url of the server */
     baseURL: isProd 
         ? typeof window !== 'undefined' ? window.location.origin : '' // In production, use current origin
-        : 'http://localhost:3000' // In development, use localhost
+        : 'http://localhost:3000' // Back to port 3000 since server is running there now
 })
 
 export const { signIn, signUp, useSession } = createAuthClient()

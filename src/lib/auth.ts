@@ -22,5 +22,18 @@ export const auth = betterAuth({
     //        clientSecret: process.env.GITHUB_CLIENT_SECRET as string, 
     //     }, 
     // }, 
-    trustedOrigins: ["http://localhost:3000"]
+    trustedOrigins: ["http://localhost:3000", "http://localhost:3001"],
+    session: {
+        cookieCache: {
+            enabled: true,
+            maxAge: 5 * 60 // 5 minutes
+        }
+    },
+    advanced: {
+        defaultSignInRedirect: "/dashboard",
+        defaultSignUpRedirect: "/dashboard",
+        crossSubDomainCookies: {
+            enabled: false
+        }
+    }
 });
