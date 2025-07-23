@@ -184,7 +184,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <Suspense fallback={null}>
-        {showAnnouncement && (
+        {/* {showAnnouncement && (
           <Announcement
             show={showAnnouncement}
             key={announcement.message}
@@ -193,103 +193,203 @@ export default function Home() {
             emoji={announcement.emoji}
             onDismiss={handleAnnouncementDismiss}
           />
-        )}
+        )} */}
       </Suspense>
       
       <Suspense fallback={<div className="h-16 w-full bg-background" />}>
         <NavbarDemo>
           {/* Hero Section */}
-          <section className="relative pt-12 pb-24 overflow-hidden">
-            {/* Background Elements */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 -z-10" />
-            <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl -z-10" />
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl -z-10" />
+          <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+            {/* Clean Background */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 -z-10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 -z-10" />
             
-            <div className="container px-4 md:px-6 mx-auto max-w-7xl">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                {/* Left Content */}
-                <div className="flex flex-col space-y-8">
-                  <Badge className="w-fit bg-gradient-to-r from-primary/20 to-secondary/20 text-primary hover:from-primary/30 hover:to-secondary/30 transition-all duration-300 px-4 py-2 text-sm font-medium border-0">
-                    <Zap className="w-4 h-4 mr-2" />
-                    Freelancer & Agency Focused
-                  </Badge>
-                  
-                  <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] text-slate-900 dark:text-slate-100">
-                    Get Paid On Time, Every Time
-                  </h1>
-                  
-                  <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
-                    Track every payment, every time — without lifting a finger. While others make it complicated, we make it simple.
-                  </p>
-                  
-                  <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    <Button asChild size="lg" className="font-medium text-lg shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary group">
-                      <Link href="/dashboard">
-                        Try for free
-                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" size="lg" className="font-medium text-lg border-2 hover:bg-muted/50 transition-all duration-300">
-                      <Link href="#features">Request a demo →</Link>
-                    </Button>
+            <div className="container px-4 md:px-6 mx-auto max-w-6xl text-center">
+              {/* Status Badge */}
+              <div className="mb-8">
+                <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2 text-sm font-medium">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                  1K+ FREELANCERS MANAGE INVOICES WITH US THIS MONTH!
+                </Badge>
+              </div>
+              
+              {/* Main Title */}
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-white mb-8 max-w-5xl mx-auto">
+                Professional Invoice
+                <br />
+                <span className="bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent">
+                  Management
+                </span>
+                <br />
+                for Freelancers & Agencies
+              </h1>
+              
+              {/* Subtitle */}
+              <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-12">
+                Stop chasing payments and focus on what matters. Our intelligent system handles follow-ups, 
+                tracks payments, and gets you paid 75% faster.
+              </p>
+              
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                <Button asChild size="lg" className="font-medium text-lg px-8 py-4 bg-white text-slate-900 hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-xl">
+                  <Link href="/sign-up">
+                    Start Free Trial
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" size="lg" className="font-medium text-lg px-8 py-4 text-white border-white/20 hover:bg-white/10 transition-all duration-300">
+                  <Link href="#features">View Features</Link>
+                </Button>
+              </div>
+              
+              {/* Trust Indicators */}
+              <div className="text-center">
+                <p className="text-slate-400 text-sm uppercase tracking-wide mb-8 font-medium">
+                  TRUSTED BY THE FASTEST-GROWING FREELANCERS:
+                </p>
+                
+                {/* Company Logos / Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center max-w-4xl mx-auto opacity-60">
+                  <div className="flex flex-col items-center">
+                    <div className="text-3xl font-bold text-white mb-1">1K+</div>
+                    <div className="text-sm text-slate-400">Active Users</div>
                   </div>
-                  
-                  {/* Stats Section */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-12 pt-8 border-t border-border/40">
-                    {stats.map((stat, index) => (
-                      <div key={index} className="flex flex-col space-y-1">
-                        <span className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">{stat.value}</span>
-                        <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{stat.label}</span>
-                        <span className="text-xs text-muted-foreground leading-relaxed">{stat.description}</span>
-                      </div>
-                    ))}
+                  <div className="flex flex-col items-center">
+                    <div className="text-3xl font-bold text-white mb-1">$2M+</div>
+                    <div className="text-sm text-slate-400">Tracked Revenue</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="text-3xl font-bold text-white mb-1">75%</div>
+                    <div className="text-sm text-slate-400">Faster Payments</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="text-3xl font-bold text-white mb-1">99%</div>
+                    <div className="text-sm text-slate-400">Client Satisfaction</div>
                   </div>
                 </div>
-                
-                {/* Right Content - Illustration */}
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-3xl blur-2xl opacity-50 animate-pulse"></div>
-                  <div className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-border/50 rounded-2xl overflow-hidden shadow-2xl">
-                    {/* Mock Invoice Interface */}
-                    <div className="p-8">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              </div>
+            </div>
+          </section>
+          
+          {/* Feature Preview Section */}
+          <section className="py-24 bg-white relative">
+            <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                  See InvoiceManager in Action
+                </h2>
+                <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+                  Everything you need to manage invoices professionally and get paid on time
+                </p>
+              </div>
+              
+              {/* Clean Dashboard Preview */}
+              <div className="relative max-w-4xl mx-auto">
+                <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden shadow-2xl">
+                  {/* Browser Chrome */}
+                  <div className="flex items-center justify-between px-6 py-4 bg-slate-100 border-b border-slate-200">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    </div>
+                    <div className="text-sm text-slate-500 font-medium">invoicemanager.app/dashboard</div>
+                    <div className="w-16"></div>
+                  </div>
+                  
+                  {/* Dashboard Content */}
+                  <div className="p-8 bg-gradient-to-br from-white to-slate-50">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      {/* Stats Cards */}
+                      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-slate-600">Outstanding</p>
+                            <p className="text-2xl font-bold text-slate-900">$24,500</p>
+                          </div>
+                          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                            <DollarSign className="w-6 h-6 text-orange-600" />
+                          </div>
                         </div>
-                        <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Invoice
-                        </Badge>
                       </div>
                       
-                      {/* Mock payment methods */}
+                      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-slate-600">This Month</p>
+                            <p className="text-2xl font-bold text-slate-900">$18,200</p>
+                          </div>
+                          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-green-600" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-slate-600">Overdue</p>
+                            <p className="text-2xl font-bold text-slate-900">$3,400</p>
+                          </div>
+                          <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                            <Clock className="w-6 h-6 text-red-600" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Recent Invoices */}
+                    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                      <h3 className="font-semibold text-slate-900 mb-4">Recent Invoices</h3>
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200 dark:border-purple-800/50">
-                          <span className="font-medium">Card</span>
-                          <div className="w-6 h-6 bg-purple-500 rounded-full"></div>
+                        <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-900">Acme Corporation</p>
+                              <p className="text-sm text-slate-500">Invoice #001234</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-slate-900">$5,400</p>
+                            <Badge className="bg-green-100 text-green-800 text-xs">Paid</Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-xl border border-slate-300 dark:border-slate-600">
-                          <span className="font-medium flex items-center">
-                            <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
-                            UPI
-                          </span>
-                          <div className="w-6 h-6 bg-slate-600 rounded-full"></div>
+                        
+                        <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-900">Design Studio LLC</p>
+                              <p className="text-sm text-slate-500">Invoice #001235</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-slate-900">$3,200</p>
+                            <Badge className="bg-yellow-100 text-yellow-800 text-xs">Pending</Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border border-orange-200 dark:border-orange-800/50">
-                          <span className="font-medium">Netbanking</span>
-                          <div className="w-6 h-6 bg-orange-500 rounded-full"></div>
-                        </div>
-                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800/50">
-                          <span className="font-medium">Cash</span>
-                          <div className="w-6 h-6 bg-green-500 rounded-full"></div>
+                        
+                        <div className="flex items-center justify-between py-3">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-orange-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-slate-900">Tech Startup Inc</p>
+                              <p className="text-sm text-slate-500">Invoice #001236</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-slate-900">$7,800</p>
+                            <Badge className="bg-red-100 text-red-800 text-xs">Overdue</Badge>
+                          </div>
                         </div>
                       </div>
-                      
-                      {/* Floating elements */}
-                      <div className="absolute -top-4 -right-4 w-8 h-8 bg-primary rounded-full animate-bounce"></div>
-                      <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-secondary rounded-full animate-pulse"></div>
                     </div>
                   </div>
                 </div>
