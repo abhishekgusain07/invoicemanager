@@ -1,19 +1,52 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { InvoiceForm } from "./invoice-form";
 import { PDFPreview } from "./pdf-preview";
 import { PDFDownloadButton } from "./pdf-download-button";
+import { ShareInvoiceButton } from "./share-invoice-button";
 import { INITIAL_INVOICE_DATA, PDF_DATA_LOCAL_STORAGE_KEY } from "../constants";
 import { invoiceGenerationSchema, type InvoiceGenerationData } from "@/lib/validations/invoice-generation";
 import { toast } from "sonner";
+import { decompressFromEncodedURIComponent } from "lz-string";
 
 export function InvoiceClientPage() {
   const [invoiceDataState, setInvoiceDataState] = useState<InvoiceGenerationData | null>(null);
   const [canShareInvoice, setCanShareInvoice] = useState(true);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-  // Initialize data from localStorage on mount
+  // Initialize data from URL or localStorage on mount
   useEffect(() => {
+    const compressedInvoiceDataInUrl = searchParams.get("data");
+
+    // First try to load from URL
+    if (compressedInvoiceDataInUrl) {
+      try {
+        const decompressed = decompressFromEncodedURIComponent(compressedInvoiceDataInUrl);
+        const parsedJSON: unknown = JSON.parse(decompressed);
+        const validated = invoiceGenerationSchema.parse(parsedJSON);
+        setInvoiceDataState(validated);
+        
+        toast.info("Invoice loaded from shared link!", {
+          description: "You can now edit and customize this invoice",
+        });
+      } catch (error) {
+        console.error("Failed to parse URL data:", error);
+        toast.error("Failed to load shared invoice data", {
+          description: "Loading default invoice instead",
+        });
+        loadFromLocalStorage();
+      }
+    } else {
+      // If no data in URL, load from localStorage
+      loadFromLocalStorage();
+    }
+  }, [searchParams]);
+
+  // Helper function to load from localStorage
+  const loadFromLocalStorage = () => {
     try {
       const savedData = localStorage.getItem(PDF_DATA_LOCAL_STORAGE_KEY);
       if (savedData) {
@@ -33,7 +66,7 @@ export function InvoiceClientPage() {
         }
       );
     }
-  }, []);
+  };
 
   // Save to localStorage whenever data changes
   useEffect(() => {
@@ -91,10 +124,17 @@ export function InvoiceClientPage() {
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">PDF Preview</h2>
-                <PDFDownloadButton 
-                  invoiceData={invoiceDataState}
-                  disabled={!invoiceDataState.seller.name || !invoiceDataState.buyer.name || invoiceDataState.items.length === 0}
-                />
+                <div className="flex gap-2">
+                  <ShareInvoiceButton
+                    invoiceData={invoiceDataState}
+                    canShareInvoice={canShareInvoice}
+                    disabled={!invoiceDataState.seller.name || !invoiceDataState.buyer.name || invoiceDataState.items.length === 0}
+                  />
+                  <PDFDownloadButton 
+                    invoiceData={invoiceDataState}
+                    disabled={!invoiceDataState.seller.name || !invoiceDataState.buyer.name || invoiceDataState.items.length === 0}
+                  />
+                </div>
               </div>
               <PDFPreview invoiceData={invoiceDataState} />
             </div>

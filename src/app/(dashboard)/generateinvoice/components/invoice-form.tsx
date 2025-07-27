@@ -9,6 +9,13 @@ import {
   type InvoiceGenerationData,
   type InvoiceGenerationItemData,
   type AccordionGenerationState,
+  SUPPORTED_LANGUAGES,
+  LANGUAGE_TO_LABEL,
+  SUPPORTED_CURRENCIES,
+  CURRENCY_TO_LABEL,
+  SUPPORTED_DATE_FORMATS,
+  type InvoiceGenerationSellerData,
+  type InvoiceGenerationBuyerData,
 } from "@/lib/validations/invoice-generation";
 
 import {
@@ -24,6 +31,7 @@ import { ReadOnlyMoneyInput } from "@/components/ui/money-input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
@@ -35,6 +43,7 @@ import { z } from "zod";
 
 import { DEFAULT_ACCORDION_VALUES, DEBOUNCE_TIMEOUT } from "../constants";
 import type { Prettify, NonReadonly } from "@/types/invoice-generation";
+import { SellerBuyerManagement } from "./seller-buyer-management";
 
 const ACCORDION_GENERAL = DEFAULT_ACCORDION_VALUES[0];
 const ACCORDION_SELLER = DEFAULT_ACCORDION_VALUES[1];
@@ -249,6 +258,74 @@ export const InvoiceForm = memo(function InvoiceForm({
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4">
               <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="language">Language</Label>
+                    <Controller
+                      name="language"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SUPPORTED_LANGUAGES.map((lang) => (
+                              <SelectItem key={lang} value={lang}>
+                                {LANGUAGE_TO_LABEL[lang]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="currency">Currency</Label>
+                    <Controller
+                      name="currency"
+                      control={control}
+                      render={({ field }) => (
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select currency" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SUPPORTED_CURRENCIES.map((curr) => (
+                              <SelectItem key={curr} value={curr}>
+                                {curr} - {CURRENCY_TO_LABEL[curr]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="dateFormat">Date Format</Label>
+                  <Controller
+                    name="dateFormat"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select date format" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SUPPORTED_DATE_FORMATS.map((format) => (
+                            <SelectItem key={format} value={format}>
+                              {format} - {dayjs().format(format)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+
                 <div>
                   <Label htmlFor="invoiceNumber">Invoice Number</Label>
                   <Controller
@@ -264,26 +341,28 @@ export const InvoiceForm = memo(function InvoiceForm({
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="dateOfIssue">Date of Issue</Label>
-                  <Controller
-                    name="dateOfIssue"
-                    control={control}
-                    render={({ field }) => (
-                      <Input {...field} id="dateOfIssue" type="date" />
-                    )}
-                  />
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="dateOfIssue">Date of Issue</Label>
+                    <Controller
+                      name="dateOfIssue"
+                      control={control}
+                      render={({ field }) => (
+                        <Input {...field} id="dateOfIssue" type="date" />
+                      )}
+                    />
+                  </div>
 
-                <div>
-                  <Label htmlFor="dateOfService">Date of Service</Label>
-                  <Controller
-                    name="dateOfService"
-                    control={control}
-                    render={({ field }) => (
-                      <Input {...field} id="dateOfService" type="date" />
-                    )}
-                  />
+                  <div>
+                    <Label htmlFor="dateOfService">Date of Service</Label>
+                    <Controller
+                      name="dateOfService"
+                      control={control}
+                      render={({ field }) => (
+                        <Input {...field} id="dateOfService" type="date" />
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
             </AccordionContent>
@@ -295,7 +374,23 @@ export const InvoiceForm = memo(function InvoiceForm({
             className="rounded-lg border shadow"
           >
             <AccordionTrigger className="px-4 py-3">
-              <span className="font-semibold">Seller Information</span>
+              <div className="flex items-center justify-between w-full">
+                <span className="font-semibold">Seller Information</span>
+                <SellerBuyerManagement
+                  type="seller"
+                  onSelect={(data) => {
+                    const sellerData = data as InvoiceGenerationSellerData;
+                    setValue("seller.name", sellerData.name);
+                    setValue("seller.address", sellerData.address);
+                    setValue("seller.email", sellerData.email);
+                    setValue("seller.vatNo", sellerData.vatNo || "");
+                    setValue("seller.accountNumber", sellerData.accountNumber || "");
+                    setValue("seller.swiftBic", sellerData.swiftBic || "");
+                    setValue("seller.notes", sellerData.notes || "");
+                  }}
+                  currentData={invoiceData.seller}
+                />
+              </div>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4">
               <div className="space-y-4">
@@ -364,7 +459,21 @@ export const InvoiceForm = memo(function InvoiceForm({
             className="rounded-lg border shadow"
           >
             <AccordionTrigger className="px-4 py-3">
-              <span className="font-semibold">Buyer Information</span>
+              <div className="flex items-center justify-between w-full">
+                <span className="font-semibold">Buyer Information</span>
+                <SellerBuyerManagement
+                  type="buyer"
+                  onSelect={(data) => {
+                    const buyerData = data as InvoiceGenerationBuyerData;
+                    setValue("buyer.name", buyerData.name);
+                    setValue("buyer.address", buyerData.address);
+                    setValue("buyer.email", buyerData.email);
+                    setValue("buyer.vatNo", buyerData.vatNo || "");
+                    setValue("buyer.notes", buyerData.notes || "");
+                  }}
+                  currentData={invoiceData.buyer}
+                />
+              </div>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4">
               <div className="space-y-4">
