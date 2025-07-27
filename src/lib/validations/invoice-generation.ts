@@ -388,6 +388,12 @@ export const invoiceGenerationSchema = z.object({
     })
     .optional(),
 
+  invoiceTitle: z
+    .string()
+    .max(500, "Invoice title must not exceed 500 characters")
+    .trim()
+    .optional(),
+
   dateOfIssue: z
     .string()
     .trim()

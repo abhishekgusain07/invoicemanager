@@ -1,3 +1,19 @@
+// Import types from the validation schema
+import type {
+  SupportedCurrencies,
+  CurrencySymbols,
+  CurrencyLabels,
+  SupportedTemplates,
+  TemplateLabels,
+  SupportedLanguages,
+  SupportedDateFormat,
+  InvoiceGenerationItemData,
+  InvoiceGenerationSellerData,
+  InvoiceGenerationBuyerData,
+  InvoiceGenerationData,
+  AccordionGenerationState,
+} from "@/lib/validations/invoice-generation";
+
 export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
@@ -20,7 +36,7 @@ export type {
   InvoiceGenerationBuyerData,
   InvoiceGenerationData,
   AccordionGenerationState,
-} from "@/lib/validations/invoice-generation";
+};
 
 // Additional utility types for the invoice generation
 export interface InvoiceGenerationFormProps {
@@ -102,5 +118,3 @@ export interface SellerBuyerDialogProps {
   currentData?: InvoiceGenerationSellerData | InvoiceGenerationBuyerData;
 }
 
-// Import type from validation
-import type { InvoiceGenerationData } from "@/lib/validations/invoice-generation";

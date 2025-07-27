@@ -3,9 +3,16 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { InvoiceForm } from "./invoice-form";
-import { PDFPreview } from "./pdf-preview";
+import dynamic from "next/dynamic";
+
+const PDFPreview = dynamic(() => import("./pdf-preview").then(mod => ({ default: mod.PDFPreview })), {
+  ssr: false,
+  loading: () => <div className="w-full h-96 flex items-center justify-center bg-gray-100 rounded-lg">Loading PDF preview...</div>
+});
 import { PDFDownloadButton } from "./pdf-download-button";
 import { ShareInvoiceButton } from "./share-invoice-button";
+import { SaveInvoiceButton } from "./save-invoice-button";
+import { SavedInvoicesList } from "./saved-invoices-list";
 import { INITIAL_INVOICE_DATA } from "../constants";
 import { PDF_DATA_LOCAL_STORAGE_KEY } from "@/lib/validations/invoice-generation";
 import { invoiceGenerationSchema, type InvoiceGenerationData } from "@/lib/validations/invoice-generation";
@@ -15,6 +22,7 @@ import { decompressFromEncodedURIComponent } from "lz-string";
 export function InvoiceClientPage() {
   const [invoiceDataState, setInvoiceDataState] = useState<InvoiceGenerationData | null>(null);
   const [canShareInvoice, setCanShareInvoice] = useState(true);
+  const [currentInvoiceId, setCurrentInvoiceId] = useState<string | undefined>(undefined);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -89,6 +97,15 @@ export function InvoiceClientPage() {
     setInvoiceDataState(updatedData);
   };
 
+  const handleLoadInvoice = (invoiceData: InvoiceGenerationData, invoiceId: string) => {
+    setInvoiceDataState(invoiceData);
+    setCurrentInvoiceId(invoiceId);
+  };
+
+  const handleInvoiceSaved = (invoiceId: string) => {
+    setCurrentInvoiceId(invoiceId);
+  };
+
   if (!invoiceDataState) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -126,6 +143,13 @@ export function InvoiceClientPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">PDF Preview</h2>
                 <div className="flex gap-2">
+                  <SavedInvoicesList onLoadInvoice={handleLoadInvoice} />
+                  <SaveInvoiceButton
+                    invoiceData={invoiceDataState}
+                    existingInvoiceId={currentInvoiceId}
+                    onSaved={handleInvoiceSaved}
+                    disabled={!invoiceDataState.seller.name || !invoiceDataState.buyer.name || invoiceDataState.items.length === 0}
+                  />
                   <ShareInvoiceButton
                     invoiceData={invoiceDataState}
                     canShareInvoice={canShareInvoice}

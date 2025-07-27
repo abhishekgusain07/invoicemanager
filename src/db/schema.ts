@@ -273,6 +273,41 @@ export const featureRequests = pgTable("feature_requests", {
 });
 
 // Invoice Reminders tracking schema
+// Generated Invoices schema for the invoice generation feature
+export const generatedInvoices = pgTable("generated_invoices", {
+	id: text("id").primaryKey(),
+	userId: text("user_id").notNull().references(() => user.id, { onDelete: 'cascade' }),
+	
+	// Invoice metadata
+	invoiceNumber: text("invoice_number").notNull(),
+	invoiceTitle: text("invoice_title"),
+	dateOfIssue: timestamp("date_of_issue").notNull(),
+	paymentDue: timestamp("payment_due").notNull(),
+	
+	// Invoice configuration
+	language: text("language").notNull().default("en"),
+	currency: text("currency").notNull().default("EUR"),
+	dateFormat: text("date_format").notNull().default("YYYY-MM-DD"),
+	template: text("template").notNull().default("default"),
+	
+	// Complete invoice data as JSON
+	invoiceData: text("invoice_data").notNull(), // JSON string of InvoiceGenerationData
+	
+	// Computed totals for quick querying
+	totalAmount: decimal("total_amount").notNull(),
+	
+	// Sharing and access
+	shareableToken: text("shareable_token"), // For public sharing
+	isPubliclyShareable: boolean("is_publicly_shareable").default(false),
+	
+	// Timestamps
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").defaultNow().notNull(),
+	
+	// Soft delete
+	deletedAt: timestamp("deleted_at")
+});
+
 export const invoiceReminders = pgTable("invoice_reminders", {
 	id: text("id").primaryKey(),
 	invoiceId: text("invoice_id").notNull().references(() => clientInvoices.id, { onDelete: 'cascade' }),
