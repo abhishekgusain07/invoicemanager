@@ -1,4 +1,4 @@
-import { BellDotIcon, Calendar, CircleHelp, FileText, Home, Inbox, LayoutDashboard, MailboxIcon, Search, Settings, Settings2 } from "lucide-react"
+import { BellDotIcon, Calendar, CircleHelp, FileText, Home, Inbox, LayoutDashboard, MailboxIcon, PlusCircle, Search, Settings, Settings2 } from "lucide-react"
 import Image from "next/image"
 import {
   Sidebar,
@@ -22,6 +22,11 @@ const items = [
     title: "Invoices",
     url: "/invoices",
     icon: FileText,
+  },
+  {
+    title: "Generate Invoice",
+    url: "/generateinvoice",
+    icon: PlusCircle,
   },
   {
     title: "Templates",
