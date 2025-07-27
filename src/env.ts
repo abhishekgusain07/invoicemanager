@@ -5,7 +5,8 @@ export const env = {
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || "",
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || "",
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || "",
-  NEXT_PUBLIC_STRIPE_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "",
+  NEXT_PUBLIC_STRIPE_PUBLIC_KEY:
+    process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "",
   NEXT_PUBLIC_STRIPE_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID || "",
   FRONTEND_URL: process.env.FRONTEND_URL || "",
   NODE_ENV: process.env.NODE_ENV || "development",
@@ -15,5 +16,5 @@ export const env = {
   UPSTASH_ACCOUNT: process.env.UPSTASH_ACCOUNT || "",
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "",
-  GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || ""
-}; 
+  GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || "",
+};

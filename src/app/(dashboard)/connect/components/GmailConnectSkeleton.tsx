@@ -1,4 +1,11 @@
-import { Mail, CircleCheck, AlertCircle, Clock, Sparkles, Shield } from "lucide-react";
+import {
+  Mail,
+  CircleCheck,
+  AlertCircle,
+  Clock,
+  Sparkles,
+  Shield,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
@@ -31,20 +38,25 @@ export function GmailConnectSkeleton() {
           <Skeleton className="h-6 w-2/3 mx-auto" />
         </div>
 
-
         {/* Main Gmail Connection Card Skeleton */}
         <div className="max-w-4xl mx-auto">
           <Card className="relative overflow-hidden border-0 shadow-2xl bg-white/80 backdrop-blur-sm">
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/70 to-blue-50/50 pointer-events-none"></div>
-            
+
             <CardHeader className="relative pb-8 pt-8">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-orange-500 rounded-3xl opacity-20 blur-lg"></div>
                     <div className="relative bg-gradient-to-br from-red-500 to-orange-500 p-4 rounded-3xl">
-                      <Image src="/gmail.svg" alt="Gmail" width={32} height={32} className="w-8 h-8 filter brightness-0 invert" />
+                      <Image
+                        src="/gmail.svg"
+                        alt="Gmail"
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 filter brightness-0 invert"
+                      />
                     </div>
                   </div>
                   <div>
@@ -75,10 +87,15 @@ export function GmailConnectSkeleton() {
                   {[
                     { color: "from-yellow-400 to-orange-500" },
                     { color: "from-purple-400 to-pink-500" },
-                    { color: "from-green-400 to-emerald-500" }
+                    { color: "from-green-400 to-emerald-500" },
                   ].map((feature, index) => (
-                    <div key={index} className="bg-white/60 border border-white/40 rounded-2xl p-6">
-                      <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${feature.color} rounded-2xl mb-4 shadow-lg`}>
+                    <div
+                      key={index}
+                      className="bg-white/60 border border-white/40 rounded-2xl p-6"
+                    >
+                      <div
+                        className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${feature.color} rounded-2xl mb-4 shadow-lg`}
+                      >
                         <Skeleton className="w-6 h-6 bg-white/30" />
                       </div>
                       <Skeleton className="h-6 w-32 mb-2" />
@@ -130,10 +147,15 @@ export function GmailConnectSkeleton() {
               { color: "from-purple-400 to-pink-500" },
               { color: "from-orange-400 to-red-500" },
               { color: "from-blue-400 to-indigo-500" },
-              { color: "from-green-400 to-emerald-500" }
+              { color: "from-green-400 to-emerald-500" },
             ].map((integration, index) => (
-              <div key={index} className="bg-white/40 border border-white/40 rounded-2xl p-4 text-center opacity-60">
-                <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${integration.color} rounded-2xl mb-3`}>
+              <div
+                key={index}
+                className="bg-white/40 border border-white/40 rounded-2xl p-4 text-center opacity-60"
+              >
+                <div
+                  className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br ${integration.color} rounded-2xl mb-3`}
+                >
                   <Skeleton className="w-6 h-6 bg-white/30" />
                 </div>
                 <Skeleton className="h-5 w-16 mx-auto mb-1" />
@@ -145,4 +167,4 @@ export function GmailConnectSkeleton() {
       </div>
     </div>
   );
-} 
+}

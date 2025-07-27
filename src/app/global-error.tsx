@@ -5,11 +5,15 @@ import NextError from "next/error";
 import { useEffect } from "react";
 import config from "@/config";
 
-export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
+export default function GlobalError({
+  error,
+}: {
+  error: Error & { digest?: string };
+}) {
   useEffect(() => {
     // Will safely handle both enabled and disabled states
     Sentry.captureException(error);
-    
+
     // Log to console when Sentry is disabled
     if (!config.monitoring.sentry.enabled) {
       console.error("Global error (Sentry disabled):", error);

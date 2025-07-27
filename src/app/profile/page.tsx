@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
@@ -7,14 +7,29 @@ import { Button } from "@/components/ui/button";
 import { useFeedbackModal } from "@/hooks/useFeedbackModal";
 import { useUser } from "@/hooks/useUser";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
-import { Loader2, LogOut, CreditCard, UserCircle, Settings, LayoutDashboard, MessageSquareHeart } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Loader2,
+  LogOut,
+  CreditCard,
+  UserCircle,
+  Settings,
+  LayoutDashboard,
+  MessageSquareHeart,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Image from "next/image";
 
 export default function Dashboard() {
   const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
-  
+
   // This correctly uses the custom hook, getting userId from the user object
   const { FeedbackModalComponent } = useFeedbackModal(user?.id);
 
@@ -43,7 +58,9 @@ export default function Dashboard() {
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Dashboard
+            </h1>
             <div className="flex items-center space-x-4">
               <FeedbackButton />
               <Button
@@ -71,7 +88,7 @@ export default function Dashboard() {
             <CardHeader className="flex flex-col items-center text-center pb-2">
               <div className="h-24 w-24 rounded-full overflow-hidden bg-gray-200 mb-4 relative">
                 {user.image ? (
-                  <Image 
+                  <Image
                     src={user.image}
                     alt={user.name || "Profile"}
                     fill
@@ -86,19 +103,25 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="text-center">
               <div className="bg-gray-100 dark:bg-gray-800 rounded-md p-3 mb-3">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Subscription Status</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Subscription Status
+                </p>
                 <p className="font-medium mt-1">
                   {(user as any)?.subscription ? (
-                    <span className="text-green-600 dark:text-green-400">Active Premium</span>
+                    <span className="text-green-600 dark:text-green-400">
+                      Active Premium
+                    </span>
                   ) : (
-                    <span className="text-amber-600 dark:text-amber-400">Free Plan</span>
+                    <span className="text-amber-600 dark:text-amber-400">
+                      Free Plan
+                    </span>
                   )}
                 </p>
               </div>
             </CardContent>
             <CardFooter className="flex justify-center">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className="w-full"
                 onClick={() => router.push("/settings")}
@@ -114,7 +137,9 @@ export default function Dashboard() {
             {/* Welcome Card */}
             <Card className="border-0 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
               <CardHeader>
-                <CardTitle className="text-2xl">Welcome back, {user.name?.split(' ')[0] || "there"}!</CardTitle>
+                <CardTitle className="text-2xl">
+                  Welcome back, {user.name?.split(" ")[0] || "there"}!
+                </CardTitle>
                 <CardDescription className="text-blue-100 mt-1">
                   Here's what's happening with your account
                 </CardDescription>
@@ -139,8 +164,8 @@ export default function Dashboard() {
                   </p>
                 </CardContent>
                 <CardFooter>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => router.push("/onlypaid")}
                     className="w-full"
@@ -154,7 +179,10 @@ export default function Dashboard() {
               <Card className="hover:shadow-md transition-all">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center">
-                    <MessageSquareHeart size={18} className="mr-2 text-pink-500" />
+                    <MessageSquareHeart
+                      size={18}
+                      className="mr-2 text-pink-500"
+                    />
                     Your Feedback
                   </CardTitle>
                 </CardHeader>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // --- Icon Components ---
 
@@ -61,7 +61,6 @@ const LayersIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-
 // --- Main 404 Page Component ---
 
 const NotFoundPage = () => {
@@ -82,7 +81,8 @@ const NotFoundPage = () => {
           <h1 className="mb-2 text-4xl font-bold tracking-tight">404</h1>
           <h2 className="mb-4 text-2xl font-semibold">Page Not Found</h2>
           <p className="mb-8 max-w-md text-muted-foreground">
-            Sorry, we couldn't find the page you're looking for. Perhaps it's been moved or no longer exists.
+            Sorry, we couldn't find the page you're looking for. Perhaps it's
+            been moved or no longer exists.
           </p>
 
           {/* Action Buttons */}

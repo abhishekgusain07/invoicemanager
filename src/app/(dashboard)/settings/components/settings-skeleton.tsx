@@ -35,7 +35,7 @@ export default function SettingsSkeleton() {
             {/* Header */}
             <Skeleton className="h-8 w-52 mb-2" />
             <Skeleton className="h-5 w-full max-w-md mb-6" />
-            
+
             {/* Card */}
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm h-full">
               <div className="p-6 space-y-4">
@@ -46,7 +46,7 @@ export default function SettingsSkeleton() {
                   </div>
                   <Skeleton className="h-6 w-12 rounded-full" />
                 </div>
-                
+
                 {/* Input Rows */}
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -56,7 +56,7 @@ export default function SettingsSkeleton() {
                       <Skeleton className="h-5 w-32" />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Skeleton className="h-5 w-40" />
                     <div className="flex items-center gap-3">
@@ -64,7 +64,7 @@ export default function SettingsSkeleton() {
                       <Skeleton className="h-5 w-40" />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Skeleton className="h-5 w-44" />
                     <div className="flex items-center gap-3">
@@ -76,13 +76,13 @@ export default function SettingsSkeleton() {
               </div>
             </div>
           </div>
-          
+
           {/* Reminder Escalation Card */}
           <div>
             {/* Header */}
             <Skeleton className="h-8 w-52 mb-2" />
             <Skeleton className="h-5 w-full max-w-md mb-6" />
-            
+
             {/* Card */}
             <div className="rounded-lg border bg-card text-card-foreground shadow-sm h-full">
               <div className="p-6 space-y-4">
@@ -92,12 +92,12 @@ export default function SettingsSkeleton() {
                     <Skeleton className="h-5 w-40" />
                     <Skeleton className="h-10 w-full" />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Skeleton className="h-5 w-44" />
                     <Skeleton className="h-10 w-full" />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Skeleton className="h-5 w-40" />
                     <Skeleton className="h-10 w-full" />
@@ -110,4 +110,4 @@ export default function SettingsSkeleton() {
       </div>
     </div>
   );
-} 
+}

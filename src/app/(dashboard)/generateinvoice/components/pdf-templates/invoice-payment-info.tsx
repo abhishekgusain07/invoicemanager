@@ -15,7 +15,12 @@ export function InvoicePaymentInfo({ invoiceData }: InvoicePaymentInfoProps) {
       {invoiceData.paymentMethod && (
         <Text style={PDF_DEFAULT_TEMPLATE_STYLES.smallText}>
           Payment Method:{" "}
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.boldText, PDF_DEFAULT_TEMPLATE_STYLES.smallText]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
+            ]}
+          >
             {invoiceData.paymentMethod}
           </Text>
         </Text>
@@ -27,7 +32,12 @@ export function InvoicePaymentInfo({ invoiceData }: InvoicePaymentInfoProps) {
         ]}
       >
         Payment Date:{" "}
-        <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.boldText, PDF_DEFAULT_TEMPLATE_STYLES.smallText]}>
+        <Text
+          style={[
+            PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+            PDF_DEFAULT_TEMPLATE_STYLES.smallText,
+          ]}
+        >
           {paymentDate}
         </Text>
       </Text>

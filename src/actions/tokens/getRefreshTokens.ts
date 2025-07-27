@@ -1,9 +1,11 @@
 "use server";
-import { db } from '@/db/drizzle';
-import { gmailConnection } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { db } from "@/db/drizzle";
+import { gmailConnection } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 
-export async function getUserRefreshToken(userId: string): Promise<string | null> {
+export async function getUserRefreshToken(
+  userId: string
+): Promise<string | null> {
   try {
     const [connection] = await db
       .select()
@@ -14,7 +16,7 @@ export async function getUserRefreshToken(userId: string): Promise<string | null
 
     return connection?.refreshToken || null;
   } catch (error) {
-    console.error('Error getting user refresh token:', error);
+    console.error("Error getting user refresh token:", error);
     return null;
   }
 }

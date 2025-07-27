@@ -7,7 +7,9 @@ import { useUser } from "@/hooks/useUser";
 
 export function FeedbackButton() {
   const { user } = useUser();
-  const { openFeedbackModal, FeedbackModalComponent } = useFeedbackModal(user?.id);
+  const { openFeedbackModal, FeedbackModalComponent } = useFeedbackModal(
+    user?.id
+  );
 
   return (
     <>
@@ -21,4 +23,4 @@ export function FeedbackButton() {
       <FeedbackModalComponent />
     </>
   );
-} 
+}

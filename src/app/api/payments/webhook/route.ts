@@ -3,15 +3,14 @@ import { invoices, subscriptions, user } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import {uid} from "uid";
-
+import { uid } from "uid";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {
-  console.log('🔄 Webhook request received');
+  console.log("🔄 Webhook request received");
   const reqText = await req.text();
-  console.log('📝 Request headers:', Object.fromEntries(req.headers.entries()));
+  console.log("📝 Request headers:", Object.fromEntries(req.headers.entries()));
   return webhooksHandler(reqText, req);
 }
 
@@ -29,7 +28,6 @@ async function handleSubscriptionEvent(
   event: Stripe.Event,
   type: "created" | "updated" | "deleted"
 ) {
-
   const subscription = event.data.object as Stripe.Subscription;
   const customerEmail = await getCustomerEmail(subscription.customer as string);
 
@@ -51,7 +49,7 @@ async function handleSubscriptionEvent(
     email: customerEmail,
   };
 
-  console.log('📝 Subscription data:', subscriptionData);
+  console.log("📝 Subscription data:", subscriptionData);
 
   try {
     if (type === "deleted") {
@@ -117,11 +115,11 @@ async function handleInvoiceEvent(
   const invoice = event.data.object as Stripe.Invoice;
   const customerEmail = await getCustomerEmail(invoice.customer as string);
 
-  console.log('📊 Invoice details:', {
+  console.log("📊 Invoice details:", {
     email: customerEmail,
     amount: invoice.amount_paid,
     currency: invoice.currency,
-    metadata: invoice.metadata
+    metadata: invoice.metadata,
   });
 
   if (!customerEmail) {
@@ -135,8 +133,10 @@ async function handleInvoiceEvent(
     id: uid(32),
     invoiceId: invoice.id,
     subscriptionId: invoice.receipt_number as string,
-    amountPaid: status === "succeeded" ? String(invoice.amount_paid / 100) : undefined,
-    amountDue: status === "failed" ? String(invoice.amount_due / 100) : undefined,
+    amountPaid:
+      status === "succeeded" ? String(invoice.amount_paid / 100) : undefined,
+    amountDue:
+      status === "failed" ? String(invoice.amount_due / 100) : undefined,
     currency: invoice.currency,
     status,
     userId: invoice.metadata?.userId,
@@ -167,7 +167,7 @@ async function handleCheckoutSessionCompleted(event: Stripe.Event) {
   const session = event.data.object as Stripe.Checkout.Session;
   const metadata: any = session?.metadata;
 
-  console.log('🏷️ Session metadata:', metadata);
+  console.log("🏷️ Session metadata:", metadata);
 
   if (metadata?.subscription === "true") {
     // This is for subscription payments
@@ -257,21 +257,21 @@ async function webhooksHandler(
   reqText: string,
   request: NextRequest
 ): Promise<NextResponse> {
-  console.log('🎯 Processing webhook request');
+  console.log("🎯 Processing webhook request");
   const sig = request.headers.get("Stripe-Signature");
-  console.log('🔑 Stripe signature present:', !!sig);
+  console.log("🔑 Stripe signature present:", !!sig);
 
   try {
-    console.log('🔄 Constructing Stripe event...');
+    console.log("🔄 Constructing Stripe event...");
     const event = await stripe.webhooks.constructEventAsync(
       reqText,
       sig!,
       process.env.STRIPE_WEBHOOK_SECRET!
     );
-    console.log('✅ Event constructed successfully:', {
+    console.log("✅ Event constructed successfully:", {
       type: event.type,
       id: event.id,
-      apiVersion: event.api_version
+      apiVersion: event.api_version,
     });
 
     switch (event.type) {

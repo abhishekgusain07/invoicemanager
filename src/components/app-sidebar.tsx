@@ -1,5 +1,18 @@
-import { BellDotIcon, Calendar, CircleHelp, FileText, Home, Inbox, LayoutDashboard, MailboxIcon, PlusCircle, Search, Settings, Settings2 } from "lucide-react"
-import Image from "next/image"
+import {
+  BellDotIcon,
+  Calendar,
+  CircleHelp,
+  FileText,
+  Home,
+  Inbox,
+  LayoutDashboard,
+  MailboxIcon,
+  PlusCircle,
+  Search,
+  Settings,
+  Settings2,
+} from "lucide-react";
+import Image from "next/image";
 import {
   Sidebar,
   SidebarContent,
@@ -9,7 +22,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 // Menu items.
 const items = [
@@ -36,7 +49,7 @@ const items = [
   {
     title: "Connect",
     url: "/connect",
-    icon: MailboxIcon
+    icon: MailboxIcon,
   },
   {
     title: "Setting",
@@ -48,7 +61,7 @@ const items = [
     url: "/help",
     icon: CircleHelp,
   },
-]
+];
 
 export function AppSidebar() {
   return (
@@ -56,8 +69,16 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="flex items-center justify-start gap-2 mb-6 mt-5">
-            <Image src="/logov4.png" alt="logo" width={30} height={30} className="rounded-lg" />
-            <span className="font-bold text-[1rem] text-black dark:text-white">Invoicemanager</span>
+            <Image
+              src="/logov4.png"
+              alt="logo"
+              width={30}
+              height={30}
+              className="rounded-lg"
+            />
+            <span className="font-bold text-[1rem] text-black dark:text-white">
+              Invoicemanager
+            </span>
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -76,5 +97,5 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

@@ -12,8 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  type InvoiceGenerationSellerData, 
+import {
+  type InvoiceGenerationSellerData,
   type InvoiceGenerationBuyerData,
   invoiceGenerationSellerSchema,
   invoiceGenerationBuyerSchema,
@@ -38,14 +38,16 @@ interface SavedContact {
 
 interface SellerBuyerManagementProps {
   type: "seller" | "buyer";
-  onSelect: (data: InvoiceGenerationSellerData | InvoiceGenerationBuyerData) => void;
+  onSelect: (
+    data: InvoiceGenerationSellerData | InvoiceGenerationBuyerData
+  ) => void;
   currentData?: InvoiceGenerationSellerData | InvoiceGenerationBuyerData;
 }
 
-export function SellerBuyerManagement({ 
-  type, 
-  onSelect, 
-  currentData 
+export function SellerBuyerManagement({
+  type,
+  onSelect,
+  currentData,
 }: SellerBuyerManagementProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [savedContacts, setSavedContacts] = useState<SavedContact[]>([]);
@@ -53,30 +55,34 @@ export function SellerBuyerManagement({
 
   const storageKey = `invoice_generation_saved_${type}s`;
   const isSeller = type === "seller";
-  
+
   const form = useForm({
-    resolver: zodResolver(isSeller ? invoiceGenerationSellerSchema : invoiceGenerationBuyerSchema) as any,
-    defaultValues: isSeller ? {
-      name: "",
-      address: "",
-      email: "",
-      vatNo: "",
-      accountNumber: "",
-      swiftBic: "",
-      notes: "",
-      vatNoFieldIsVisible: true,
-      accountNumberFieldIsVisible: true,
-      swiftBicFieldIsVisible: true,
-      notesFieldIsVisible: true,
-    } as any : {
-      name: "",
-      address: "",
-      email: "",
-      vatNo: "",
-      notes: "",
-      vatNoFieldIsVisible: true,
-      notesFieldIsVisible: true,
-    } as any,
+    resolver: zodResolver(
+      isSeller ? invoiceGenerationSellerSchema : invoiceGenerationBuyerSchema
+    ) as any,
+    defaultValues: isSeller
+      ? ({
+          name: "",
+          address: "",
+          email: "",
+          vatNo: "",
+          accountNumber: "",
+          swiftBic: "",
+          notes: "",
+          vatNoFieldIsVisible: true,
+          accountNumberFieldIsVisible: true,
+          swiftBicFieldIsVisible: true,
+          notesFieldIsVisible: true,
+        } as any)
+      : ({
+          name: "",
+          address: "",
+          email: "",
+          vatNo: "",
+          notes: "",
+          vatNoFieldIsVisible: true,
+          notesFieldIsVisible: true,
+        } as any),
   });
 
   // Load saved contacts from localStorage
@@ -97,7 +103,9 @@ export function SellerBuyerManagement({
       const newContacts = [...savedContacts, contact];
       setSavedContacts(newContacts);
       localStorage.setItem(storageKey, JSON.stringify(newContacts));
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} saved successfully!`);
+      toast.success(
+        `${type.charAt(0).toUpperCase() + type.slice(1)} saved successfully!`
+      );
     } catch (error) {
       console.error(`Failed to save ${type}:`, error);
       toast.error(`Failed to save ${type}`);
@@ -106,10 +114,12 @@ export function SellerBuyerManagement({
 
   const deleteContact = (id: string) => {
     try {
-      const newContacts = savedContacts.filter(contact => contact.id !== id);
+      const newContacts = savedContacts.filter((contact) => contact.id !== id);
       setSavedContacts(newContacts);
       localStorage.setItem(storageKey, JSON.stringify(newContacts));
-      toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully!`);
+      toast.success(
+        `${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully!`
+      );
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error);
       toast.error(`Failed to delete ${type}`);
@@ -123,8 +133,12 @@ export function SellerBuyerManagement({
       address: data.address,
       email: data.email,
       vatNo: data.vatNo || undefined,
-      accountNumber: isSeller && "accountNumber" in data ? data.accountNumber || undefined : undefined,
-      swiftBic: isSeller && "swiftBic" in data ? data.swiftBic || undefined : undefined,
+      accountNumber:
+        isSeller && "accountNumber" in data
+          ? data.accountNumber || undefined
+          : undefined,
+      swiftBic:
+        isSeller && "swiftBic" in data ? data.swiftBic || undefined : undefined,
       notes: data.notes || undefined,
       createdAt: new Date(),
     };
@@ -135,33 +149,37 @@ export function SellerBuyerManagement({
   });
 
   const handleSelectContact = (contact: SavedContact) => {
-    const contactData = isSeller ? {
-      id: contact.id,
-      name: contact.name,
-      address: contact.address,
-      email: contact.email,
-      vatNo: contact.vatNo || "",
-      vatNoFieldIsVisible: true,
-      accountNumber: contact.accountNumber || "",
-      accountNumberFieldIsVisible: true,
-      swiftBic: contact.swiftBic || "",
-      swiftBicFieldIsVisible: true,
-      notes: contact.notes || "",
-      notesFieldIsVisible: true,
-    } as InvoiceGenerationSellerData : {
-      id: contact.id,
-      name: contact.name,
-      address: contact.address,
-      email: contact.email,
-      vatNo: contact.vatNo || "",
-      vatNoFieldIsVisible: true,
-      notes: contact.notes || "",
-      notesFieldIsVisible: true,
-    } as InvoiceGenerationBuyerData;
+    const contactData = isSeller
+      ? ({
+          id: contact.id,
+          name: contact.name,
+          address: contact.address,
+          email: contact.email,
+          vatNo: contact.vatNo || "",
+          vatNoFieldIsVisible: true,
+          accountNumber: contact.accountNumber || "",
+          accountNumberFieldIsVisible: true,
+          swiftBic: contact.swiftBic || "",
+          swiftBicFieldIsVisible: true,
+          notes: contact.notes || "",
+          notesFieldIsVisible: true,
+        } as InvoiceGenerationSellerData)
+      : ({
+          id: contact.id,
+          name: contact.name,
+          address: contact.address,
+          email: contact.email,
+          vatNo: contact.vatNo || "",
+          vatNoFieldIsVisible: true,
+          notes: contact.notes || "",
+          notesFieldIsVisible: true,
+        } as InvoiceGenerationBuyerData);
 
     onSelect(contactData);
     setIsOpen(false);
-    toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} information loaded!`);
+    toast.success(
+      `${type.charAt(0).toUpperCase() + type.slice(1)} information loaded!`
+    );
   };
 
   const handleSaveCurrent = () => {
@@ -176,8 +194,14 @@ export function SellerBuyerManagement({
       address: currentData.address,
       email: currentData.email,
       vatNo: currentData.vatNo || undefined,
-      accountNumber: isSeller && "accountNumber" in currentData ? currentData.accountNumber || undefined : undefined,
-      swiftBic: isSeller && "swiftBic" in currentData ? currentData.swiftBic || undefined : undefined,
+      accountNumber:
+        isSeller && "accountNumber" in currentData
+          ? currentData.accountNumber || undefined
+          : undefined,
+      swiftBic:
+        isSeller && "swiftBic" in currentData
+          ? currentData.swiftBic || undefined
+          : undefined,
       notes: currentData.notes || undefined,
       createdAt: new Date(),
     };
@@ -219,8 +243,10 @@ export function SellerBuyerManagement({
           {/* Add New Form */}
           {isAddingNew && (
             <div className="border rounded-lg p-4 space-y-4">
-              <h4 className="font-medium">Add New {type.charAt(0).toUpperCase() + type.slice(1)}</h4>
-              
+              <h4 className="font-medium">
+                Add New {type.charAt(0).toUpperCase() + type.slice(1)}
+              </h4>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="new-name">Name *</Label>
@@ -228,7 +254,11 @@ export function SellerBuyerManagement({
                     name="name"
                     control={form.control}
                     render={({ field }) => (
-                      <Input {...field} id="new-name" placeholder="Company/Person name" />
+                      <Input
+                        {...field}
+                        id="new-name"
+                        placeholder="Company/Person name"
+                      />
                     )}
                   />
                 </div>
@@ -239,7 +269,12 @@ export function SellerBuyerManagement({
                     name="email"
                     control={form.control}
                     render={({ field }) => (
-                      <Input {...field} id="new-email" type="email" placeholder="email@example.com" />
+                      <Input
+                        {...field}
+                        id="new-email"
+                        type="email"
+                        placeholder="email@example.com"
+                      />
                     )}
                   />
                 </div>
@@ -274,7 +309,11 @@ export function SellerBuyerManagement({
                       name="accountNumber"
                       control={form.control}
                       render={({ field }) => (
-                        <Input {...field} id="new-account" placeholder="Account number" />
+                        <Input
+                          {...field}
+                          id="new-account"
+                          placeholder="Account number"
+                        />
                       )}
                     />
                   </div>
@@ -313,8 +352,10 @@ export function SellerBuyerManagement({
 
           {/* Saved Contacts List */}
           <div className="space-y-2">
-            <h4 className="font-medium">Saved {type.charAt(0).toUpperCase() + type.slice(1)}s</h4>
-            
+            <h4 className="font-medium">
+              Saved {type.charAt(0).toUpperCase() + type.slice(1)}s
+            </h4>
+
             {savedContacts.length === 0 ? (
               <p className="text-sm text-gray-500 text-center py-4">
                 No saved {type}s yet. Add some for quick access!
@@ -326,13 +367,18 @@ export function SellerBuyerManagement({
                     key={contact.id}
                     className="border rounded-lg p-3 flex items-start justify-between"
                   >
-                    <div className="flex-1 cursor-pointer" onClick={() => handleSelectContact(contact)}>
+                    <div
+                      className="flex-1 cursor-pointer"
+                      onClick={() => handleSelectContact(contact)}
+                    >
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4" />
                         <h5 className="font-medium">{contact.name}</h5>
                       </div>
                       <p className="text-sm text-gray-600">{contact.email}</p>
-                      <p className="text-xs text-gray-500 truncate">{contact.address}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {contact.address}
+                      </p>
                     </div>
                     <Button
                       onClick={(e) => {

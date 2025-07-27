@@ -30,8 +30,19 @@ import { Label } from "@/components/ui/label";
 import { ReadOnlyMoneyInput } from "@/components/ui/money-input";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
@@ -104,7 +115,9 @@ export const InvoiceForm = memo(function InvoiceForm({
 
   // Calculate totals and other values when invoice items change
   useEffect(() => {
-    const validatedItems = z.array(invoiceGenerationItemSchema).safeParse(invoiceItems);
+    const validatedItems = z
+      .array(invoiceGenerationItemSchema)
+      .safeParse(invoiceItems);
 
     if (!validatedItems.success) {
       console.error("Invalid items:", validatedItems.error);
@@ -163,7 +176,9 @@ export const InvoiceForm = memo(function InvoiceForm({
   // Subscribe to form changes to regenerate PDF on every input change
   useEffect(() => {
     const subscription = watch((value) => {
-      debouncedRegeneratePdfOnFormChange(value as unknown as InvoiceGenerationData);
+      debouncedRegeneratePdfOnFormChange(
+        value as unknown as InvoiceGenerationData
+      );
     });
 
     return () => subscription.unsubscribe();
@@ -195,7 +210,9 @@ export const InvoiceForm = memo(function InvoiceForm({
     Prettify<AccordionKeys>
   >(() => {
     try {
-      const savedState = localStorage.getItem(ACCORDION_STATE_LOCAL_STORAGE_KEY);
+      const savedState = localStorage.getItem(
+        ACCORDION_STATE_LOCAL_STORAGE_KEY
+      );
 
       if (savedState) {
         const parsedState = JSON.parse(savedState) as AccordionGenerationState;
@@ -270,7 +287,10 @@ export const InvoiceForm = memo(function InvoiceForm({
                       name="language"
                       control={control}
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select language" />
                           </SelectTrigger>
@@ -292,7 +312,10 @@ export const InvoiceForm = memo(function InvoiceForm({
                       name="currency"
                       control={control}
                       render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select currency" />
                           </SelectTrigger>
@@ -315,7 +338,10 @@ export const InvoiceForm = memo(function InvoiceForm({
                     name="dateFormat"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select date format" />
                         </SelectTrigger>
@@ -389,7 +415,10 @@ export const InvoiceForm = memo(function InvoiceForm({
                     setValue("seller.address", sellerData.address);
                     setValue("seller.email", sellerData.email);
                     setValue("seller.vatNo", sellerData.vatNo || "");
-                    setValue("seller.accountNumber", sellerData.accountNumber || "");
+                    setValue(
+                      "seller.accountNumber",
+                      sellerData.accountNumber || ""
+                    );
                     setValue("seller.swiftBic", sellerData.swiftBic || "");
                     setValue("seller.notes", sellerData.notes || "");
                   }}
@@ -422,7 +451,7 @@ export const InvoiceForm = memo(function InvoiceForm({
                 <div>
                   <Label htmlFor="sellerAddress">Seller Address *</Label>
                   <Textarea
-                    {...(form.register("seller.address"))}
+                    {...form.register("seller.address")}
                     id="sellerAddress"
                     placeholder="123 Business St, City, Country"
                     rows={3}
@@ -505,7 +534,7 @@ export const InvoiceForm = memo(function InvoiceForm({
                 <div>
                   <Label htmlFor="buyerAddress">Buyer Address *</Label>
                   <Textarea
-                    {...(form.register("buyer.address"))}
+                    {...form.register("buyer.address")}
                     id="buyerAddress"
                     placeholder="456 Client Ave, City, Country"
                     rows={3}
@@ -552,7 +581,10 @@ export const InvoiceForm = memo(function InvoiceForm({
             <AccordionContent className="px-4 pb-4">
               <div className="space-y-4">
                 {fields.map((field, index) => (
-                  <div key={field.id} className="border rounded-lg p-4 space-y-4">
+                  <div
+                    key={field.id}
+                    className="border rounded-lg p-4 space-y-4"
+                  >
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Item {index + 1}</h4>
                       {fields.length > 1 && (
@@ -569,7 +601,9 @@ export const InvoiceForm = memo(function InvoiceForm({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor={`item-${index}-name`}>Item Name *</Label>
+                        <Label htmlFor={`item-${index}-name`}>
+                          Item Name *
+                        </Label>
                         <Controller
                           name={`items.${index}.name`}
                           control={control}
@@ -602,7 +636,9 @@ export const InvoiceForm = memo(function InvoiceForm({
                       </div>
 
                       <div>
-                        <Label htmlFor={`item-${index}-netPrice`}>Net Price *</Label>
+                        <Label htmlFor={`item-${index}-netPrice`}>
+                          Net Price *
+                        </Label>
                         <Controller
                           name={`items.${index}.netPrice`}
                           control={control}
@@ -644,27 +680,29 @@ export const InvoiceForm = memo(function InvoiceForm({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => append({
-                    invoiceItemNumberIsVisible: true,
-                    name: "",
-                    nameFieldIsVisible: true,
-                    typeOfGTU: "",
-                    typeOfGTUFieldIsVisible: true,
-                    amount: 1,
-                    amountFieldIsVisible: true,
-                    unit: "pcs",
-                    unitFieldIsVisible: true,
-                    netPrice: 0,
-                    netPriceFieldIsVisible: true,
-                    vat: 0,
-                    vatFieldIsVisible: true,
-                    netAmount: 0,
-                    netAmountFieldIsVisible: true,
-                    vatAmount: 0,
-                    vatAmountFieldIsVisible: true,
-                    preTaxAmount: 0,
-                    preTaxAmountFieldIsVisible: true,
-                  })}
+                  onClick={() =>
+                    append({
+                      invoiceItemNumberIsVisible: true,
+                      name: "",
+                      nameFieldIsVisible: true,
+                      typeOfGTU: "",
+                      typeOfGTUFieldIsVisible: true,
+                      amount: 1,
+                      amountFieldIsVisible: true,
+                      unit: "pcs",
+                      unitFieldIsVisible: true,
+                      netPrice: 0,
+                      netPriceFieldIsVisible: true,
+                      vat: 0,
+                      vatFieldIsVisible: true,
+                      netAmount: 0,
+                      netAmountFieldIsVisible: true,
+                      vatAmount: 0,
+                      vatAmountFieldIsVisible: true,
+                      preTaxAmount: 0,
+                      preTaxAmountFieldIsVisible: true,
+                    })
+                  }
                 >
                   Add Item
                 </Button>

@@ -12,7 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ClockIcon, HelpCircleIcon, MessageSquareIcon, PlayIcon } from "lucide-react";
+import {
+  ClockIcon,
+  HelpCircleIcon,
+  MessageSquareIcon,
+  PlayIcon,
+} from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { type ReminderSettingsValues } from "@/lib/validations/settings";
 import { Button } from "@/components/ui/button";
@@ -23,7 +28,10 @@ interface ReminderSettingsProps {
   onChange: (values: Partial<ReminderSettingsValues>) => void;
 }
 
-export default function ReminderSettings({ settings, onChange }: ReminderSettingsProps) {
+export default function ReminderSettings({
+  settings,
+  onChange,
+}: ReminderSettingsProps) {
   const [isAutomated, setIsAutomated] = useState(true);
   const [firstReminderDays, setFirstReminderDays] = useState(3);
   const [followUpFrequency, setFollowUpFrequency] = useState(7);
@@ -55,41 +63,41 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
   // Handle toggle change
   const handleAutomatedChange = (checked: boolean) => {
     setIsAutomated(checked);
-    updateSetting('isAutomatedReminders', checked);
+    updateSetting("isAutomatedReminders", checked);
   };
 
   // Handle first reminder days change
   const handleFirstReminderChange = (value: number) => {
     setFirstReminderDays(value);
-    updateSetting('firstReminderDays', value);
+    updateSetting("firstReminderDays", value);
   };
 
   // Handle follow-up frequency change
   const handleFrequencyChange = (value: number) => {
     setFollowUpFrequency(value);
-    updateSetting('followUpFrequency', value);
+    updateSetting("followUpFrequency", value);
   };
 
   // Handle max reminders change
   const handleMaxRemindersChange = (value: number) => {
     setMaxReminders(value);
-    updateSetting('maxReminders', value);
+    updateSetting("maxReminders", value);
   };
 
   // Handle tone changes
   const handleFirstToneChange = (value: string) => {
     setFirstTone(value);
-    updateSetting('firstReminderTone', value);
+    updateSetting("firstReminderTone", value);
   };
 
   const handleSecondToneChange = (value: string) => {
     setSecondTone(value);
-    updateSetting('secondReminderTone', value);
+    updateSetting("secondReminderTone", value);
   };
 
   const handleThirdToneChange = (value: string) => {
     setThirdTone(value);
-    updateSetting('thirdReminderTone', value);
+    updateSetting("thirdReminderTone", value);
   };
 
   // Add function to manually run the reminders
@@ -102,9 +110,9 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
           "Content-Type": "application/json",
         },
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         toast.success("Scheduled reminders processed successfully");
       } else {
@@ -144,7 +152,10 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                       onCheckedChange={handleAutomatedChange}
                     />
                     <div className="flex items-center gap-1">
-                      <Label htmlFor="automated-reminders" className="text-base font-medium">
+                      <Label
+                        htmlFor="automated-reminders"
+                        className="text-base font-medium"
+                      >
                         Enable Automated Reminders
                       </Label>
                       <Tooltip content="Automatically send reminder emails for overdue invoices based on your schedule">
@@ -152,9 +163,9 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                       </Tooltip>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     disabled={isRunningReminders}
                     onClick={runScheduledReminders}
                     className="flex items-center gap-1"
@@ -176,7 +187,10 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                 {/* First Reminder */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="first-reminder" className="text-base font-medium">
+                    <Label
+                      htmlFor="first-reminder"
+                      className="text-base font-medium"
+                    >
                       First Reminder
                     </Label>
                     <Tooltip content="When to send the first reminder after the invoice due date">
@@ -190,16 +204,23 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                       min={1}
                       className="w-20"
                       value={firstReminderDays}
-                      onChange={(e) => handleFirstReminderChange(Number(e.target.value))}
+                      onChange={(e) =>
+                        handleFirstReminderChange(Number(e.target.value))
+                      }
                     />
-                    <span className="text-muted-foreground">days after due date</span>
+                    <span className="text-muted-foreground">
+                      days after due date
+                    </span>
                   </div>
                 </div>
 
                 {/* Follow-up Frequency */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="follow-up-frequency" className="text-base font-medium">
+                    <Label
+                      htmlFor="follow-up-frequency"
+                      className="text-base font-medium"
+                    >
                       Follow-up Frequency
                     </Label>
                     <Tooltip content="How often to send follow-up reminders after the first one">
@@ -213,16 +234,23 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                       min={1}
                       className="w-20"
                       value={followUpFrequency}
-                      onChange={(e) => handleFrequencyChange(Number(e.target.value))}
+                      onChange={(e) =>
+                        handleFrequencyChange(Number(e.target.value))
+                      }
                     />
-                    <span className="text-muted-foreground">days between reminders</span>
+                    <span className="text-muted-foreground">
+                      days between reminders
+                    </span>
                   </div>
                 </div>
 
                 {/* Maximum Reminders */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="max-reminders" className="text-base font-medium">
+                    <Label
+                      htmlFor="max-reminders"
+                      className="text-base font-medium"
+                    >
                       Maximum Reminders
                     </Label>
                     <Tooltip content="Maximum number of reminders to send per invoice">
@@ -237,9 +265,13 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                       max={10}
                       className="w-20"
                       value={maxReminders}
-                      onChange={(e) => handleMaxRemindersChange(Number(e.target.value))}
+                      onChange={(e) =>
+                        handleMaxRemindersChange(Number(e.target.value))
+                      }
                     />
-                    <span className="text-muted-foreground">reminders per invoice</span>
+                    <span className="text-muted-foreground">
+                      reminders per invoice
+                    </span>
                   </div>
                 </div>
               </div>
@@ -263,14 +295,20 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                 {/* First Reminder Tone */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="first-tone" className="text-base font-medium">
+                    <Label
+                      htmlFor="first-tone"
+                      className="text-base font-medium"
+                    >
                       First Reminder Tone
                     </Label>
                     <Tooltip content="Tone used for the first reminder">
                       <HelpCircleIcon className="h-4 w-4 text-muted-foreground cursor-help" />
                     </Tooltip>
                   </div>
-                  <Select value={firstTone} onValueChange={handleFirstToneChange}>
+                  <Select
+                    value={firstTone}
+                    onValueChange={handleFirstToneChange}
+                  >
                     <SelectTrigger id="first-tone" className="w-full">
                       <SelectValue placeholder="Select tone" />
                     </SelectTrigger>
@@ -285,14 +323,20 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                 {/* Second Reminder Tone */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="second-tone" className="text-base font-medium">
+                    <Label
+                      htmlFor="second-tone"
+                      className="text-base font-medium"
+                    >
                       Second Reminder Tone
                     </Label>
                     <Tooltip content="Tone used for the second reminder">
                       <HelpCircleIcon className="h-4 w-4 text-muted-foreground cursor-help" />
                     </Tooltip>
                   </div>
-                  <Select value={secondTone} onValueChange={handleSecondToneChange}>
+                  <Select
+                    value={secondTone}
+                    onValueChange={handleSecondToneChange}
+                  >
                     <SelectTrigger id="second-tone" className="w-full">
                       <SelectValue placeholder="Select tone" />
                     </SelectTrigger>
@@ -307,14 +351,20 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
                 {/* Third Reminder Tone */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="third-tone" className="text-base font-medium">
+                    <Label
+                      htmlFor="third-tone"
+                      className="text-base font-medium"
+                    >
                       Third Reminder Tone
                     </Label>
                     <Tooltip content="Tone used for the third and subsequent reminders">
                       <HelpCircleIcon className="h-4 w-4 text-muted-foreground cursor-help" />
                     </Tooltip>
                   </div>
-                  <Select value={thirdTone} onValueChange={handleThirdToneChange}>
+                  <Select
+                    value={thirdTone}
+                    onValueChange={handleThirdToneChange}
+                  >
                     <SelectTrigger id="third-tone" className="w-full">
                       <SelectValue placeholder="Select tone" />
                     </SelectTrigger>
@@ -332,4 +382,4 @@ export default function ReminderSettings({ settings, onChange }: ReminderSetting
       </div>
     </div>
   );
-} 
+}

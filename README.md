@@ -55,7 +55,8 @@ const config = {
     posthog: {
       enabled: process.env.NEXT_PUBLIC_POSTHOG_KEY ? true : false,
       apiKey: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-      apiHost: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
+      apiHost:
+        process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
     },
   },
   monitoring: {
@@ -74,11 +75,13 @@ const config = {
 PostHog provides product analytics, session recording, feature flags, and more.
 
 To enable PostHog:
+
 1. Create a PostHog account and project at [PostHog.com](https://posthog.com)
 2. Add your API key to the `.env` file: `NEXT_PUBLIC_POSTHOG_KEY=phc_your_api_key`
 3. Optionally set a custom host with `NEXT_PUBLIC_POSTHOG_HOST`
 
 To disable PostHog:
+
 - Simply leave the `NEXT_PUBLIC_POSTHOG_KEY` empty in your `.env` file
 
 ### Sentry Error Monitoring
@@ -86,11 +89,13 @@ To disable PostHog:
 Sentry provides error tracking, performance monitoring, and more.
 
 To enable Sentry:
+
 1. Create a Sentry account and project at [Sentry.io](https://sentry.io)
 2. Add your DSN to the `.env` file: `NEXT_PUBLIC_SENTRY_DSN=https://your-dsn-url`
 3. For source map uploads, add: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT`
 
 To disable Sentry:
+
 - Simply leave the `NEXT_PUBLIC_SENTRY_DSN` empty in your `.env` file
 
 ### Testing Error Monitoring

@@ -1,8 +1,7 @@
-  import type { Metadata } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { PostHogProvider } from "../components/PostHogProvider";
-
 
 export const metadata: Metadata = {
   title: "Create Next App",

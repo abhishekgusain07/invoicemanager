@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Stepper,
   StepperIndicator,
   StepperItem,
   StepperSeparator,
   StepperTrigger,
-} from "@/components/ui/stepper"
+} from "@/components/ui/stepper";
 
-const steps = [1, 2, 3, 4]
+const steps = [1, 2, 3, 4];
 
 export default function Component() {
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(1);
   return (
     <div className="space-y-8 text-center">
       <Stepper
@@ -57,5 +57,5 @@ export default function Component() {
         Controlled vertical stepper with checkmarks
       </p>
     </div>
-  )
+  );
 }

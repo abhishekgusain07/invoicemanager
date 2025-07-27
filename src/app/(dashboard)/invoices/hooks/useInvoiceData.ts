@@ -2,10 +2,18 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@/hooks/useUser";
-import { getInvoicesByStatus, deleteInvoice, updateInvoiceStatus } from "@/actions/invoice";
+import {
+  getInvoicesByStatus,
+  deleteInvoice,
+  updateInvoiceStatus,
+} from "@/actions/invoice";
 import { checkGmailConnection } from "@/actions/gmail";
 import { toast } from "sonner";
-import { filterInvoices, sortInvoices, SortConfig } from "../utils/invoiceUtils";
+import {
+  filterInvoices,
+  sortInvoices,
+  SortConfig,
+} from "../utils/invoiceUtils";
 
 export const useInvoiceData = () => {
   const { user, isLoading: isUserLoading } = useUser();
@@ -14,27 +22,33 @@ export const useInvoiceData = () => {
   const [filteredInvoices, setFilteredInvoices] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'dueDate', direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: "dueDate",
+    direction: "ascending",
+  });
   const [refreshReminders, setRefreshReminders] = useState(0);
 
   // Gmail connection state
   const [isGmailConnected, setIsGmailConnected] = useState<boolean>(false);
-  const [checkingGmailConnection, setCheckingGmailConnection] = useState<boolean>(true);
+  const [checkingGmailConnection, setCheckingGmailConnection] =
+    useState<boolean>(true);
 
   // Fetch invoices
   const fetchInvoices = useCallback(async () => {
     if (isUserLoading || !user) return;
-    
+
     setIsLoading(true);
     try {
       const data = await getInvoicesByStatus(statusFilter as any);
       console.log("Fetched invoices:", data);
-      
+
       // Verify the statuses of each invoice
       data.forEach((invoice: any) => {
-        console.log(`Invoice ${invoice.invoiceNumber}: status=${invoice.status}, dueDate=${invoice.dueDate}`);
+        console.log(
+          `Invoice ${invoice.invoiceNumber}: status=${invoice.status}, dueDate=${invoice.dueDate}`
+        );
       });
-      
+
       setInvoices(data);
       setFilteredInvoices(data);
     } catch (error) {
@@ -48,7 +62,7 @@ export const useInvoiceData = () => {
   // Check Gmail connection status
   const checkGmailConnectionStatus = useCallback(async () => {
     if (isUserLoading || !user) return;
-    
+
     setCheckingGmailConnection(true);
     try {
       const { isConnected } = await checkGmailConnection(user.id);
@@ -78,15 +92,16 @@ export const useInvoiceData = () => {
 
   // Handle sort click
   const handleSort = (key: string) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    
+    let direction: "ascending" | "descending" = "ascending";
+
     if (sortConfig && sortConfig.key === key) {
-      direction = sortConfig.direction === 'ascending' ? 'descending' : 'ascending';
+      direction =
+        sortConfig.direction === "ascending" ? "descending" : "ascending";
     }
-    
+
     const newSortConfig = { key, direction };
     setSortConfig(newSortConfig);
-    
+
     const sorted = sortInvoices(filteredInvoices, newSortConfig);
     setFilteredInvoices(sorted);
   };
@@ -98,7 +113,9 @@ export const useInvoiceData = () => {
       if (result.success) {
         toast.success("Invoice deleted successfully");
         // Remove the invoice from the main local state
-        const updatedInvoices = invoices.filter(invoice => invoice.id !== invoiceId);
+        const updatedInvoices = invoices.filter(
+          (invoice) => invoice.id !== invoiceId
+        );
         setInvoices(updatedInvoices);
         return true;
       } else {
@@ -113,22 +130,29 @@ export const useInvoiceData = () => {
   };
 
   // Update invoice status
-  const handleUpdateInvoiceStatus = async (invoiceId: string, newStatus: string) => {
+  const handleUpdateInvoiceStatus = async (
+    invoiceId: string,
+    newStatus: string
+  ) => {
     try {
       const result = await updateInvoiceStatus(invoiceId, newStatus as any);
-      
+
       if (result.success) {
         toast.success(`Invoice status updated to ${newStatus} successfully`);
-        
+
         // Update the invoice in the local state
-        setInvoices(prev => prev.map(inv => 
-          inv.id === invoiceId ? {...inv, status: newStatus} : inv
-        ));
-        
+        setInvoices((prev) =>
+          prev.map((inv) =>
+            inv.id === invoiceId ? { ...inv, status: newStatus } : inv
+          )
+        );
+
         // Update filtered invoices too
-        setFilteredInvoices(prev => prev.map(inv => 
-          inv.id === invoiceId ? {...inv, status: newStatus} : inv
-        ));
+        setFilteredInvoices((prev) =>
+          prev.map((inv) =>
+            inv.id === invoiceId ? { ...inv, status: newStatus } : inv
+          )
+        );
         return true;
       } else {
         toast.error(result.error || "Failed to update invoice status");
@@ -148,7 +172,7 @@ export const useInvoiceData = () => {
 
   // Increment refresh trigger for reminders
   const handleRefreshReminders = () => {
-    setRefreshReminders(prev => prev + 1);
+    setRefreshReminders((prev) => prev + 1);
   };
 
   return {

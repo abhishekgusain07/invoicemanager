@@ -58,7 +58,7 @@ export default function InvoicesPage() {
 
   // Handle opening template modal
   const handleSendReminder = (invoiceId: string) => {
-    const invoice = invoices.find(inv => inv.id === invoiceId);
+    const invoice = invoices.find((inv) => inv.id === invoiceId);
     if (!invoice) {
       toast.error("Invoice not found");
       return;
@@ -66,15 +66,16 @@ export default function InvoicesPage() {
 
     // Determine default tone based on how overdue it is
     let defaultTone: "polite" | "firm" | "urgent" = "polite";
-    
+
     const now = new Date();
     const dueDate = new Date(invoice.dueDate);
     const diffTime = now.getTime() - dueDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    const isActuallyOverdue = invoice.status === "overdue" || 
+
+    const isActuallyOverdue =
+      invoice.status === "overdue" ||
       (invoice.status === "pending" && diffDays > 0);
-    
+
     if (isActuallyOverdue) {
       if (diffDays > 14) {
         defaultTone = "urgent";
@@ -82,17 +83,17 @@ export default function InvoicesPage() {
         defaultTone = "firm";
       }
     }
-    
+
     // Initialize template content
     initializeTemplateContent(defaultTone, invoice);
-    
+
     setCurrentInvoiceId(invoiceId);
     setTemplateModalOpen(true);
   };
 
   // Handle edit invoice
   const handleEdit = (invoiceId: string) => {
-    const invoiceToEdit = invoices.find(invoice => invoice.id === invoiceId);
+    const invoiceToEdit = invoices.find((invoice) => invoice.id === invoiceId);
     if (invoiceToEdit) {
       setEditingInvoice(invoiceToEdit);
       setIsModalOpen(true);
@@ -109,7 +110,7 @@ export default function InvoicesPage() {
 
   const handleDeleteConfirm = async () => {
     if (!invoiceToDelete) return;
-    
+
     setIsDeletingInvoice(true);
     try {
       const success = await handleDeleteInvoice(invoiceToDelete);
@@ -124,7 +125,7 @@ export default function InvoicesPage() {
 
   // Handle status update modal
   const openUpdateStatusModal = (invoiceId: string, currentStatus: string) => {
-    const targetInvoice = invoices.find(inv => inv.id === invoiceId);
+    const targetInvoice = invoices.find((inv) => inv.id === invoiceId);
     if (!targetInvoice) {
       toast.error("Invoice not found");
       return;
@@ -137,10 +138,13 @@ export default function InvoicesPage() {
 
   const handleUpdateStatusConfirm = async () => {
     if (!invoiceToUpdate) return;
-    
+
     setIsUpdatingStatus(true);
     try {
-      const success = await handleUpdateInvoiceStatus(invoiceToUpdate, selectedStatus);
+      const success = await handleUpdateInvoiceStatus(
+        invoiceToUpdate,
+        selectedStatus
+      );
       if (success) {
         setStatusModalOpen(false);
         setInvoiceToUpdate(null);
@@ -167,19 +171,22 @@ export default function InvoicesPage() {
             Manage and track your client invoices
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="w-full md:w-auto">
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full md:w-auto"
+        >
           <PlusIcon className="h-4 w-4 mr-2" /> New Invoice
         </Button>
       </div>
 
       {/* Gmail Connection Banner */}
-      <GmailConnectionBanner 
+      <GmailConnectionBanner
         isGmailConnected={isGmailConnected}
         checkingGmailConnection={checkingGmailConnection}
       />
 
       {/* Search and Filter */}
-      <InvoiceFilters 
+      <InvoiceFilters
         searchQuery={searchQuery}
         statusFilter={statusFilter}
         onSearchChange={setSearchQuery}
@@ -187,7 +194,7 @@ export default function InvoicesPage() {
       />
 
       {/* Invoices Table */}
-      <InvoiceTable 
+      <InvoiceTable
         filteredInvoices={filteredInvoices}
         isLoading={isLoading}
         sortConfig={sortConfig}
@@ -201,7 +208,7 @@ export default function InvoicesPage() {
       />
 
       {/* Modals */}
-      <InvoiceModals 
+      <InvoiceModals
         deleteModalOpen={deleteModalOpen}
         onDeleteModalClose={() => setDeleteModalOpen(false)}
         onDeleteConfirm={handleDeleteConfirm}
@@ -216,7 +223,7 @@ export default function InvoicesPage() {
       />
 
       {/* Email Template Modal */}
-      <EmailTemplateModal 
+      <EmailTemplateModal
         isOpen={templateModalOpen}
         onClose={() => setTemplateModalOpen(false)}
         currentInvoiceId={currentInvoiceId}
@@ -236,4 +243,3 @@ export default function InvoicesPage() {
     </div>
   );
 }
-

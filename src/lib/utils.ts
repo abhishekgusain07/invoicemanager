@@ -1,8 +1,8 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -14,8 +14,8 @@ export function deepEqual(obj1: any, obj2: any): boolean {
   }
 
   if (
-    typeof obj1 !== 'object' ||
-    typeof obj2 !== 'object' ||
+    typeof obj1 !== "object" ||
+    typeof obj2 !== "object" ||
     obj1 === null ||
     obj2 === null
   ) {
@@ -45,9 +45,12 @@ export function deepEqual(obj1: any, obj2: any): boolean {
 /**
  * Format currency amount with proper currency symbol and formatting
  */
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
+export function formatCurrency(
+  amount: number,
+  currency: string = "USD"
+): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency: currency.toUpperCase(),
   }).format(amount);
 }
@@ -57,9 +60,9 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
  */
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 }

@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { 
-  AlertTriangleIcon, 
-  CheckIcon, 
-  CheckCircleIcon, 
-  TrashIcon 
+import {
+  AlertTriangleIcon,
+  CheckIcon,
+  CheckCircleIcon,
+  TrashIcon,
 } from "lucide-react";
 import {
   Dialog,
@@ -66,7 +66,8 @@ export const InvoiceModals = ({
               <span>Delete Invoice</span>
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this invoice? This action cannot be undone.
+              Are you sure you want to delete this invoice? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex sm:justify-between gap-4 sm:gap-0">
@@ -78,8 +79,8 @@ export const InvoiceModals = ({
             >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={onDeleteConfirm}
               disabled={isDeletingInvoice}
               className="gap-2 cursor-pointer"
@@ -112,17 +113,24 @@ export const InvoiceModals = ({
               Select a new status for this invoice.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Current Status:</label>
-              <div className={`inline-block px-3 py-1 rounded-full text-sm ${getStatusColor(currentInvoiceStatus)}`}>
-                {currentInvoiceStatus.charAt(0).toUpperCase() + currentInvoiceStatus.slice(1).replace('_', ' ')}
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Current Status:
+              </label>
+              <div
+                className={`inline-block px-3 py-1 rounded-full text-sm ${getStatusColor(currentInvoiceStatus)}`}
+              >
+                {currentInvoiceStatus.charAt(0).toUpperCase() +
+                  currentInvoiceStatus.slice(1).replace("_", " ")}
               </div>
             </div>
-            
+
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">New Status:</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                New Status:
+              </label>
               <Select value={selectedStatus} onValueChange={onStatusChange}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a new status" />
@@ -138,7 +146,7 @@ export const InvoiceModals = ({
               </Select>
             </div>
           </div>
-          
+
           <DialogFooter className="flex sm:justify-between gap-4 sm:gap-0">
             <Button
               variant="outline"
@@ -148,11 +156,13 @@ export const InvoiceModals = ({
             >
               Cancel
             </Button>
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               onClick={onStatusUpdateConfirm}
-              disabled={isUpdatingStatus || selectedStatus === currentInvoiceStatus}
-              className={`gap-2 cursor-pointer ${selectedStatus && selectedStatus !== currentInvoiceStatus ? getStatusColor(selectedStatus) : 'bg-gray-100 text-gray-400'}`}
+              disabled={
+                isUpdatingStatus || selectedStatus === currentInvoiceStatus
+              }
+              className={`gap-2 cursor-pointer ${selectedStatus && selectedStatus !== currentInvoiceStatus ? getStatusColor(selectedStatus) : "bg-gray-100 text-gray-400"}`}
             >
               {isUpdatingStatus ? (
                 <>

@@ -1,3 +1,3 @@
 export interface checkIfConnectionExistsResponse {
-    exists: boolean;
+  exists: boolean;
 }

@@ -1,13 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { MailIcon, HelpCircleIcon, SendIcon, SmileIcon, UserIcon } from "lucide-react";
+import {
+  MailIcon,
+  HelpCircleIcon,
+  SendIcon,
+  SmileIcon,
+  UserIcon,
+} from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { type EmailSettingsValues } from "@/lib/validations/settings";
@@ -21,22 +34,44 @@ interface EmailSettingsProps {
 
 export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
   const [fromName, setFromName] = useState(settings.fromName || "");
-  const [emailSignature, setEmailSignature] = useState(settings.emailSignature || "Best regards,");
+  const [emailSignature, setEmailSignature] = useState(
+    settings.emailSignature || "Best regards,"
+  );
   const [defaultCC, setDefaultCC] = useState(settings.defaultCC || "");
   const [defaultBCC, setDefaultBCC] = useState(settings.defaultBCC || "");
-  const [previewEmails, setPreviewEmails] = useState(settings.previewEmails ?? true);
-  const [reminderTemplate, setReminderTemplate] = useState(settings.reminderTemplate || "");
-  const [followUpTemplate, setFollowUpTemplate] = useState(settings.followUpTemplate || "");
-  const [finalReminderTemplate, setFinalReminderTemplate] = useState(settings.finalReminderTemplate || "");
-  const [ccAccountant, setCcAccountant] = useState(settings.ccAccountant || false);
-  const [useBrandedEmails, setUseBrandedEmails] = useState(settings.useBrandedEmails || false);
+  const [previewEmails, setPreviewEmails] = useState(
+    settings.previewEmails ?? true
+  );
+  const [reminderTemplate, setReminderTemplate] = useState(
+    settings.reminderTemplate || ""
+  );
+  const [followUpTemplate, setFollowUpTemplate] = useState(
+    settings.followUpTemplate || ""
+  );
+  const [finalReminderTemplate, setFinalReminderTemplate] = useState(
+    settings.finalReminderTemplate || ""
+  );
+  const [ccAccountant, setCcAccountant] = useState(
+    settings.ccAccountant || false
+  );
+  const [useBrandedEmails, setUseBrandedEmails] = useState(
+    settings.useBrandedEmails || false
+  );
   const [activeTab, setActiveTab] = useState("initial");
-  const [sendCopyToSelf, setSendCopyToSelf] = useState(settings.sendCopyToSelf || false);
+  const [sendCopyToSelf, setSendCopyToSelf] = useState(
+    settings.sendCopyToSelf || false
+  );
   const [ccEmails, setCcEmails] = useState(settings.ccEmails || "");
   const [senderName, setSenderName] = useState(settings.senderName || "");
-  const [firstReminderTemplateId, setFirstReminderTemplateId] = useState(settings.firstReminderTemplateId || "");
-  const [followUpTemplateId, setFollowUpTemplateId] = useState(settings.followUpTemplateId || "");
-  const [finalNoticeTemplateId, setFinalNoticeTemplateId] = useState(settings.finalNoticeTemplateId || "");
+  const [firstReminderTemplateId, setFirstReminderTemplateId] = useState(
+    settings.firstReminderTemplateId || ""
+  );
+  const [followUpTemplateId, setFollowUpTemplateId] = useState(
+    settings.followUpTemplateId || ""
+  );
+  const [finalNoticeTemplateId, setFinalNoticeTemplateId] = useState(
+    settings.finalNoticeTemplateId || ""
+  );
 
   useEffect(() => {
     if (settings) {
@@ -143,7 +178,9 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
       <Card>
         <CardHeader>
           <CardTitle>Email Settings</CardTitle>
-          <CardDescription>Configure how emails are sent to your clients</CardDescription>
+          <CardDescription>
+            Configure how emails are sent to your clients
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
@@ -159,7 +196,7 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
               onCheckedChange={handleSendCopyToSelfChange}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="cc-emails">CC Emails</Label>
             <Input
@@ -172,7 +209,7 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
               Separate multiple email addresses with commas
             </p>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="sender-name">Sender Name</Label>
             <Input
@@ -191,7 +228,9 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
       <Card>
         <CardHeader>
           <CardTitle>Email Templates</CardTitle>
-          <CardDescription>Select templates for different types of communications</CardDescription>
+          <CardDescription>
+            Select templates for different types of communications
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
@@ -205,7 +244,7 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
               Used for the first payment reminder
             </p>
           </div>
-          
+
           <div className="space-y-2">
             <Label>Follow-up Reminder Template</Label>
             <TemplateSelector
@@ -217,7 +256,7 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
               Used for subsequent reminders
             </p>
           </div>
-          
+
           <div className="space-y-2">
             <Label>Final Notice Template</Label>
             <TemplateSelector
@@ -235,7 +274,9 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
       <Card>
         <CardHeader>
           <CardTitle>Email Configuration</CardTitle>
-          <CardDescription>Configure how your emails will be sent to clients</CardDescription>
+          <CardDescription>
+            Configure how your emails will be sent to clients
+          </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-6">
@@ -258,7 +299,10 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
 
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Label htmlFor="email-signature" className="text-base font-medium">
+                <Label
+                  htmlFor="email-signature"
+                  className="text-base font-medium"
+                >
                   Email Signature
                 </Label>
                 <Tooltip content="The signature that will appear at the end of your emails">
@@ -313,7 +357,10 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
             <div className="flex items-center justify-between pt-4">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="preview-emails" className="text-base font-medium">
+                  <Label
+                    htmlFor="preview-emails"
+                    className="text-base font-medium"
+                  >
                     Preview Emails Before Sending
                   </Label>
                   <Tooltip content="If enabled, you'll see a preview of each email before it's sent">
@@ -345,7 +392,9 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
       <Card>
         <CardHeader>
           <CardTitle>Email Templates</CardTitle>
-          <CardDescription>Customize the emails sent to your clients</CardDescription>
+          <CardDescription>
+            Customize the emails sent to your clients
+          </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           <Tabs defaultValue="initial" onValueChange={setActiveTab}>
@@ -372,12 +421,11 @@ export function EmailSettings({ settings, onChange }: EmailSettingsProps) {
 
             <TabsContent value="initial">
               <p className="text-sm text-muted-foreground mb-4">
-                This template is used for the first reminder sent to a client when an invoice is overdue.
+                This template is used for the first reminder sent to a client
+                when an invoice is overdue.
               </p>
               <div className="space-y-4">
-                <Label htmlFor="reminder-template">
-                  Template Content
-                </Label>
+                <Label htmlFor="reminder-template">Template Content</Label>
                 <Textarea
                   id="reminder-template"
                   value={reminderTemplate}
@@ -397,19 +445,20 @@ Best regards,
                   className="min-h-[300px]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  You can use the following variables: {"{client_name}"}, {"{invoice_number}"}, {"{invoice_amount}"}, {"{due_date}"}, {"{invoice_link}"}, {"{sender_name}"}
+                  You can use the following variables: {"{client_name}"},{" "}
+                  {"{invoice_number}"}, {"{invoice_amount}"}, {"{due_date}"},{" "}
+                  {"{invoice_link}"}, {"{sender_name}"}
                 </p>
               </div>
             </TabsContent>
 
             <TabsContent value="followup">
               <p className="text-sm text-muted-foreground mb-4">
-                This template is used for follow-up reminders when the initial reminder hasn't resulted in payment.
+                This template is used for follow-up reminders when the initial
+                reminder hasn't resulted in payment.
               </p>
               <div className="space-y-4">
-                <Label htmlFor="followup-template">
-                  Template Content
-                </Label>
+                <Label htmlFor="followup-template">Template Content</Label>
                 <Textarea
                   id="followup-template"
                   value={followUpTemplate}
@@ -429,23 +478,26 @@ Best regards,
                   className="min-h-[300px]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  You can use the following variables: {"{client_name}"}, {"{invoice_number}"}, {"{invoice_amount}"}, {"{due_date}"}, {"{invoice_link}"}, {"{sender_name}"}
+                  You can use the following variables: {"{client_name}"},{" "}
+                  {"{invoice_number}"}, {"{invoice_amount}"}, {"{due_date}"},{" "}
+                  {"{invoice_link}"}, {"{sender_name}"}
                 </p>
               </div>
             </TabsContent>
 
             <TabsContent value="final">
               <p className="text-sm text-muted-foreground mb-4">
-                This template is used for the final reminder before taking further action.
+                This template is used for the final reminder before taking
+                further action.
               </p>
               <div className="space-y-4">
-                <Label htmlFor="final-template">
-                  Template Content
-                </Label>
+                <Label htmlFor="final-template">Template Content</Label>
                 <Textarea
                   id="final-template"
                   value={finalReminderTemplate}
-                  onChange={(e) => handleFinalReminderTemplateChange(e.target.value)}
+                  onChange={(e) =>
+                    handleFinalReminderTemplateChange(e.target.value)
+                  }
                   placeholder="Hello {client_name},
 
 This is a final reminder regarding invoice #{invoice_number} for {invoice_amount} which was due on {due_date}. Despite several previous reminders, our records indicate that this invoice remains unpaid.
@@ -461,7 +513,9 @@ Best regards,
                   className="min-h-[300px]"
                 />
                 <p className="text-xs text-muted-foreground">
-                  You can use the following variables: {"{client_name}"}, {"{invoice_number}"}, {"{invoice_amount}"}, {"{due_date}"}, {"{invoice_link}"}, {"{sender_name}"}
+                  You can use the following variables: {"{client_name}"},{" "}
+                  {"{invoice_number}"}, {"{invoice_amount}"}, {"{due_date}"},{" "}
+                  {"{invoice_link}"}, {"{sender_name}"}
                 </p>
               </div>
             </TabsContent>
@@ -472,7 +526,10 @@ Best regards,
       <Card>
         <CardHeader>
           <CardTitle>Email Signature</CardTitle>
-          <CardDescription>This signature will be appended to all email templates automatically.</CardDescription>
+          <CardDescription>
+            This signature will be appended to all email templates
+            automatically.
+          </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-4">
@@ -498,13 +555,18 @@ Email: Your Email"
       <Card>
         <CardHeader>
           <CardTitle>Email Options</CardTitle>
-          <CardDescription>Options for customizing email templates</CardDescription>
+          <CardDescription>
+            Options for customizing email templates
+          </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="space-y-6">
             <div className="flex items-center justify-between py-2 border-b border-border">
               <div>
-                <Label htmlFor="cc-accountant" className="text-base font-medium cursor-pointer">
+                <Label
+                  htmlFor="cc-accountant"
+                  className="text-base font-medium cursor-pointer"
+                >
                   CC Accountant
                 </Label>
                 <p className="text-sm text-muted-foreground">
@@ -520,7 +582,10 @@ Email: Your Email"
 
             <div className="flex items-center justify-between py-2">
               <div>
-                <Label htmlFor="branded-emails" className="text-base font-medium cursor-pointer">
+                <Label
+                  htmlFor="branded-emails"
+                  className="text-base font-medium cursor-pointer"
+                >
                   Use Branded Emails
                 </Label>
                 <p className="text-sm text-muted-foreground">
@@ -538,4 +603,4 @@ Email: Your Email"
       </Card>
     </div>
   );
-} 
+}

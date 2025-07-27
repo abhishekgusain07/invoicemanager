@@ -2,11 +2,27 @@
 
 import { useEffect, useState } from "react";
 import { getInvoiceReminderHistory } from "@/actions/reminder";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, CheckCircleIcon, ClockIcon, EyeIcon, MailIcon, MousePointerClickIcon, AlertCircleIcon, CheckIcon, XIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  EyeIcon,
+  MailIcon,
+  MousePointerClickIcon,
+  AlertCircleIcon,
+  CheckIcon,
+  XIcon,
+} from "lucide-react";
 
 interface ReminderHistoryProps {
   invoiceId: string;
@@ -39,12 +55,12 @@ export default function ReminderHistory({ invoiceId }: ReminderHistoryProps) {
   }, [invoiceId]);
 
   const formatDate = (date: string | Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(new Date(date));
   };
 
@@ -67,49 +83,73 @@ export default function ReminderHistory({ invoiceId }: ReminderHistoryProps) {
     switch (status) {
       case "sent":
         return (
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          <Badge
+            variant="outline"
+            className="bg-blue-50 text-blue-700 border-blue-200"
+          >
             <MailIcon className="h-3 w-3 mr-1" /> Sent
           </Badge>
         );
       case "delivered":
         return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+          <Badge
+            variant="outline"
+            className="bg-green-50 text-green-700 border-green-200"
+          >
             <CheckIcon className="h-3 w-3 mr-1" /> Delivered
           </Badge>
         );
       case "opened":
         return (
-          <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
+          <Badge
+            variant="outline"
+            className="bg-indigo-50 text-indigo-700 border-indigo-200"
+          >
             <EyeIcon className="h-3 w-3 mr-1" /> Opened
           </Badge>
         );
       case "clicked":
         return (
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+          <Badge
+            variant="outline"
+            className="bg-purple-50 text-purple-700 border-purple-200"
+          >
             <MousePointerClickIcon className="h-3 w-3 mr-1" /> Clicked
           </Badge>
         );
       case "replied":
         return (
-          <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
+          <Badge
+            variant="outline"
+            className="bg-teal-50 text-teal-700 border-teal-200"
+          >
             <CheckCircleIcon className="h-3 w-3 mr-1" /> Replied
           </Badge>
         );
       case "failed":
         return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
             <XIcon className="h-3 w-3 mr-1" /> Failed
           </Badge>
         );
       case "bounced":
         return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          <Badge
+            variant="outline"
+            className="bg-red-50 text-red-700 border-red-200"
+          >
             <AlertCircleIcon className="h-3 w-3 mr-1" /> Bounced
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+          <Badge
+            variant="outline"
+            className="bg-gray-50 text-gray-700 border-gray-200"
+          >
             {status}
           </Badge>
         );
@@ -154,7 +194,9 @@ export default function ReminderHistory({ invoiceId }: ReminderHistoryProps) {
           <CardTitle className="text-md flex items-center gap-2">
             <MailIcon className="h-4 w-4" /> Reminder History
           </CardTitle>
-          <CardDescription className="text-red-500">Error: {error}</CardDescription>
+          <CardDescription className="text-red-500">
+            Error: {error}
+          </CardDescription>
         </CardHeader>
       </Card>
     );
@@ -167,8 +209,8 @@ export default function ReminderHistory({ invoiceId }: ReminderHistoryProps) {
           <MailIcon className="h-4 w-4" /> Reminder History
         </CardTitle>
         <CardDescription>
-          {reminders.length > 0 
-            ? `${reminders.length} reminder${reminders.length > 1 ? 's' : ''} sent`
+          {reminders.length > 0
+            ? `${reminders.length} reminder${reminders.length > 1 ? "s" : ""} sent`
             : "No reminders have been sent yet"}
         </CardDescription>
       </CardHeader>
@@ -181,33 +223,38 @@ export default function ReminderHistory({ invoiceId }: ReminderHistoryProps) {
         ) : (
           <div className="space-y-4">
             {reminders.map((reminder) => (
-              <div 
-                key={reminder.id} 
+              <div
+                key={reminder.id}
                 className="border rounded-md p-4 hover:bg-slate-50 transition-colors"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-1">
-                    <span className="font-medium">Reminder #{reminder.reminderNumber}</span>
-                    <Badge className={`ml-2 text-xs ${getToneColor(reminder.tone)}`}>
-                      {reminder.tone.charAt(0).toUpperCase() + reminder.tone.slice(1)}
+                    <span className="font-medium">
+                      Reminder #{reminder.reminderNumber}
+                    </span>
+                    <Badge
+                      className={`ml-2 text-xs ${getToneColor(reminder.tone)}`}
+                    >
+                      {reminder.tone.charAt(0).toUpperCase() +
+                        reminder.tone.slice(1)}
                     </Badge>
                   </div>
                   {getStatusBadge(reminder.status)}
                 </div>
-                
+
                 <p className="text-sm text-muted-foreground mt-2 font-medium">
                   {reminder.emailSubject}
                 </p>
-                
+
                 <div className="flex justify-between items-center mt-3 text-xs text-muted-foreground">
                   <div className="flex items-center">
-                    <CalendarIcon className="h-3 w-3 mr-1" /> 
+                    <CalendarIcon className="h-3 w-3 mr-1" />
                     {formatDate(reminder.sentAt)}
                   </div>
-                  
+
                   {reminder.responseReceived && (
                     <div className="flex items-center text-green-600">
-                      <CheckCircleIcon className="h-3 w-3 mr-1" /> 
+                      <CheckCircleIcon className="h-3 w-3 mr-1" />
                       Response received
                     </div>
                   )}
@@ -219,4 +266,4 @@ export default function ReminderHistory({ invoiceId }: ReminderHistoryProps) {
       </CardContent>
     </Card>
   );
-} 
+}

@@ -12,14 +12,17 @@ interface PDFDownloadButtonProps {
   disabled?: boolean;
 }
 
-export function PDFDownloadButton({ invoiceData, disabled = false }: PDFDownloadButtonProps) {
+export function PDFDownloadButton({
+  invoiceData,
+  disabled = false,
+}: PDFDownloadButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleDownload = async () => {
     if (disabled || isGenerating) return;
 
     setIsGenerating(true);
-    
+
     try {
       const response = await fetch("/api/generate-invoice-pdf", {
         method: "POST",
@@ -35,17 +38,18 @@ export function PDFDownloadButton({ invoiceData, disabled = false }: PDFDownload
       }
 
       const blob = await response.blob();
-      const filename = `invoice-${invoiceData.invoiceNumberObject?.value || 'draft'}.pdf`;
-      
+      const filename = `invoice-${invoiceData.invoiceNumberObject?.value || "draft"}.pdf`;
+
       saveAs(blob, filename);
-      
+
       toast.success("PDF generated successfully!", {
         description: `Downloaded as ${filename}`,
       });
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast.error("Failed to generate PDF", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     } finally {
       setIsGenerating(false);

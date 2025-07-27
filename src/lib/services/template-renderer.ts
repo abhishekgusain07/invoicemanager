@@ -1,4 +1,7 @@
-import { TemplateRenderData, TEMPLATE_PLACEHOLDERS } from "@/lib/validations/email-template";
+import {
+  TemplateRenderData,
+  TEMPLATE_PLACEHOLDERS,
+} from "@/lib/validations/email-template";
 import { formatDate, formatCurrency } from "@/lib/utils";
 
 /**
@@ -7,7 +10,7 @@ import { formatDate, formatCurrency } from "@/lib/utils";
  */
 export class TemplateRenderer {
   private data: TemplateRenderData;
-  
+
   constructor(data: TemplateRenderData) {
     this.data = data;
   }
@@ -38,28 +41,52 @@ export class TemplateRenderer {
 
     // Invoice details
     rendered = rendered.replace(/{invoice_number}/g, this.data.invoiceNumber);
-    rendered = rendered.replace(/{invoice_amount}/g, this.formatAmount(this.data.invoiceAmount, this.data.currency));
+    rendered = rendered.replace(
+      /{invoice_amount}/g,
+      this.formatAmount(this.data.invoiceAmount, this.data.currency)
+    );
     rendered = rendered.replace(/{currency}/g, this.data.currency);
-    rendered = rendered.replace(/{due_date}/g, this.formatDate(this.data.dueDate));
-    rendered = rendered.replace(/{issue_date}/g, this.formatDate(this.data.issueDate));
-    rendered = rendered.replace(/{days_overdue}/g, this.formatDaysOverdue(this.data.daysOverdue));
+    rendered = rendered.replace(
+      /{due_date}/g,
+      this.formatDate(this.data.dueDate)
+    );
+    rendered = rendered.replace(
+      /{issue_date}/g,
+      this.formatDate(this.data.issueDate)
+    );
+    rendered = rendered.replace(
+      /{days_overdue}/g,
+      this.formatDaysOverdue(this.data.daysOverdue)
+    );
 
     // Sender information
     rendered = rendered.replace(/{sender_name}/g, this.data.senderName);
-    rendered = rendered.replace(/{company_name}/g, this.data.companyName || this.data.senderName);
+    rendered = rendered.replace(
+      /{company_name}/g,
+      this.data.companyName || this.data.senderName
+    );
 
     // Links and actions
-    rendered = rendered.replace(/{invoice_link}/g, this.data.invoiceLink || '#');
-    rendered = rendered.replace(/{payment_link}/g, this.data.invoiceLink || '#');
+    rendered = rendered.replace(
+      /{invoice_link}/g,
+      this.data.invoiceLink || "#"
+    );
+    rendered = rendered.replace(
+      /{payment_link}/g,
+      this.data.invoiceLink || "#"
+    );
 
     // Dates
-    rendered = rendered.replace(/{current_date}/g, this.formatDate(new Date().toISOString()));
+    rendered = rendered.replace(
+      /{current_date}/g,
+      this.formatDate(new Date().toISOString())
+    );
 
     // Custom fields
     if (this.data.customFields) {
       Object.entries(this.data.customFields).forEach(([key, value]) => {
         const placeholder = `{${key}}`;
-        rendered = rendered.replace(new RegExp(placeholder, 'g'), value);
+        rendered = rendered.replace(new RegExp(placeholder, "g"), value);
       });
     }
 
@@ -91,7 +118,7 @@ export class TemplateRenderer {
    */
   private formatDaysOverdue(days: number): string {
     if (days <= 0) return "0 days";
-    return `${days} day${days !== 1 ? 's' : ''}`;
+    return `${days} day${days !== 1 ? "s" : ""}`;
   }
 
   /**
@@ -99,33 +126,95 @@ export class TemplateRenderer {
    */
   private applyHtmlFormatting(content: string): string {
     // Convert line breaks to HTML
-    let formatted = content.replace(/\n/g, '<br>');
-    
+    let formatted = content.replace(/\n/g, "<br>");
+
     // Add emphasis to important information
-    formatted = formatted.replace(/(URGENT|OVERDUE|FINAL NOTICE)/gi, '<strong style="color: #e53e3e;">$1</strong>');
-    formatted = formatted.replace(/(Thank you|Thanks)/gi, '<em style="color: #38a169;">$1</em>');
-    
+    formatted = formatted.replace(
+      /(URGENT|OVERDUE|FINAL NOTICE)/gi,
+      '<strong style="color: #e53e3e;">$1</strong>'
+    );
+    formatted = formatted.replace(
+      /(Thank you|Thanks)/gi,
+      '<em style="color: #38a169;">$1</em>'
+    );
+
     return formatted;
   }
 
   /**
    * Get available placeholders with descriptions
    */
-  static getAvailablePlaceholders(): Array<{ placeholder: string; description: string; example: string }> {
+  static getAvailablePlaceholders(): Array<{
+    placeholder: string;
+    description: string;
+    example: string;
+  }> {
     return [
-      { placeholder: '{client_name}', description: 'Client full name', example: 'John Smith' },
-      { placeholder: '{client_email}', description: 'Client email address', example: 'john@example.com' },
-      { placeholder: '{invoice_number}', description: 'Invoice number', example: 'INV-001' },
-      { placeholder: '{invoice_amount}', description: 'Formatted invoice amount', example: '$1,250.00' },
-      { placeholder: '{currency}', description: 'Currency code', example: 'USD' },
-      { placeholder: '{due_date}', description: 'Formatted due date', example: 'March 15, 2024' },
-      { placeholder: '{issue_date}', description: 'Formatted issue date', example: 'March 1, 2024' },
-      { placeholder: '{days_overdue}', description: 'Days overdue count', example: '5 days' },
-      { placeholder: '{sender_name}', description: 'Your name', example: 'Jane Doe' },
-      { placeholder: '{company_name}', description: 'Your company name', example: 'Acme Corp' },
-      { placeholder: '{invoice_link}', description: 'Link to invoice', example: 'https://...' },
-      { placeholder: '{payment_link}', description: 'Payment link', example: 'https://...' },
-      { placeholder: '{current_date}', description: 'Current date', example: 'March 20, 2024' },
+      {
+        placeholder: "{client_name}",
+        description: "Client full name",
+        example: "John Smith",
+      },
+      {
+        placeholder: "{client_email}",
+        description: "Client email address",
+        example: "john@example.com",
+      },
+      {
+        placeholder: "{invoice_number}",
+        description: "Invoice number",
+        example: "INV-001",
+      },
+      {
+        placeholder: "{invoice_amount}",
+        description: "Formatted invoice amount",
+        example: "$1,250.00",
+      },
+      {
+        placeholder: "{currency}",
+        description: "Currency code",
+        example: "USD",
+      },
+      {
+        placeholder: "{due_date}",
+        description: "Formatted due date",
+        example: "March 15, 2024",
+      },
+      {
+        placeholder: "{issue_date}",
+        description: "Formatted issue date",
+        example: "March 1, 2024",
+      },
+      {
+        placeholder: "{days_overdue}",
+        description: "Days overdue count",
+        example: "5 days",
+      },
+      {
+        placeholder: "{sender_name}",
+        description: "Your name",
+        example: "Jane Doe",
+      },
+      {
+        placeholder: "{company_name}",
+        description: "Your company name",
+        example: "Acme Corp",
+      },
+      {
+        placeholder: "{invoice_link}",
+        description: "Link to invoice",
+        example: "https://...",
+      },
+      {
+        placeholder: "{payment_link}",
+        description: "Payment link",
+        example: "https://...",
+      },
+      {
+        placeholder: "{current_date}",
+        description: "Current date",
+        example: "March 20, 2024",
+      },
     ];
   }
 
@@ -146,18 +235,24 @@ export class TemplateRenderer {
       companyName: "Acme Corporation",
       invoiceLink: "https://example.com/invoice/001234",
       customFields: {
-        custom_message: "Thank you for your business!"
-      }
+        custom_message: "Thank you for your business!",
+      },
     };
   }
 
   /**
    * Convert invoice data to template render data
    */
-  static fromInvoiceData(invoice: any, senderName: string, companyName?: string): TemplateRenderData {
+  static fromInvoiceData(
+    invoice: any,
+    senderName: string,
+    companyName?: string
+  ): TemplateRenderData {
     const dueDate = new Date(invoice.dueDate);
     const today = new Date();
-    const daysOverdue = Math.floor((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysOverdue = Math.floor(
+      (today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     return {
       clientName: invoice.clientName,
@@ -178,16 +273,18 @@ export class TemplateRenderer {
    * Populate template with real invoice data
    */
   static populateTemplateWithInvoiceData(
-    templateContent: string, 
-    invoice: any, 
+    templateContent: string,
+    invoice: any,
     senderName: string = "Your Company",
     companyName?: string,
     isHtml: boolean = true
   ): string {
     const renderData = this.fromInvoiceData(invoice, senderName, companyName);
     const renderer = new TemplateRenderer(renderData);
-    
-    return isHtml ? renderer.renderHtml(templateContent) : renderer.renderText(templateContent);
+
+    return isHtml
+      ? renderer.renderHtml(templateContent)
+      : renderer.renderText(templateContent);
   }
 
   /**
@@ -200,7 +297,7 @@ export class TemplateRenderer {
   ): string {
     const senderName = "Your Company"; // TODO: Get from user settings
     const companyName = "Your Company"; // TODO: Get from user settings
-    
+
     const populatedContent = this.populateTemplateWithInvoiceData(
       templateContent,
       invoice,
@@ -275,13 +372,16 @@ export const templateUtils = {
   /**
    * Validate template content for required placeholders
    */
-  validateTemplate(content: string, requiredPlaceholders: string[] = []): { valid: boolean; missing: string[] } {
+  validateTemplate(
+    content: string,
+    requiredPlaceholders: string[] = []
+  ): { valid: boolean; missing: string[] } {
     const found = this.extractPlaceholders(content);
-    const missing = requiredPlaceholders.filter(req => !found.includes(req));
-    
+    const missing = requiredPlaceholders.filter((req) => !found.includes(req));
+
     return {
       valid: missing.length === 0,
-      missing
+      missing,
     };
   },
 
@@ -291,7 +391,7 @@ export const templateUtils = {
   generatePreviewHtml(content: string, data: TemplateRenderData): string {
     const renderer = new TemplateRenderer(data);
     const rendered = renderer.renderHtml(content);
-    
+
     return `
       <!DOCTYPE html>
       <html>
@@ -323,5 +423,5 @@ export const templateUtils = {
         </body>
       </html>
     `;
-  }
+  },
 };

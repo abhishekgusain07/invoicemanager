@@ -2,23 +2,23 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import {
-  KeyRound, 
-  CreditCard, 
-  BarChart, 
-  Database, 
-  Layers, 
+  KeyRound,
+  CreditCard,
+  BarChart,
+  Database,
+  Layers,
   Cloud,
-  LucideIcon
+  LucideIcon,
 } from "lucide-react";
 
 // Map of icons based on card title
 const iconMap: Record<string, LucideIcon> = {
-  "Authentication": KeyRound,
-  "Payments": CreditCard,
-  "Analytics": BarChart,
-  "Database": Database,
+  Authentication: KeyRound,
+  Payments: CreditCard,
+  Analytics: BarChart,
+  Database: Database,
   "UI Components": Layers,
-  "Deployment": Cloud,
+  Deployment: Cloud,
 };
 
 export const HoverEffect = ({
@@ -45,7 +45,7 @@ export const HoverEffect = ({
       {items.map((item, idx) => {
         // Use provided icon or fallback to the map based on title
         const IconComponent = item.icon || iconMap[item.title] || KeyRound;
-        
+
         return (
           <a
             href={item?.link}
@@ -115,7 +115,12 @@ export const CardTitle = ({
   children: React.ReactNode;
 }) => {
   return (
-    <h4 className={cn("text-slate-900 dark:text-slate-100 font-bold tracking-wide mt-4", className)}>
+    <h4
+      className={cn(
+        "text-slate-900 dark:text-slate-100 font-bold tracking-wide mt-4",
+        className
+      )}
+    >
       {children}
     </h4>
   );

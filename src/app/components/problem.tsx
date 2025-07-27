@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // --- Icon Components (for better reusability and readability) ---
 
@@ -125,7 +125,15 @@ const BarChartIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const ProblemCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => {
+const ProblemCard = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) => {
   return (
     <div
       data-slot="card"
@@ -152,39 +160,39 @@ const ProblemSection = () => {
   const problems = [
     {
       icon: <ClockIcon />,
-      title: 'Late Payments',
+      title: "Late Payments",
       description:
-        'Businesses suffer from cash flow issues when clients consistently pay invoices weeks or months after due dates.',
+        "Businesses suffer from cash flow issues when clients consistently pay invoices weeks or months after due dates.",
     },
     {
       icon: <BugIcon />,
-      title: 'Manual Tracking',
+      title: "Manual Tracking",
       description:
-        'Tracking payment status across dozens or hundreds of invoices manually leads to errors and missed follow-ups.',
+        "Tracking payment status across dozens or hundreds of invoices manually leads to errors and missed follow-ups.",
     },
     {
       icon: <CreditCardIcon />,
-      title: 'Inconsistent Follow-ups',
+      title: "Inconsistent Follow-ups",
       description:
-        'Without a system, payment reminders are often forgotten, inconsistent, or too aggressive, damaging client relationships.',
+        "Without a system, payment reminders are often forgotten, inconsistent, or too aggressive, damaging client relationships.",
     },
     {
       icon: <BarChartIcon />,
-      title: 'No Payment Visibility',
+      title: "No Payment Visibility",
       description:
-        'Lack of clear metrics on payment patterns makes it impossible to identify and address problematic accounts.',
+        "Lack of clear metrics on payment patterns makes it impossible to identify and address problematic accounts.",
     },
     {
       icon: <ShieldIcon />,
-      title: 'Disorganized Records',
+      title: "Disorganized Records",
       description:
-        'Scattered invoice records across emails, spreadsheets, and paper files create confusion and compliance risks.',
+        "Scattered invoice records across emails, spreadsheets, and paper files create confusion and compliance risks.",
     },
     {
       icon: <CodeIcon />,
-      title: 'Time-Consuming Admin',
+      title: "Time-Consuming Admin",
       description:
-        'Administrative staff waste hours each week manually creating reminders and updating payment statuses.',
+        "Administrative staff waste hours each week manually creating reminders and updating payment statuses.",
     },
   ];
 
@@ -202,7 +210,8 @@ const ProblemSection = () => {
             Late Payments Shouldn't Hurt Your Business
           </h2>
           <p className="text-muted-foreground max-w-[800px] md:text-xl/relaxed">
-            Many businesses struggle with inconsistent cash flow due to delayed invoice payments and inefficient collection processes.
+            Many businesses struggle with inconsistent cash flow due to delayed
+            invoice payments and inefficient collection processes.
           </p>
         </div>
         <div className="mx-auto w-full max-w-5xl overflow-hidden rounded-xl py-6">

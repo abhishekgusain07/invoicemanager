@@ -17,31 +17,33 @@ export type GmailConnectionData = {
   [key: string]: any;
 };
 
-export async function checkGmailConnection(userId: string): Promise<{ 
-  isConnected: boolean; 
-  connectionData: GmailConnectionData | null 
+export async function checkGmailConnection(userId: string): Promise<{
+  isConnected: boolean;
+  connectionData: GmailConnectionData | null;
 }> {
   try {
-    const connections = await db.select()
+    const connections = await db
+      .select()
       .from(gmailConnection)
       .where(eq(gmailConnection.userId, userId));
-    
+
     const isConnected = connections.length > 0;
     const connectionData = isConnected ? connections[0] : null;
-    
+
     if (isConnected) {
       // Update user's gmailConnected status if needed
-      await db.update(userSchema)
+      await db
+        .update(userSchema)
         .set({ gmailConnected: true })
         .where(eq(userSchema.id, userId));
     }
-    
-    return { 
-      isConnected, 
-      connectionData 
+
+    return {
+      isConnected,
+      connectionData,
     };
   } catch (error) {
     console.error("Error checking Gmail connection:", error);
     throw new Error("Failed to check Gmail connection status");
   }
-} 
+}

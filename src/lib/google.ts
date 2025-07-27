@@ -1,5 +1,5 @@
 // lib/google-auth.ts
-import { google } from 'googleapis';
+import { google } from "googleapis";
 
 export const getOAuthClient = () => {
   return new google.auth.OAuth2(
@@ -12,14 +12,14 @@ export const getOAuthClient = () => {
 export const getAuthURL = (userId: string) => {
   const oauth2Client = getOAuthClient();
   return oauth2Client.generateAuthUrl({
-    access_type: 'offline',
+    access_type: "offline",
     scope: [
-      'https://www.googleapis.com/auth/gmail.modify',
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email'
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
     ],
-    prompt: 'consent',
-    state: userId
+    prompt: "consent",
+    state: userId,
   });
 };
 

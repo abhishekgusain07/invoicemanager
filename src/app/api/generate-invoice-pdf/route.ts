@@ -10,13 +10,15 @@ export const maxDuration = 30;
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    
+
     // Validate the invoice data
     const validatedData = invoiceGenerationSchema.parse(body);
-    
+
     // Generate PDF buffer
     const pdfBuffer = await renderToBuffer(
-      React.createElement(InvoicePdfTemplate, { invoiceData: validatedData }) as any
+      React.createElement(InvoicePdfTemplate, {
+        invoiceData: validatedData,
+      }) as any
     );
 
     // Return the PDF as a response
@@ -24,20 +26,20 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="invoice-${validatedData.invoiceNumberObject?.value || 'draft'}.pdf"`,
+        "Content-Disposition": `attachment; filename="invoice-${validatedData.invoiceNumberObject?.value || "draft"}.pdf"`,
         "Cache-Control": "no-cache",
       },
     });
   } catch (error) {
     console.error("Error generating PDF:", error);
-    
+
     if (error instanceof Error) {
       return NextResponse.json(
         { error: "Failed to generate PDF", details: error.message },
         { status: 500 }
       );
     }
-    
+
     return NextResponse.json(
       { error: "Failed to generate PDF" },
       { status: 500 }

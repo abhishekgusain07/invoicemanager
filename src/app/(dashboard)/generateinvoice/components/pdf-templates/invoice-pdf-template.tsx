@@ -1,10 +1,5 @@
 import { type InvoiceGenerationData } from "@/lib/validations/invoice-generation";
-import {
-  Document,
-  Font,
-  Page,
-  StyleSheet,
-} from "@react-pdf/renderer";
+import { Document, Font, Page, StyleSheet } from "@react-pdf/renderer";
 import { memo } from "react";
 import { InvoiceBody } from "./invoice-body";
 

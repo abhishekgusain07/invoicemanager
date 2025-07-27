@@ -17,7 +17,9 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("reminder");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [userSettings, setUserSettings] = useState<UserSettingsValues|null>(null);
+  const [userSettings, setUserSettings] = useState<UserSettingsValues | null>(
+    null
+  );
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -48,13 +50,13 @@ export default function SettingsPage() {
     try {
       // Create a FormData object to send to the server action
       const formData = new FormData();
-      
+
       // Add all settings to the form data
       Object.entries(userSettings).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           // Convert boolean values to strings for FormData
-          if (typeof value === 'boolean') {
-            formData.append(key, value ? 'true' : 'false');
+          if (typeof value === "boolean") {
+            formData.append(key, value ? "true" : "false");
           } else {
             formData.append(key, String(value));
           }
@@ -78,22 +80,25 @@ export default function SettingsPage() {
   };
 
   // Handle updates to settings
-  const handleSettingsChange = (section: string, updatedValues: Record<string, any>) => {
+  const handleSettingsChange = (
+    section: string,
+    updatedValues: Record<string, any>
+  ) => {
     if (!userSettings) return;
 
     // Ensure boolean values are properly typed
     Object.entries(updatedValues).forEach(([key, value]) => {
-      if (typeof value === 'string') {
-        if (value === 'true') updatedValues[key] = true;
-        else if (value === 'false') updatedValues[key] = false;
+      if (typeof value === "string") {
+        if (value === "true") updatedValues[key] = true;
+        else if (value === "false") updatedValues[key] = false;
       }
     });
 
-    setUserSettings(prev => {
+    setUserSettings((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        ...updatedValues
+        ...updatedValues,
       };
     });
   };
@@ -112,8 +117,8 @@ export default function SettingsPage() {
             Configure your reminder preferences and account details
           </p>
         </div>
-        <Button 
-          onClick={handleSaveSettings} 
+        <Button
+          onClick={handleSaveSettings}
           className="gap-2"
           disabled={isSaving}
         >
@@ -168,30 +173,32 @@ export default function SettingsPage() {
       {/* Active Tab Content */}
       <div className="py-4">
         {activeTab === "reminder" && (
-          <ReminderSettings 
-            settings={userSettings} 
-            onChange={(values) => handleSettingsChange("reminder", values)} 
+          <ReminderSettings
+            settings={userSettings}
+            onChange={(values) => handleSettingsChange("reminder", values)}
           />
         )}
         {activeTab === "account" && (
-          <AccountSettings 
-            settings={userSettings} 
-            onChange={(values) => handleSettingsChange("account", values)} 
+          <AccountSettings
+            settings={userSettings}
+            onChange={(values) => handleSettingsChange("account", values)}
           />
         )}
         {activeTab === "email" && (
-          <EmailSettings 
-            settings={userSettings ?? {
-              emailSignature: "",
-              previewEmails: false,
-              ccAccountant: false,
-              useBrandedEmails: false,
-              sendCopyToSelf: false,
-              fromName: undefined,
-              defaultCC: undefined,
-              finalNoticeTemplateId: undefined
-            }}
-            onChange={(values) => handleSettingsChange("email", values)} 
+          <EmailSettings
+            settings={
+              userSettings ?? {
+                emailSignature: "",
+                previewEmails: false,
+                ccAccountant: false,
+                useBrandedEmails: false,
+                sendCopyToSelf: false,
+                fromName: undefined,
+                defaultCC: undefined,
+                finalNoticeTemplateId: undefined,
+              }
+            }
+            onChange={(values) => handleSettingsChange("email", values)}
           />
         )}
       </div>

@@ -3,7 +3,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
-import { invoiceReminders, userSettings, clientInvoices, emailDeliveryStatusEnum } from "@/db/schema";
+import {
+  invoiceReminders,
+  userSettings,
+  clientInvoices,
+  emailDeliveryStatusEnum,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, desc, and } from "drizzle-orm";
@@ -16,7 +21,7 @@ export type ReminderParams = {
   invoiceId: string;
   emailSubject: string;
   emailContent: string;
-  tone: 'polite' | 'firm' | 'urgent';
+  tone: "polite" | "firm" | "urgent";
   isHtml?: boolean; // Add this field to support HTML content
 };
 
@@ -25,14 +30,17 @@ export type ReminderParams = {
  */
 export async function sendInvoiceReminder(params: ReminderParams) {
   const { invoiceId, emailSubject, emailContent, tone, isHtml = true } = params;
-  
+
   // Get authenticated user
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
 
   if (!session?.user) {
-    return { success: false, error: "Unauthorized. Please sign in to send reminders." };
+    return {
+      success: false,
+      error: "Unauthorized. Please sign in to send reminders.",
+    };
   }
 
   try {
@@ -48,7 +56,10 @@ export async function sendInvoiceReminder(params: ReminderParams) {
       );
 
     if (invoice.length === 0) {
-      return { success: false, error: "Invoice not found or you don't have permission." };
+      return {
+        success: false,
+        error: "Invoice not found or you don't have permission.",
+      };
     }
 
     // Get the count of previous reminders for this invoice
@@ -57,40 +68,55 @@ export async function sendInvoiceReminder(params: ReminderParams) {
       .from(invoiceReminders)
       .where(eq(invoiceReminders.invoiceId, invoiceId))
       .orderBy(desc(invoiceReminders.sentAt));
-    
+
     const reminderNumber = previousReminders.length + 1;
-    
+
     // Get refresh token from database
     const refreshToken = await getUserRefreshToken(session.user.id);
     if (!refreshToken) {
-      return { success: false, error: "Gmail account not connected. Please connect your Gmail account." };
+      return {
+        success: false,
+        error:
+          "Gmail account not connected. Please connect your Gmail account.",
+      };
     }
 
     // Prepare the email data with proper HTML/plain text handling
     const emailData = {
       refreshToken,
-      to: [{
-        email: invoice[0].clientEmail,
-        name: invoice[0].clientName
-      }],
+      to: [
+        {
+          email: invoice[0].clientEmail,
+          name: invoice[0].clientName,
+        },
+      ],
       subject: emailSubject,
-      text: isHtml ? '' : emailContent,
+      text: isHtml ? "" : emailContent,
       html: isHtml ? emailContent : undefined,
     };
     // TODO: Remove this after testing
-    emailData.to[0].email = "valorantgusain@gmail.com"
-    
+    emailData.to[0].email = "valorantgusain@gmail.com";
+
     // Send the email using our email service
     try {
       const result = await sendEmail(emailData);
       if (!result.success) {
         console.error("Error sending email:", result.error);
-        return { success: false, error: result.error || "Failed to send email. Please try again." };
+        return {
+          success: false,
+          error: result.error || "Failed to send email. Please try again.",
+        };
       }
-      serverDebug("ReminderAction", `Reminder ${reminderNumber} sent successfully for invoice ${invoiceId}`);
+      serverDebug(
+        "ReminderAction",
+        `Reminder ${reminderNumber} sent successfully for invoice ${invoiceId}`
+      );
     } catch (error) {
       console.error("Error sending email:", error);
-      return { success: false, error: "Failed to send email. Please try again." };
+      return {
+        success: false,
+        error: "Failed to send email. Please try again.",
+      };
     }
 
     // Record the reminder in the database
@@ -105,17 +131,17 @@ export async function sendInvoiceReminder(params: ReminderParams) {
       status: "sent", // This would be updated by webhook callbacks in a real email integration
       sentAt: new Date(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
-    
+
     // Revalidate related paths
     revalidatePath("/invoices");
     revalidatePath(`/invoices/${invoiceId}`);
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       reminderNumber,
-      message: `Reminder ${reminderNumber} sent successfully.` 
+      message: `Reminder ${reminderNumber} sent successfully.`,
     };
   } catch (error) {
     console.error("Error sending invoice reminder:", error);
@@ -129,13 +155,13 @@ export async function sendInvoiceReminder(params: ReminderParams) {
 export async function getInvoiceReminderHistory(invoiceId: string) {
   // Get authenticated user
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
-  
+
   if (!session?.user) {
     return { success: false, error: "Unauthorized", data: [] };
   }
-  
+
   try {
     // Check if invoice exists and belongs to user
     const invoice = await db
@@ -147,22 +173,26 @@ export async function getInvoiceReminderHistory(invoiceId: string) {
           eq(clientInvoices.userId, session.user.id)
         )
       );
-    
+
     if (invoice.length === 0) {
       return { success: false, error: "Invoice not found", data: [] };
     }
-    
+
     // Get all reminders for this invoice
     const reminders = await db
       .select()
       .from(invoiceReminders)
       .where(eq(invoiceReminders.invoiceId, invoiceId))
       .orderBy(desc(invoiceReminders.sentAt));
-    
+
     return { success: true, data: reminders };
   } catch (error) {
     console.error("Error fetching invoice reminder history:", error);
-    return { success: false, error: "Failed to fetch reminder history", data: [] };
+    return {
+      success: false,
+      error: "Failed to fetch reminder history",
+      data: [],
+    };
   }
 }
 
@@ -172,13 +202,13 @@ export async function getInvoiceReminderHistory(invoiceId: string) {
 export async function getLastReminderSent(invoiceId: string) {
   // Get authenticated user
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
-  
+
   if (!session?.user) {
     return null;
   }
-  
+
   try {
     // Check if invoice exists and belongs to user
     const invoice = await db
@@ -190,11 +220,11 @@ export async function getLastReminderSent(invoiceId: string) {
           eq(clientInvoices.userId, session.user.id)
         )
       );
-    
+
     if (invoice.length === 0) {
       return null;
     }
-    
+
     // Get the most recent reminder for this invoice
     const reminders = await db
       .select()
@@ -202,7 +232,7 @@ export async function getLastReminderSent(invoiceId: string) {
       .where(eq(invoiceReminders.invoiceId, invoiceId))
       .orderBy(desc(invoiceReminders.sentAt))
       .limit(1);
-    
+
     return reminders.length > 0 ? reminders[0] : null;
   } catch (error) {
     console.error("Error fetching last invoice reminder:", error);
@@ -219,9 +249,9 @@ export async function updateReminderStatus(
 ) {
   try {
     const statusData: Record<string, any> = {
-      status
+      status,
     };
-    
+
     // Add timestamp based on status
     if (status === "delivered") {
       statusData.deliveredAt = new Date();
@@ -233,15 +263,15 @@ export async function updateReminderStatus(
       statusData.responseReceived = true;
       statusData.responseReceivedAt = new Date();
     }
-    
+
     await db
       .update(invoiceReminders)
       .set(statusData)
       .where(eq(invoiceReminders.id, reminderId));
-    
+
     return { success: true };
   } catch (error) {
     console.error("Error updating reminder status:", error);
     return { success: false, error: "Failed to update reminder status" };
   }
-} 
+}

@@ -7,28 +7,41 @@ interface InvoiceVATSummaryTableProps {
   formattedInvoiceTotal: string;
 }
 
-export function InvoiceVATSummaryTable({ 
-  invoiceData, 
-  formattedInvoiceTotal 
+export function InvoiceVATSummaryTable({
+  invoiceData,
+  formattedInvoiceTotal,
 }: InvoiceVATSummaryTableProps) {
   // Group items by VAT rate
-  const vatGroups = invoiceData.items.reduce((acc, item) => {
-    const vatRate = typeof item.vat === 'number' ? item.vat : 0;
-    const vatKey = typeof item.vat === 'string' ? item.vat : vatRate.toString();
-    
-    if (!acc[vatKey]) {
-      acc[vatKey] = {
-        vatRate: item.vat,
-        netAmount: 0,
-        vatAmount: 0,
-        totalAmount: 0
-      };
-    }
-    acc[vatKey].netAmount += item.amount * item.netPrice;
-    acc[vatKey].vatAmount += item.amount * item.netPrice * (vatRate / 100);
-    acc[vatKey].totalAmount += item.amount * item.netPrice * (1 + vatRate / 100);
-    return acc;
-  }, {} as Record<string, { vatRate: string | number; netAmount: number; vatAmount: number; totalAmount: number }>);
+  const vatGroups = invoiceData.items.reduce(
+    (acc, item) => {
+      const vatRate = typeof item.vat === "number" ? item.vat : 0;
+      const vatKey =
+        typeof item.vat === "string" ? item.vat : vatRate.toString();
+
+      if (!acc[vatKey]) {
+        acc[vatKey] = {
+          vatRate: item.vat,
+          netAmount: 0,
+          vatAmount: 0,
+          totalAmount: 0,
+        };
+      }
+      acc[vatKey].netAmount += item.amount * item.netPrice;
+      acc[vatKey].vatAmount += item.amount * item.netPrice * (vatRate / 100);
+      acc[vatKey].totalAmount +=
+        item.amount * item.netPrice * (1 + vatRate / 100);
+      return acc;
+    },
+    {} as Record<
+      string,
+      {
+        vatRate: string | number;
+        netAmount: number;
+        vatAmount: number;
+        totalAmount: number;
+      }
+    >
+  );
 
   const sortedVatKeys = Object.keys(vatGroups).sort((a, b) => {
     const aNum = Number(a);
@@ -61,22 +74,42 @@ export function InvoiceVATSummaryTable({
       {/* Header row */}
       <View style={PDF_DEFAULT_TEMPLATE_STYLES.tableRow}>
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCell, PDF_DEFAULT_TEMPLATE_STYLES.boldText]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+            ]}
+          >
             VAT Rate
           </Text>
         </View>
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCell, PDF_DEFAULT_TEMPLATE_STYLES.boldText]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+            ]}
+          >
             Net
           </Text>
         </View>
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCell, PDF_DEFAULT_TEMPLATE_STYLES.boldText]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+            ]}
+          >
             VAT
           </Text>
         </View>
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCell, PDF_DEFAULT_TEMPLATE_STYLES.boldText]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+            ]}
+          >
             Total
           </Text>
         </View>
@@ -85,11 +118,16 @@ export function InvoiceVATSummaryTable({
       {/* Table body rows */}
       {sortedVatKeys.map((vatKey) => {
         const group = vatGroups[vatKey];
-        const displayVat = typeof group.vatRate === 'number' ? `${group.vatRate}%` : group.vatRate;
-        
+        const displayVat =
+          typeof group.vatRate === "number"
+            ? `${group.vatRate}%`
+            : group.vatRate;
+
         return (
           <View style={PDF_DEFAULT_TEMPLATE_STYLES.tableRow} key={vatKey}>
-            <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
+            <View
+              style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}
+            >
               <Text
                 style={[
                   PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
@@ -99,7 +137,9 @@ export function InvoiceVATSummaryTable({
                 {displayVat}
               </Text>
             </View>
-            <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
+            <View
+              style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}
+            >
               <Text
                 style={[
                   PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
@@ -109,7 +149,9 @@ export function InvoiceVATSummaryTable({
                 {formatAmount(group.netAmount)}
               </Text>
             </View>
-            <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
+            <View
+              style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}
+            >
               <Text
                 style={[
                   PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
@@ -119,7 +161,9 @@ export function InvoiceVATSummaryTable({
                 {formatAmount(group.vatAmount)}
               </Text>
             </View>
-            <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
+            <View
+              style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}
+            >
               <Text
                 style={[
                   PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
@@ -136,22 +180,42 @@ export function InvoiceVATSummaryTable({
       {/* Total row */}
       <View style={PDF_DEFAULT_TEMPLATE_STYLES.tableRow}>
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCell, PDF_DEFAULT_TEMPLATE_STYLES.rightAlign]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+            ]}
+          >
             Total
           </Text>
         </View>
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCell, PDF_DEFAULT_TEMPLATE_STYLES.rightAlign]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+            ]}
+          >
             {formatAmount(totalNetAmount)}
           </Text>
         </View>
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCell, PDF_DEFAULT_TEMPLATE_STYLES.rightAlign]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+            ]}
+          >
             {formatAmount(totalVATAmount)}
           </Text>
         </View>
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
-          <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCell, PDF_DEFAULT_TEMPLATE_STYLES.rightAlign]}>
+          <Text
+            style={[
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+            ]}
+          >
             {formattedInvoiceTotal}
           </Text>
         </View>

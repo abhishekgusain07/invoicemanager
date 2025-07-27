@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 // --- Icon Components ---
 
@@ -36,14 +36,31 @@ const LinkedInIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 // --- Optional: Link Components for better structure ---
 
-const FooterNavLink = ({ href, children }: { href: string, children: React.ReactNode }) => (
-  <a className="block text-muted-foreground duration-150 hover:text-primary" href={href}>
+const FooterNavLink = ({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) => (
+  <a
+    className="block text-muted-foreground duration-150 hover:text-primary"
+    href={href}
+  >
     {/* The span isn't strictly necessary but kept for fidelity to original HTML structure */}
     <span>{children}</span>
   </a>
 );
 
-const SocialLink = ({ href, label, children }: { href: string, label: string, children: React.ReactNode }) => (
+const SocialLink = ({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) => (
   <a
     target="_blank"
     rel="noopener noreferrer"
@@ -55,7 +72,6 @@ const SocialLink = ({ href, label, children }: { href: string, label: string, ch
   </a>
 );
 
-
 // --- Main Footer Component ---
 
 const Footer = () => {
@@ -63,25 +79,33 @@ const Footer = () => {
 
   // Data for navigation links
   const navLinks = [
-    { href: '#pricing', text: 'Pricing' },
-    { href: 'mailto:abhishek.gusain1007fb@gmail.com', text: 'Support' },
-    { href: '/comming-soon', text: 'Documentation' },
-    { href: '/terms-of-service', text: 'Terms of Service' }, // Corrected typo "Serivce" -> "Service"
-    { href: '/privacy-policy', text: 'Privacy Policy' },
-    { href: '/license', text: 'Licence' }, // Note: 'License' is the more common spelling in US English 
+    { href: "#pricing", text: "Pricing" },
+    { href: "mailto:abhishek.gusain1007fb@gmail.com", text: "Support" },
+    { href: "/comming-soon", text: "Documentation" },
+    { href: "/terms-of-service", text: "Terms of Service" }, // Corrected typo "Serivce" -> "Service"
+    { href: "/privacy-policy", text: "Privacy Policy" },
+    { href: "/license", text: "Licence" }, // Note: 'License' is the more common spelling in US English
   ];
 
   // Data for social links (replace # with actual URLs)
   const socialLinks = [
-    { href: 'https://x.com/AgusainBuilds', label: 'X/Twitter', icon: <XIcon /> },
-    { href: '#', label: 'LinkedIn', icon: <LinkedInIcon /> },
+    {
+      href: "https://x.com/AgusainBuilds",
+      label: "X/Twitter",
+      icon: <XIcon />,
+    },
+    { href: "#", label: "LinkedIn", icon: <LinkedInIcon /> },
   ];
 
   return (
     <footer className="py-16 md:py-32">
       <div className="mx-auto max-w-5xl px-6">
         {/* Homepage Link */}
-        <a aria-label="go home" className="mx-auto block size-fit font-semibold" href="/">
+        <a
+          aria-label="go home"
+          className="mx-auto block size-fit font-semibold"
+          href="/"
+        >
           invoicemanager Template
         </a>
 
@@ -96,11 +120,11 @@ const Footer = () => {
 
         {/* Social Media Links */}
         <div className="my-8 flex flex-wrap justify-center gap-6 text-sm">
-           {socialLinks.map((link) => (
+          {socialLinks.map((link) => (
             <SocialLink key={link.label} href={link.href} label={link.label}>
-                {link.icon}
+              {link.icon}
             </SocialLink>
-           ))}
+          ))}
         </div>
 
         {/* Copyright Notice */}

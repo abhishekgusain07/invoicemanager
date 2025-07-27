@@ -4,19 +4,34 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { MailIcon, SendIcon, AlertCircleIcon, CheckCircleIcon, LoaderIcon } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  MailIcon,
+  SendIcon,
+  AlertCircleIcon,
+  CheckCircleIcon,
+  LoaderIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export default function TestEmailPage() {
   const [email, setEmail] = useState("");
   const [firstname, setFirstname] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [apiResponse, setApiResponse] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate inputs
     if (!email || !firstname) {
       toast.error("Please provide both email and first name");
@@ -24,7 +39,7 @@ export default function TestEmailPage() {
     }
 
     setStatus("loading");
-    
+
     try {
       const response = await fetch("/api/mail", {
         method: "POST",
@@ -39,13 +54,15 @@ export default function TestEmailPage() {
 
       const data = await response.json();
       setApiResponse(data);
-      
+
       if (response.ok) {
         setStatus("success");
         toast.success("Test email sent successfully!");
       } else {
         setStatus("error");
-        toast.error(`Failed to send email: ${data.error || data.message || "Unknown error"}`);
+        toast.error(
+          `Failed to send email: ${data.error || data.message || "Unknown error"}`
+        );
       }
     } catch (error) {
       console.error("Error sending test email:", error);
@@ -76,14 +93,14 @@ export default function TestEmailPage() {
             Send a test email to verify your email configuration
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
-              <Input 
+              <Input
                 id="email"
-                type="email" 
+                type="email"
                 placeholder="recipient@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -91,10 +108,10 @@ export default function TestEmailPage() {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="firstname">First Name</Label>
-              <Input 
+              <Input
                 id="firstname"
                 placeholder="John"
                 value={firstname}
@@ -105,9 +122,13 @@ export default function TestEmailPage() {
             </div>
 
             {apiResponse && (
-              <div className={`mt-4 p-4 rounded-md text-sm overflow-auto max-h-36 ${
-                status === "success" ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
-              }`}>
+              <div
+                className={`mt-4 p-4 rounded-md text-sm overflow-auto max-h-36 ${
+                  status === "success"
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-red-50 border border-red-200"
+                }`}
+              >
                 <pre className="whitespace-pre-wrap break-words">
                   {JSON.stringify(apiResponse, null, 2)}
                 </pre>
@@ -115,19 +136,15 @@ export default function TestEmailPage() {
             )}
           </form>
         </CardContent>
-        
+
         <CardFooter className="flex justify-between">
           {status === "success" || status === "error" ? (
-            <Button 
-              variant="outline" 
-              onClick={resetForm}
-              className="w-full"
-            >
+            <Button variant="outline" onClick={resetForm} className="w-full">
               Reset
             </Button>
           ) : (
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               className="w-full gap-2"
               disabled={status === "loading"}
             >
@@ -145,14 +162,14 @@ export default function TestEmailPage() {
             </Button>
           )}
         </CardFooter>
-        
+
         {status === "success" && (
           <div className="px-6 pb-6 pt-1 flex items-center gap-2 text-green-600">
             <CheckCircleIcon className="h-5 w-5" />
             <span>Email sent successfully!</span>
           </div>
         )}
-        
+
         {status === "error" && (
           <div className="px-6 pb-6 pt-1 flex items-center gap-2 text-red-600">
             <AlertCircleIcon className="h-5 w-5" />

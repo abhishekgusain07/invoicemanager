@@ -16,18 +16,14 @@ import { useUser } from "@/hooks/useUser";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 
-export function NavbarDemo({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-  const {user, isLoading} = useUser();
+export function NavbarDemo({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useUser();
   const isLoggedIn = !!user;
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  
+
   const navItems = [
     {
       name: "Features",
@@ -44,35 +40,38 @@ export function NavbarDemo({
   ];
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
+
   // Handle clicks outside of dropdown to close it
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     }
-    
-    document.addEventListener('mousedown', handleClickOutside);
+
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  
+
   // Get user initial for avatar
   const getUserInitial = () => {
-    if (!user || !user.email) return '?';
+    if (!user || !user.email) return "?";
     return user.email.charAt(0).toUpperCase();
   };
-  
+
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
       await authClient.signOut();
-      toast.success('Logged out successfully');
+      toast.success("Logged out successfully");
     } catch (error) {
-      toast.error('Failed to log out. Please try again.');
-      console.error('Logout error:', error);
+      toast.error("Failed to log out. Please try again.");
+      console.error("Logout error:", error);
     } finally {
       setIsLoggingOut(false);
       setIsDropdownOpen(false);
@@ -93,11 +92,11 @@ export function NavbarDemo({
         </div>
       );
     }
-    
+
     if (isLoggedIn) {
       return (
         <div className="relative" ref={dropdownRef}>
-          <button 
+          <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-medium cursor-pointer hover:opacity-90 transition-opacity"
           >
@@ -107,7 +106,7 @@ export function NavbarDemo({
             <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
               <div className="py-1">
                 <button
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => router.push("/dashboard")}
                   className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:cursor-pointer"
                 >
                   Dashboard
@@ -115,7 +114,7 @@ export function NavbarDemo({
                 <button
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className={`block w-full text-left px-4 py-2 text-sm ${isLoggingOut ? 'text-gray-400 bg-gray-50' : 'text-red-600 hover:bg-gray-100 hover:cursor-pointer'} relative`}
+                  className={`block w-full text-left px-4 py-2 text-sm ${isLoggingOut ? "text-gray-400 bg-gray-50" : "text-red-600 hover:bg-gray-100 hover:cursor-pointer"} relative`}
                 >
                   {isLoggingOut ? (
                     <>
@@ -123,7 +122,7 @@ export function NavbarDemo({
                       <span className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 border-2 border-t-transparent border-red-300 rounded-full animate-spin"></span>
                     </>
                   ) : (
-                    'Log out'
+                    "Log out"
                   )}
                 </button>
               </div>
@@ -132,9 +131,11 @@ export function NavbarDemo({
         </div>
       );
     }
-    
+
     return (
-      <NavbarButton variant="secondary" onClick={handleLogin}>Login</NavbarButton>
+      <NavbarButton variant="secondary" onClick={handleLogin}>
+        Login
+      </NavbarButton>
     );
   };
 
@@ -145,7 +146,7 @@ export function NavbarDemo({
         <div className="w-full h-10 bg-gray-200 rounded-md animate-pulse"></div>
       );
     }
-    
+
     if (isLoggedIn) {
       return (
         <>
@@ -163,7 +164,7 @@ export function NavbarDemo({
             onClick={handleLogout}
             disabled={isLoggingOut}
             variant="secondary"
-            className={`w-full relative ${isLoggingOut ? 'opacity-70' : ''}`}
+            className={`w-full relative ${isLoggingOut ? "opacity-70" : ""}`}
           >
             {isLoggingOut ? (
               <>
@@ -171,13 +172,13 @@ export function NavbarDemo({
                 <span className="absolute right-4 top-1/2 transform -translate-y-1/2 h-4 w-4 border-2 border-t-transparent border-current rounded-full animate-spin"></span>
               </>
             ) : (
-              'Log out'
+              "Log out"
             )}
           </NavbarButton>
         </>
       );
     }
-    
+
     return (
       <NavbarButton
         onClick={() => {
@@ -199,9 +200,7 @@ export function NavbarDemo({
         <NavBody className="">
           <NavbarLogo />
           <NavItems items={navItems} />
-          <div className="flex items-center gap-4">
-            {renderAuthUI()}
-          </div>
+          <div className="flex items-center gap-4">{renderAuthUI()}</div>
         </NavBody>
 
         {/* Mobile Navigation */}
@@ -244,9 +243,7 @@ export function NavbarDemo({
           </MobileNavMenu>
         </MobileNav>
       </Navbar>
-      <div className="pt-20">
-        {children}
-      </div>
+      <div className="pt-20">{children}</div>
     </div>
   );
 }

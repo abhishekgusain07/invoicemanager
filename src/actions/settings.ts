@@ -4,15 +4,15 @@ import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
 import { userSettings, reminderToneEnum } from "@/db/schema";
-import { 
-  userSettingsSchema, 
-  reminderSettingsSchema, 
+import {
+  userSettingsSchema,
+  reminderSettingsSchema,
   accountSettingsSchema,
   emailSettingsSchema,
   type ReminderSettingsValues,
   type AccountSettingsValues,
   type EmailSettingsValues,
-  UserSettingsValues
+  UserSettingsValues,
 } from "@/lib/validations/settings";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
@@ -21,10 +21,14 @@ import { headers } from "next/headers";
 /**
  * Get user settings or create default ones if they don't exist
  */
-export async function getUserSettings(): Promise<{ success: boolean, data: UserSettingsValues | null, error: string | null }> {
+export async function getUserSettings(): Promise<{
+  success: boolean;
+  data: UserSettingsValues | null;
+  error: string | null;
+}> {
   // Check if user is authenticated
   const session = await auth.api.getSession({
-    headers:  await headers()
+    headers: await headers(),
   });
   if (!session?.user) {
     return { success: false, data: null, error: "Unauthorized" };
@@ -35,9 +39,9 @@ export async function getUserSettings(): Promise<{ success: boolean, data: UserS
   try {
     // Try to get user settings
     const settings = await db
-    .select()
-    .from(userSettings)
-    .where(eq(userSettings.userId, userId));
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId));
 
     // If no settings exist, create default ones
     if (!settings || settings.length === 0) {
@@ -53,11 +57,12 @@ export async function getUserSettings(): Promise<{ success: boolean, data: UserS
         followUpFrequency: 7,
         maxReminders: 3,
         previewEmails: true,
-        emailSignature: "Best regards,"
+        emailSignature: "Best regards,",
       };
 
       // Create default settings in DB
-      const newSettings = await db.insert(userSettings)
+      const newSettings = await db
+        .insert(userSettings)
         .values(defaultSettings)
         .returning();
 
@@ -69,14 +74,18 @@ export async function getUserSettings(): Promise<{ success: boolean, data: UserS
         followUpFrequency: newSettings[0].followUpFrequency ?? 7,
         maxReminders: newSettings[0].maxReminders ?? 3,
         firstReminderTone: newSettings[0].firstReminderTone ?? "polite",
-        secondReminderTone: newSettings[0].secondReminderTone ?? "firm", 
+        secondReminderTone: newSettings[0].secondReminderTone ?? "firm",
         thirdReminderTone: newSettings[0].thirdReminderTone ?? "urgent",
         ccAccountant: false,
         useBrandedEmails: false,
-        sendCopyToSelf: false
+        sendCopyToSelf: false,
       };
 
-      return { success: true, data: sanitizedSettings as UserSettingsValues, error: null };
+      return {
+        success: true,
+        data: sanitizedSettings as UserSettingsValues,
+        error: null,
+      };
     }
 
     // Convert nullable fields to non-null before type assertion
@@ -90,11 +99,15 @@ export async function getUserSettings(): Promise<{ success: boolean, data: UserS
       secondReminderTone: settings[0].secondReminderTone ?? "firm",
       thirdReminderTone: settings[0].thirdReminderTone ?? "urgent",
       ccAccountant: false,
-      useBrandedEmails: false, 
-      sendCopyToSelf: false
+      useBrandedEmails: false,
+      sendCopyToSelf: false,
     };
 
-    return { success: true, data: sanitizedSettings as UserSettingsValues, error: null };
+    return {
+      success: true,
+      data: sanitizedSettings as UserSettingsValues,
+      error: null,
+    };
   } catch (error) {
     console.error("Error getting user settings:", error);
     return { success: false, data: null, error: "Failed to get user settings" };
@@ -107,7 +120,7 @@ export async function getUserSettings(): Promise<{ success: boolean, data: UserS
 export async function updateReminderSettings(formData: FormData) {
   // Check if user is authenticated
   const session = await auth.api.getSession({
-    headers:  await headers()
+    headers: await headers(),
   });
   if (!session?.user) {
     return { success: false, error: "Unauthorized" };
@@ -118,39 +131,40 @@ export async function updateReminderSettings(formData: FormData) {
   try {
     // Convert FormData to object
     const rawData = Object.fromEntries(formData.entries());
-    
+
     // Parse and validate with Zod
     const validationResult = reminderSettingsSchema.safeParse(rawData);
-    
+
     if (!validationResult.success) {
-      return { 
-        success: false, 
-        error: "Invalid settings data", 
-        errors: validationResult.error.flatten().fieldErrors 
+      return {
+        success: false,
+        error: "Invalid settings data",
+        errors: validationResult.error.flatten().fieldErrors,
       };
     }
 
     const validData = validationResult.data;
-    
+
     // Check if user settings exist
     const userSettingsData = await db
-    .select()
-    .from(userSettings)
-    .where(eq(userSettings.userId, userId));
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId));
 
     if (!userSettingsData || userSettingsData.length === 0) {
       // Create new settings if they don't exist
       await db.insert(userSettings).values({
         id: uuidv4(),
         userId,
-        ...validData
+        ...validData,
       });
     } else {
       // Update existing settings
-      await db.update(userSettings)
+      await db
+        .update(userSettings)
         .set({
           ...validData,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(userSettings.userId, userId));
     }
@@ -169,7 +183,7 @@ export async function updateReminderSettings(formData: FormData) {
 export async function updateAccountSettings(formData: FormData) {
   // Check if user is authenticated
   const session = await auth.api.getSession({
-    headers:  await headers()
+    headers: await headers(),
   });
   if (!session?.user) {
     return { success: false, error: "Unauthorized" };
@@ -180,39 +194,40 @@ export async function updateAccountSettings(formData: FormData) {
   try {
     // Convert FormData to object
     const rawData = Object.fromEntries(formData.entries());
-    
+
     // Parse and validate with Zod
     const validationResult = accountSettingsSchema.safeParse(rawData);
-    
+
     if (!validationResult.success) {
-      return { 
-        success: false, 
-        error: "Invalid settings data", 
-        errors: validationResult.error.flatten().fieldErrors 
+      return {
+        success: false,
+        error: "Invalid settings data",
+        errors: validationResult.error.flatten().fieldErrors,
       };
     }
 
     const validData = validationResult.data;
-    
+
     // Check if user settings exist
     const userSettingsData = await db
-    .select()
-    .from(userSettings)
-    .where(eq(userSettings.userId, userId));
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId));
 
     if (!userSettingsData || userSettingsData.length === 0) {
       // Create new settings if they don't exist
       await db.insert(userSettings).values({
         id: uuidv4(),
         userId,
-        ...validData
+        ...validData,
       });
     } else {
       // Update existing settings
-      await db.update(userSettings)
+      await db
+        .update(userSettings)
         .set({
           ...validData,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(userSettings.userId, userId));
     }
@@ -231,7 +246,7 @@ export async function updateAccountSettings(formData: FormData) {
 export async function updateEmailSettings(formData: FormData) {
   // Check if user is authenticated
   const session = await auth.api.getSession({
-    headers:  await headers()
+    headers: await headers(),
   });
   if (!session?.user) {
     return { success: false, error: "Unauthorized" };
@@ -242,39 +257,40 @@ export async function updateEmailSettings(formData: FormData) {
   try {
     // Convert FormData to object
     const rawData = Object.fromEntries(formData.entries());
-    
+
     // Parse and validate with Zod
     const validationResult = emailSettingsSchema.safeParse(rawData);
-    
+
     if (!validationResult.success) {
-      return { 
-        success: false, 
-        error: "Invalid settings data", 
-        errors: validationResult.error.flatten().fieldErrors 
+      return {
+        success: false,
+        error: "Invalid settings data",
+        errors: validationResult.error.flatten().fieldErrors,
       };
     }
 
     const validData = validationResult.data;
-    
+
     // Check if user settings exist
     const userSettingsData = await db
-    .select()
-    .from(userSettings)
-    .where(eq(userSettings.userId, userId));
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId));
 
     if (!userSettingsData || userSettingsData.length === 0) {
       // Create new settings if they don't exist
       await db.insert(userSettings).values({
         id: uuidv4(),
         userId,
-        ...validData
+        ...validData,
       });
     } else {
       // Update existing settings
-      await db.update(userSettings)
+      await db
+        .update(userSettings)
         .set({
           ...validData,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(userSettings.userId, userId));
     }
@@ -293,7 +309,7 @@ export async function updateEmailSettings(formData: FormData) {
 export async function updateAllSettings(formData: FormData) {
   // Check if user is authenticated
   const session = await auth.api.getSession({
-    headers:  await headers()
+    headers: await headers(),
   });
   if (!session?.user) {
     return { success: false, error: "Unauthorized" };
@@ -304,29 +320,32 @@ export async function updateAllSettings(formData: FormData) {
   try {
     // Convert FormData to object
     const rawData = Object.fromEntries(formData.entries());
-    
+
     // Create a processed data object with proper types
     const processedData: Record<string, any> = { ...rawData };
-    
+
     // Process the reminder tone values to ensure they are valid enum values
     if (processedData.firstReminderTone) {
       processedData.firstReminderTone = String(processedData.firstReminderTone);
     }
     if (processedData.secondReminderTone) {
-      processedData.secondReminderTone = String(processedData.secondReminderTone);
+      processedData.secondReminderTone = String(
+        processedData.secondReminderTone
+      );
     }
     if (processedData.thirdReminderTone) {
       processedData.thirdReminderTone = String(processedData.thirdReminderTone);
     }
-    
+
     // Convert string boolean values to actual booleans
     if (processedData.isAutomatedReminders !== undefined) {
-      processedData.isAutomatedReminders = processedData.isAutomatedReminders === 'true';
+      processedData.isAutomatedReminders =
+        processedData.isAutomatedReminders === "true";
     }
     if (processedData.previewEmails !== undefined) {
-      processedData.previewEmails = processedData.previewEmails === 'true';
+      processedData.previewEmails = processedData.previewEmails === "true";
     }
-    
+
     // Convert number fields
     if (processedData.firstReminderDays !== undefined) {
       processedData.firstReminderDays = Number(processedData.firstReminderDays);
@@ -337,61 +356,71 @@ export async function updateAllSettings(formData: FormData) {
     if (processedData.maxReminders !== undefined) {
       processedData.maxReminders = Number(processedData.maxReminders);
     }
-    
+
     // Handle date parsing for createdAt and updatedAt if they're present
-    if (processedData.createdAt && typeof processedData.createdAt === 'string') {
+    if (
+      processedData.createdAt &&
+      typeof processedData.createdAt === "string"
+    ) {
       try {
         processedData.createdAt = new Date(processedData.createdAt);
       } catch (e) {
         delete processedData.createdAt;
       }
     }
-    
-    if (processedData.updatedAt && typeof processedData.updatedAt === 'string') {
+
+    if (
+      processedData.updatedAt &&
+      typeof processedData.updatedAt === "string"
+    ) {
       try {
         processedData.updatedAt = new Date(processedData.updatedAt);
       } catch (e) {
         delete processedData.updatedAt;
       }
     }
-    
+
     // Add userId to the data
     const dataWithUserId = {
       ...processedData,
-      userId
+      userId,
     };
-    
+
     // Parse and validate with Zod
     const validationResult = userSettingsSchema.safeParse(dataWithUserId);
-    
+
     if (!validationResult.success) {
-      return { 
-        success: false, 
-        error: "Invalid settings data", 
-        errors: validationResult.error.flatten().fieldErrors 
+      return {
+        success: false,
+        error: "Invalid settings data",
+        errors: validationResult.error.flatten().fieldErrors,
       };
     }
 
     const validData = validationResult.data;
-    
+
     // Check if user settings exist
     const userSettingsData = await db
-    .select()
-    .from(userSettings)
-    .where(eq(userSettings.userId, userId));
+      .select()
+      .from(userSettings)
+      .where(eq(userSettings.userId, userId));
 
     if (!userSettingsData || userSettingsData.length === 0) {
       // Create new settings if they don't exist
-      const result = await db.insert(userSettings).values({
-        id: uuidv4(),
-        ...validData
-      }).returning();
+      const result = await db
+        .insert(userSettings)
+        .values({
+          id: uuidv4(),
+          ...validData,
+        })
+        .returning();
     } else {
       // Update existing settings
-      const result = await db.update(userSettings)
+      const result = await db
+        .update(userSettings)
         .set({
           ...validData,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         .where(eq(userSettings.userId, userId))
         .returning();
@@ -403,4 +432,4 @@ export async function updateAllSettings(formData: FormData) {
     console.error("Error updating settings:", error);
     return { success: false, error: "Failed to update settings" };
   }
-} 
+}

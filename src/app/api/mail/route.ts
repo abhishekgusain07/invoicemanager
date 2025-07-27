@@ -1,6 +1,5 @@
 import { render } from "@react-email/render";
 
-
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
@@ -33,7 +32,7 @@ export async function POST(request: NextRequest, response: NextResponse) {
       },
       {
         status: 429,
-      },
+      }
     );
   }
 
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest, response: NextResponse) {
     from: "anythingwritten@resend.dev",
     to: [email],
     subject: "Thankyou for wailisting the Next.js + Notion CMS template!",
-    html:  await render(NotionWaitlistEmail({ userFirstname: firstname })),
+    html: await render(NotionWaitlistEmail({ userFirstname: firstname })),
   });
 
   // const { data, error } = { data: true, error: null }

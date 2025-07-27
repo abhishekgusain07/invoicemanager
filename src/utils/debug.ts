@@ -1,11 +1,11 @@
 export const logDebug = (message: string, data?: any) => {
-  console.log(`[INVOICE DEBUG] ${message}`, data || '');
+  console.log(`[INVOICE DEBUG] ${message}`, data || "");
 };
 
 /**
  * Server-side debug logging function
  * Use this for structured debug logging in server actions and API routes
- * 
+ *
  * @param component - Server component or action name
  * @param message - Debug message
  * @param data - Optional data to log

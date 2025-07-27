@@ -13,7 +13,10 @@ interface AccountSettingsProps {
   onChange: (values: Partial<AccountSettingsValues>) => void;
 }
 
-export default function AccountSettings({ settings, onChange }: AccountSettingsProps) {
+export default function AccountSettings({
+  settings,
+  onChange,
+}: AccountSettingsProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -67,7 +70,8 @@ export default function AccountSettings({ settings, onChange }: AccountSettingsP
                   className="bg-muted"
                 />
                 <p className="text-xs text-muted-foreground">
-                  This is your name from your user account and cannot be changed here.
+                  This is your name from your user account and cannot be changed
+                  here.
                 </p>
               </div>
 
@@ -84,7 +88,8 @@ export default function AccountSettings({ settings, onChange }: AccountSettingsP
                   className="bg-muted"
                 />
                 <p className="text-xs text-muted-foreground">
-                  This is your email from your user account and cannot be changed here.
+                  This is your email from your user account and cannot be
+                  changed here.
                 </p>
               </div>
             </div>
@@ -108,7 +113,10 @@ export default function AccountSettings({ settings, onChange }: AccountSettingsP
               {/* Business Name */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="business-name" className="text-base font-medium">
+                  <Label
+                    htmlFor="business-name"
+                    className="text-base font-medium"
+                  >
                     Business Name
                   </Label>
                   <Tooltip content="The name of your business that will appear on invoices">
@@ -126,7 +134,10 @@ export default function AccountSettings({ settings, onChange }: AccountSettingsP
               {/* Phone Number */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="phone-number" className="text-base font-medium">
+                  <Label
+                    htmlFor="phone-number"
+                    className="text-base font-medium"
+                  >
                     Phone Number
                   </Label>
                   <Tooltip content="Your business phone number that will appear on invoices">
@@ -146,4 +157,4 @@ export default function AccountSettings({ settings, onChange }: AccountSettingsP
       </div>
     </div>
   );
-} 
+}

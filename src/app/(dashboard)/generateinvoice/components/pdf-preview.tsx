@@ -22,45 +22,54 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
   const [scale, setScale] = useState(1.0);
 
   // Debounced function to generate PDF
-  const debouncedGeneratePDF = useDebouncedCallback(async (data: InvoiceGenerationData) => {
-    setIsLoading(true);
-    setError(null);
+  const debouncedGeneratePDF = useDebouncedCallback(
+    async (data: InvoiceGenerationData) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await fetch("/api/generate-invoice-pdf", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      try {
+        const response = await fetch("/api/generate-invoice-pdf", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate PDF");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to generate PDF");
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        // Cleanup previous URL
+        if (pdfUrl) {
+          URL.revokeObjectURL(pdfUrl);
+        }
+
+        setPdfUrl(url);
+      } catch (err) {
+        console.error("Error generating PDF preview:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to generate PDF preview"
+        );
+      } finally {
+        setIsLoading(false);
       }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      
-      // Cleanup previous URL
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
-      
-      setPdfUrl(url);
-    } catch (err) {
-      console.error("Error generating PDF preview:", err);
-      setError(err instanceof Error ? err.message : "Failed to generate PDF preview");
-    } finally {
-      setIsLoading(false);
-    }
-  }, 1000);
+    },
+    1000
+  );
 
   // Generate PDF when invoice data changes
   useEffect(() => {
     // Only generate if we have required data
-    if (invoiceData.seller.name && invoiceData.buyer.name && invoiceData.items.length > 0) {
+    if (
+      invoiceData.seller.name &&
+      invoiceData.buyer.name &&
+      invoiceData.items.length > 0
+    ) {
       debouncedGeneratePDF(invoiceData);
     }
 
@@ -82,11 +91,11 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
   };
 
   const handleZoomIn = () => {
-    setScale(prev => Math.min(prev + 0.2, 2.0));
+    setScale((prev) => Math.min(prev + 0.2, 2.0));
   };
 
   const handleZoomOut = () => {
-    setScale(prev => Math.max(prev - 0.2, 0.5));
+    setScale((prev) => Math.max(prev - 0.2, 0.5));
   };
 
   const handleResetZoom = () => {
@@ -109,7 +118,9 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
       <div className="flex items-center justify-center h-96 bg-gray-50 rounded-lg">
         <div className="text-center">
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-          <p className="text-sm text-red-600 mb-2">Failed to load PDF preview</p>
+          <p className="text-sm text-red-600 mb-2">
+            Failed to load PDF preview
+          </p>
           <p className="text-xs text-gray-500">{error}</p>
         </div>
       </div>
@@ -142,7 +153,9 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
           >
             <ZoomOut className="w-4 h-4" />
           </Button>
-          <span className="text-sm font-medium">{Math.round(scale * 100)}%</span>
+          <span className="text-sm font-medium">
+            {Math.round(scale * 100)}%
+          </span>
           <Button
             variant="outline"
             size="sm"
@@ -151,19 +164,13 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
           >
             <ZoomIn className="w-4 h-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleResetZoom}
-          >
+          <Button variant="outline" size="sm" onClick={handleResetZoom}>
             <RotateCcw className="w-4 h-4" />
           </Button>
         </div>
-        
+
         {numPages && (
-          <span className="text-sm text-gray-600">
-            1 of {numPages} pages
-          </span>
+          <span className="text-sm text-gray-600">1 of {numPages} pages</span>
         )}
       </div>
 

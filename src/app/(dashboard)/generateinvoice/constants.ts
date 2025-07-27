@@ -7,18 +7,18 @@ export const INITIAL_INVOICE_DATA: InvoiceGenerationData = {
   currency: "EUR",
   template: "default",
   logo: "",
-  
+
   invoiceNumberObject: {
     label: "Invoice Number:",
     value: "INV-001",
   },
-  
+
   dateOfIssue: dayjs().format("YYYY-MM-DD"),
   dateOfService: dayjs().endOf("month").format("YYYY-MM-DD"),
-  
+
   invoiceType: "Invoice",
   invoiceTypeFieldIsVisible: true,
-  
+
   seller: {
     name: "",
     address: "",
@@ -32,7 +32,7 @@ export const INITIAL_INVOICE_DATA: InvoiceGenerationData = {
     notes: "",
     notesFieldIsVisible: true,
   },
-  
+
   buyer: {
     name: "",
     address: "",
@@ -42,7 +42,7 @@ export const INITIAL_INVOICE_DATA: InvoiceGenerationData = {
     notes: "",
     notesFieldIsVisible: true,
   },
-  
+
   items: [
     {
       invoiceItemNumberIsVisible: true,
@@ -66,27 +66,27 @@ export const INITIAL_INVOICE_DATA: InvoiceGenerationData = {
       preTaxAmountFieldIsVisible: true,
     },
   ],
-  
+
   total: 0,
   vatTableSummaryIsVisible: true,
-  
+
   paymentMethod: "Bank Transfer",
   paymentMethodFieldIsVisible: true,
-  
+
   paymentDue: dayjs().add(14, "days").format("YYYY-MM-DD"),
-  
+
   stripePayOnlineUrl: "",
-  
+
   notes: "",
   notesFieldIsVisible: true,
-  
+
   personAuthorizedToReceiveFieldIsVisible: true,
   personAuthorizedToIssueFieldIsVisible: true,
 };
 
 export const DEFAULT_ACCORDION_VALUES = [
   "general",
-  "seller", 
+  "seller",
   "buyer",
   "invoiceItems",
 ] as const;

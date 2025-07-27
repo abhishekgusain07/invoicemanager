@@ -14,9 +14,7 @@ export function TemplateListSkeleton() {
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-16 rounded-full" />
             {/* Randomly show "Default" badge on some cards */}
-            {index % 3 === 0 && (
-              <Skeleton className="h-4 w-14 rounded-full" />
-            )}
+            {index % 3 === 0 && <Skeleton className="h-4 w-14 rounded-full" />}
           </div>
           <Skeleton className="h-5 w-3/4 mt-2" />
           <Skeleton className="h-4 w-4/5 mt-1" />
@@ -55,4 +53,4 @@ export function TemplateListSkeleton() {
       </div>
     </div>
   );
-} 
+}

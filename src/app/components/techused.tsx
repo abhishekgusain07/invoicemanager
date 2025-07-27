@@ -1,5 +1,10 @@
-import React from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import React from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 const TechnologyUsed = () => {
@@ -10,14 +15,14 @@ const TechnologyUsed = () => {
       src: "https://res.cloudinary.com/dowiygzq3/image/upload/v1741087634/108468352_rdoifc.png",
       alt: "Drizzle ORM",
       additionalClasses: "rounded-md",
-      tooltip: "Drizzle ORM"
+      tooltip: "Drizzle ORM",
     },
     {
       name: "Typescript",
       height: "h-12",
       src: "https://res.cloudinary.com/dowiygzq3/image/upload/v1741087544/typescript_wrgqvm.webp",
       alt: "Typescript",
-      tooltip: "Typescript"
+      tooltip: "Typescript",
     },
     {
       name: "Better-auth",
@@ -25,7 +30,7 @@ const TechnologyUsed = () => {
       src: "https://res.cloudinary.com/dowiygzq3/image/upload/v1740732044/163827765_qn4qmt.png",
       alt: "Better-auth",
       additionalClasses: "rounded-md",
-      tooltip: "Better-auth"
+      tooltip: "Better-auth",
     },
     {
       name: "Neon",
@@ -33,53 +38,51 @@ const TechnologyUsed = () => {
       src: "https://res.cloudinary.com/dowiygzq3/image/upload/v1741087611/neon-logomark-dark-color_1_bzq0v2.svg",
       alt: "Neon",
       additionalClasses: "rounded-md",
-      tooltip: "Neon"
+      tooltip: "Neon",
     },
     {
       name: "Nextjs",
       height: "h-5",
       src: "/nextjs.svg",
-      alt: "Nextjs"
+      alt: "Nextjs",
     },
     {
       name: "Tailwindcss",
       height: "h-7",
       src: "/tailwindcss.svg",
-      alt: "Tailwindcss"
+      alt: "Tailwindcss",
     },
     {
       name: "React",
       height: "h-10",
       src: "/react.svg",
-      alt: "React"
+      alt: "React",
     },
     {
       name: "Stripe",
       height: "h-12",
       src: "/stripe.svg",
-      alt: "Stripe"
+      alt: "Stripe",
     },
     {
       name: "Vercel",
       height: "h-7",
       src: "/vercel.svg",
-      alt: "Vercel"
+      alt: "Vercel",
     },
     {
-        name: "Posthog",
-        height: "h-5",
-        src: "/posthog.svg",
-        alt: "Posthog"
+      name: "Posthog",
+      height: "h-5",
+      src: "/posthog.svg",
+      alt: "Posthog",
     },
     {
-        name: "Sentry",
-        height: "h-8",
-        src: "/sentry.svg",
-        alt: "Sentry"
+      name: "Sentry",
+      height: "h-8",
+      src: "/sentry.svg",
+      alt: "Sentry",
     },
-    {
-        
-    }
+    {},
   ];
 
   return (
@@ -87,16 +90,18 @@ const TechnologyUsed = () => {
       <section className="bg-background/50 backdrop-blur-sm py-10 border-t border-b border-slate-100 dark:border-slate-800">
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary/90 to-primary">Powered by Best-in-Class Technology</h2>
+            <h2 className="text-2xl font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary/90 to-primary">
+              Powered by Best-in-Class Technology
+            </h2>
           </div>
           <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-8 gap-y-6 sm:gap-x-12">
-            {logos.map((logo, index) => (
+            {logos.map((logo, index) =>
               logo.tooltip ? (
                 <TooltipPrimitive.Root key={index}>
                   <TooltipTrigger asChild>
                     <div className="filter grayscale hover:grayscale-0 hover:brightness-110 transition-all duration-300">
                       <img
-                        className={`${logo.height} w-fit max-w-28 transition-transform duration-300 hover:scale-110 ${logo.additionalClasses || ''} cursor-help`}
+                        className={`${logo.height} w-fit max-w-28 transition-transform duration-300 hover:scale-110 ${logo.additionalClasses || ""} cursor-help`}
                         alt={logo.alt}
                         width="auto"
                         src={logo.src}
@@ -108,16 +113,19 @@ const TechnologyUsed = () => {
                   </TooltipContent>
                 </TooltipPrimitive.Root>
               ) : (
-                <div key={index} className="filter grayscale hover:grayscale-0 hover:brightness-110 transition-all duration-300">
+                <div
+                  key={index}
+                  className="filter grayscale hover:grayscale-0 hover:brightness-110 transition-all duration-300"
+                >
                   <img
-                    className={`${logo.height} w-fit max-w-28 transition-transform duration-300 hover:scale-110 ${logo.additionalClasses || ''}`}
+                    className={`${logo.height} w-fit max-w-28 transition-transform duration-300 hover:scale-110 ${logo.additionalClasses || ""}`}
                     alt={logo.alt}
                     width="auto"
                     src={logo.src}
                   />
                 </div>
               )
-            ))}
+            )}
           </div>
         </div>
       </section>

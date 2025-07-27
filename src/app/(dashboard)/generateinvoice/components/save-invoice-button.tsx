@@ -5,7 +5,10 @@ import { type InvoiceGenerationData } from "@/lib/validations/invoice-generation
 import { Save, Loader2, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { saveGeneratedInvoice, updateGeneratedInvoice } from "@/actions/generated-invoices";
+import {
+  saveGeneratedInvoice,
+  updateGeneratedInvoice,
+} from "@/actions/generated-invoices";
 
 interface SaveInvoiceButtonProps {
   invoiceData: InvoiceGenerationData;
@@ -14,11 +17,11 @@ interface SaveInvoiceButtonProps {
   onSaved?: (invoiceId: string) => void;
 }
 
-export function SaveInvoiceButton({ 
-  invoiceData, 
+export function SaveInvoiceButton({
+  invoiceData,
   existingInvoiceId,
   disabled = false,
-  onSaved 
+  onSaved,
 }: SaveInvoiceButtonProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -27,16 +30,22 @@ export function SaveInvoiceButton({
     if (disabled || isSaving) return;
 
     // Basic validation
-    if (!invoiceData.seller.name || !invoiceData.buyer.name || invoiceData.items.length === 0) {
-      toast.error("Please fill out seller, buyer, and add at least one item before saving");
+    if (
+      !invoiceData.seller.name ||
+      !invoiceData.buyer.name ||
+      invoiceData.items.length === 0
+    ) {
+      toast.error(
+        "Please fill out seller, buyer, and add at least one item before saving"
+      );
       return;
     }
 
     setIsSaving(true);
-    
+
     try {
       let result;
-      
+
       if (existingInvoiceId) {
         // Update existing invoice
         result = await updateGeneratedInvoice(existingInvoiceId, invoiceData);
@@ -47,11 +56,23 @@ export function SaveInvoiceButton({
 
       if (result.success) {
         setIsSaved(true);
-        toast.success(existingInvoiceId ? "Invoice updated successfully!" : "Invoice saved successfully!", {
-          description: existingInvoiceId ? "Your changes have been saved" : "You can now access this invoice anytime",
-        });
+        toast.success(
+          existingInvoiceId
+            ? "Invoice updated successfully!"
+            : "Invoice saved successfully!",
+          {
+            description: existingInvoiceId
+              ? "Your changes have been saved"
+              : "You can now access this invoice anytime",
+          }
+        );
 
-        if (!existingInvoiceId && 'invoiceId' in result && typeof result.invoiceId === 'string' && onSaved) {
+        if (
+          !existingInvoiceId &&
+          "invoiceId" in result &&
+          typeof result.invoiceId === "string" &&
+          onSaved
+        ) {
           onSaved(result.invoiceId);
         } else if (existingInvoiceId && onSaved) {
           onSaved(existingInvoiceId);
@@ -62,14 +83,20 @@ export function SaveInvoiceButton({
           setIsSaved(false);
         }, 3000);
       } else {
-        toast.error(existingInvoiceId ? "Failed to update invoice" : "Failed to save invoice", {
-          description: result.error || "Please try again",
-        });
+        toast.error(
+          existingInvoiceId
+            ? "Failed to update invoice"
+            : "Failed to save invoice",
+          {
+            description: result.error || "Please try again",
+          }
+        );
       }
     } catch (error) {
       console.error("Failed to save invoice:", error);
       toast.error("Failed to save invoice", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     } finally {
       setIsSaving(false);

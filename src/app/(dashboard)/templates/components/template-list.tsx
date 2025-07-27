@@ -4,8 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlusIcon, FilterIcon, EditIcon, TrashIcon, MessageSquareIcon, CheckCircleIcon } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  PlusIcon,
+  FilterIcon,
+  EditIcon,
+  TrashIcon,
+  MessageSquareIcon,
+  CheckCircleIcon,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { EmailTemplate } from "@/lib/validations/email-template";
 import { deleteTemplate } from "@/actions/templates";
@@ -17,16 +30,20 @@ type TemplateListProps = {
   onCreateTemplate: () => void;
 };
 
-export function TemplateList({ templates, onCreateTemplate }: TemplateListProps) {
+export function TemplateList({
+  templates,
+  onCreateTemplate,
+}: TemplateListProps) {
   const router = useRouter();
   const [filterTone, setFilterTone] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Filter templates based on tone and search query
-  const filteredTemplates = templates.filter(template => {
-    const matchesTone = filterTone === "all" ? true : template.tone === filterTone;
-    const matchesSearch = searchQuery 
-      ? template.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredTemplates = templates.filter((template) => {
+    const matchesTone =
+      filterTone === "all" ? true : template.tone === filterTone;
+    const matchesSearch = searchQuery
+      ? template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         template.subject.toLowerCase().includes(searchQuery.toLowerCase())
       : true;
     return matchesTone && matchesSearch;
@@ -34,7 +51,7 @@ export function TemplateList({ templates, onCreateTemplate }: TemplateListProps)
 
   const handleDeleteTemplate = async (id: string) => {
     if (!confirm("Are you sure you want to delete this template?")) return;
-    
+
     try {
       const result = await deleteTemplate(id);
       if (result.success) {
@@ -89,7 +106,11 @@ export function TemplateList({ templates, onCreateTemplate }: TemplateListProps)
             <SelectTrigger className="md:w-[180px]">
               <div className="flex items-center gap-2">
                 <FilterIcon className="h-4 w-4" />
-                <span>{filterTone === "all" ? "Filter by tone" : `Filter: ${filterTone}`}</span>
+                <span>
+                  {filterTone === "all"
+                    ? "Filter by tone"
+                    : `Filter: ${filterTone}`}
+                </span>
               </div>
             </SelectTrigger>
             <SelectContent>
@@ -130,10 +151,13 @@ export function TemplateList({ templates, onCreateTemplate }: TemplateListProps)
               <p className="text-muted-foreground mt-1 mb-4">
                 Try adjusting your search or filter
               </p>
-              <Button variant="outline" onClick={() => {
-                setSearchQuery("");
-                setFilterTone("all");
-              }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilterTone("all");
+                }}
+              >
                 Clear filters
               </Button>
             </>
@@ -146,8 +170,11 @@ export function TemplateList({ templates, onCreateTemplate }: TemplateListProps)
               <CardContent className="p-0">
                 <div className="p-4 border-b flex flex-col gap-1">
                   <div className="flex items-center justify-between">
-                    <span className={`text-xs px-2 py-1 rounded-full ${getToneColor(template.tone)}`}>
-                      {template.tone.charAt(0).toUpperCase() + template.tone.slice(1)}
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${getToneColor(template.tone)}`}
+                    >
+                      {template.tone.charAt(0).toUpperCase() +
+                        template.tone.slice(1)}
                     </span>
                     {template.isDefault && (
                       <div className="flex items-center gap-1 text-green-600 text-xs">
@@ -157,7 +184,9 @@ export function TemplateList({ templates, onCreateTemplate }: TemplateListProps)
                     )}
                   </div>
                   <h3 className="font-medium truncate">{template.name}</h3>
-                  <p className="text-sm text-muted-foreground truncate">{template.subject}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {template.subject}
+                  </p>
                 </div>
                 <div className="p-3 bg-muted/50">
                   <p className="text-xs text-muted-foreground line-clamp-3">
@@ -173,11 +202,7 @@ export function TemplateList({ templates, onCreateTemplate }: TemplateListProps)
                   >
                     <TrashIcon className="h-3.5 w-3.5" />
                   </Button>
-                  <Button
-                    size="sm"
-                    className="h-8"
-                    asChild
-                  >
+                  <Button size="sm" className="h-8" asChild>
                     <Link href={`/templates/edit/${template.id}`}>
                       <EditIcon className="h-3.5 w-3.5 mr-1" />
                       Edit
@@ -191,4 +216,4 @@ export function TemplateList({ templates, onCreateTemplate }: TemplateListProps)
       )}
     </div>
   );
-} 
+}

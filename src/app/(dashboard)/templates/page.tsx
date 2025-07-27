@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PlusIcon, MessageSquareIcon, RefreshCwIcon } from "lucide-react";
 import { TemplateList } from "./components/template-list";
@@ -16,7 +21,9 @@ export default function TemplatesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
-  const [editTemplate, setEditTemplate] = useState<EmailTemplate | undefined>(undefined);
+  const [editTemplate, setEditTemplate] = useState<EmailTemplate | undefined>(
+    undefined
+  );
 
   // Fetch templates when the page loads
   useEffect(() => {
@@ -54,7 +61,9 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Reminder Templates</h2>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Reminder Templates
+          </h2>
           <p className="text-muted-foreground">
             Customize how your reminder emails will be sent
           </p>
@@ -66,7 +75,9 @@ export default function TemplatesPage() {
             onClick={fetchTemplates}
             disabled={isLoading}
           >
-            <RefreshCwIcon className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCwIcon
+              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
           <Button onClick={handleOpenTemplateForm} className="gap-2">
@@ -77,13 +88,13 @@ export default function TemplatesPage() {
 
       {/* Template Form Dialog */}
       <Dialog open={isTemplateFormOpen} onOpenChange={setIsTemplateFormOpen}>
-        <DialogContent 
-          className="p-0 border-0 bg-transparent shadow-none" 
-          style={{ 
-            width: '95vw', 
-            height: '95vh', 
-            maxWidth: 'none',
-            maxHeight: 'none'
+        <DialogContent
+          className="p-0 border-0 bg-transparent shadow-none"
+          style={{
+            width: "95vw",
+            height: "95vh",
+            maxWidth: "none",
+            maxHeight: "none",
           }}
         >
           <TemplateForm

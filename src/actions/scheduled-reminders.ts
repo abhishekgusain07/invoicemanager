@@ -34,7 +34,7 @@ export interface ReminderCheckResult {
 export async function processScheduledReminders() {
   try {
     serverDebug("ScheduledReminder", "Starting scheduled reminder processing");
-    
+
     // Get all users who have automated reminders enabled
     const usersWithSettings = await db
       .select({
@@ -51,9 +51,12 @@ export async function processScheduledReminders() {
       })
       .from(userSettings)
       .where(eq(userSettings.isAutomatedReminders, true));
-    
-    serverDebug("ScheduledReminder", `Found ${usersWithSettings.length} users with automated reminders enabled`);
-    
+
+    serverDebug(
+      "ScheduledReminder",
+      `Found ${usersWithSettings.length} users with automated reminders enabled`
+    );
+
     // Process reminders for each user
     for (const user of usersWithSettings) {
       // Convert all potentially null values to their defaults
@@ -67,12 +70,12 @@ export async function processScheduledReminders() {
         secondReminderTone: user.secondReminderTone ?? "firm",
         thirdReminderTone: user.thirdReminderTone ?? "urgent",
         businessName: user.businessName || undefined,
-        emailSignature: user.emailSignature || "Best regards,"
+        emailSignature: user.emailSignature || "Best regards,",
       };
-      
+
       await processUserReminders(safeUser);
     }
-    
+
     serverDebug("ScheduledReminder", "Completed scheduled reminder processing");
     return { success: true, message: "Reminders processed successfully" };
   } catch (error) {
@@ -86,8 +89,11 @@ export async function processScheduledReminders() {
  */
 async function processUserReminders(user: UserReminderSettings) {
   try {
-    serverDebug("ScheduledReminder", `Processing reminders for user ${user.userId}`);
-    
+    serverDebug(
+      "ScheduledReminder",
+      `Processing reminders for user ${user.userId}`
+    );
+
     // Get all pending invoices that are due or overdue
     const pendingInvoices = await db
       .select()
@@ -98,31 +104,41 @@ async function processUserReminders(user: UserReminderSettings) {
           eq(clientInvoices.status, "pending")
         )
       );
-    
-    serverDebug("ScheduledReminder", `Found ${pendingInvoices.length} pending invoices for user ${user.userId}`);
-    
+
+    serverDebug(
+      "ScheduledReminder",
+      `Found ${pendingInvoices.length} pending invoices for user ${user.userId}`
+    );
+
     let processedCount = 0;
-    
+
     for (const invoice of pendingInvoices) {
       // Check if this invoice needs a reminder
       const reminderCheck = await checkIfInvoiceNeedsReminder(invoice, user);
-      
+
       if (reminderCheck.shouldSendReminder) {
-        serverDebug("ScheduledReminder", 
+        serverDebug(
+          "ScheduledReminder",
           `Sending reminder #${reminderCheck.reminderNumber} for invoice ${invoice.id}, ${reminderCheck.daysOverdue} days overdue`
         );
-        
+
         await logReminderInDatabase(invoice, user, reminderCheck);
         processedCount++;
       }
     }
-    
-    serverDebug("ScheduledReminder", `Processed ${processedCount} reminders for user ${user.userId}`);
-    
+
+    serverDebug(
+      "ScheduledReminder",
+      `Processed ${processedCount} reminders for user ${user.userId}`
+    );
+
     return { success: true };
   } catch (error) {
     console.error(`Error processing reminders for user ${user.userId}:`, error);
-    return { success: false, error: error instanceof Error ? error.message : String(error) };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
@@ -130,7 +146,7 @@ async function processUserReminders(user: UserReminderSettings) {
  * Check if an invoice needs a reminder
  */
 async function checkIfInvoiceNeedsReminder(
-  invoice: any, 
+  invoice: any,
   userSettings: UserReminderSettings
 ): Promise<ReminderCheckResult> {
   // Get previous reminders for this invoice
@@ -139,76 +155,82 @@ async function checkIfInvoiceNeedsReminder(
     .from(invoiceReminders)
     .where(eq(invoiceReminders.invoiceId, invoice.id))
     .orderBy(desc(invoiceReminders.sentAt));
-  
+
   // Calculate days overdue
   const daysOverdue = Math.floor(
-    (new Date().getTime() - new Date(invoice.dueDate).getTime()) / 
-    (1000 * 60 * 60 * 24)
+    (new Date().getTime() - new Date(invoice.dueDate).getTime()) /
+      (1000 * 60 * 60 * 24)
   );
-  
+
   // If no previous reminders, check if it's time for the first one
   if (previousReminders.length === 0) {
     // First reminder days setting determines when to send the first reminder
     // - Positive number: send X days BEFORE due date (this would be <= 0 days overdue)
     // - Negative number: send X days AFTER due date (this would be >= X days overdue)
     // - Zero: send ON the due date
-    
-    if ((userSettings.firstReminderDays >= 0 && daysOverdue >= 0) || 
-        (userSettings.firstReminderDays < 0 && daysOverdue >= Math.abs(userSettings.firstReminderDays))) {
+
+    if (
+      (userSettings.firstReminderDays >= 0 && daysOverdue >= 0) ||
+      (userSettings.firstReminderDays < 0 &&
+        daysOverdue >= Math.abs(userSettings.firstReminderDays))
+    ) {
       return {
         shouldSendReminder: true,
         reminderNumber: 1,
         tone: userSettings.firstReminderTone,
-        daysOverdue
+        daysOverdue,
       };
     }
-  } 
+  }
   // We have sent reminders before
   else {
     const lastReminderNumber = previousReminders[0].reminderNumber;
     const lastReminderDate = new Date(previousReminders[0].sentAt);
     const daysSinceLastReminder = Math.floor(
-      (new Date().getTime() - lastReminderDate.getTime()) / 
-      (1000 * 60 * 60 * 24)
+      (new Date().getTime() - lastReminderDate.getTime()) /
+        (1000 * 60 * 60 * 24)
     );
-    
+
     // If we've already sent the maximum number of reminders, don't send more
     if (lastReminderNumber >= userSettings.maxReminders) {
       return {
         shouldSendReminder: false,
         reminderNumber: lastReminderNumber,
         tone: previousReminders[0].tone as string,
-        daysOverdue
+        daysOverdue,
       };
     }
-    
+
     // If it's time for another reminder based on follow-up frequency
     if (daysSinceLastReminder >= userSettings.followUpFrequency) {
       const nextReminderNumber = lastReminderNumber + 1;
       let tone = userSettings.firstReminderTone;
-      
+
       // Determine tone based on reminder number
       if (nextReminderNumber === 2) {
         tone = userSettings.secondReminderTone;
       } else if (nextReminderNumber >= 3) {
         tone = userSettings.thirdReminderTone;
       }
-      
+
       return {
         shouldSendReminder: true,
         reminderNumber: nextReminderNumber,
         tone,
-        daysOverdue
+        daysOverdue,
       };
     }
   }
-  
+
   // Default: No reminder needed
   return {
     shouldSendReminder: false,
     reminderNumber: previousReminders.length,
-    tone: previousReminders.length > 0 ? (previousReminders[0].tone as string) : userSettings.firstReminderTone,
-    daysOverdue
+    tone:
+      previousReminders.length > 0
+        ? (previousReminders[0].tone as string)
+        : userSettings.firstReminderTone,
+    daysOverdue,
   };
 }
 
@@ -216,8 +238,8 @@ async function checkIfInvoiceNeedsReminder(
  * Log a reminder in the database
  */
 async function logReminderInDatabase(
-  invoice: any, 
-  user: UserReminderSettings, 
+  invoice: any,
+  user: UserReminderSettings,
   reminderCheck: ReminderCheckResult
 ) {
   try {
@@ -230,10 +252,10 @@ async function logReminderInDatabase(
     } else {
       emailSubject = `URGENT: Invoice #${invoice.invoiceNumber} requires immediate attention`;
     }
-    
+
     // Generate email content based on tone and invoice details
     const emailContent = generateEmailContent(invoice, user, reminderCheck);
-    
+
     // Create the reminder record in the database
     await db.insert(invoiceReminders).values({
       id: uuidv4(),
@@ -246,13 +268,16 @@ async function logReminderInDatabase(
       status: "sent",
       sentAt: new Date(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
-    
+
     // In a real implementation, you would also send the actual email here
     // using your email sending infrastructure
-    
-    serverDebug("ScheduledReminder", `Logged reminder #${reminderCheck.reminderNumber} for invoice ${invoice.id}`);
+
+    serverDebug(
+      "ScheduledReminder",
+      `Logged reminder #${reminderCheck.reminderNumber} for invoice ${invoice.id}`
+    );
     return true;
   } catch (error) {
     console.error(`Error logging reminder for invoice ${invoice.id}:`, error);
@@ -264,30 +289,30 @@ async function logReminderInDatabase(
  * Generate email content based on reminder tone and invoice details
  */
 function generateEmailContent(
-  invoice: any, 
-  user: UserReminderSettings, 
+  invoice: any,
+  user: UserReminderSettings,
   reminderCheck: ReminderCheckResult
 ): string {
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     }).format(new Date(date));
   };
-  
+
   const formattedDueDate = formatDate(invoice.dueDate);
   const { daysOverdue, tone } = reminderCheck;
   const isOverdue = daysOverdue > 0;
-  
+
   const clientName = invoice.clientName;
   const invoiceNumber = invoice.invoiceNumber;
   const amount = `${invoice.currency} ${parseFloat(invoice.amount).toFixed(2)}`;
   const businessName = user.businessName || "Your Business";
   const emailSignature = user.emailSignature || "Best regards,";
-  
+
   let content = "";
-  
+
   if (tone === "polite") {
     content = `
 Dear ${clientName},
@@ -332,6 +357,6 @@ ${emailSignature}
 ${businessName}
     `;
   }
-  
+
   return content.trim();
-} 
+}

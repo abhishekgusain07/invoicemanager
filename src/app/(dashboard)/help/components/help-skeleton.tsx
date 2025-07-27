@@ -1,11 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  HelpCircleIcon, 
-  BookOpenIcon, 
-  CompassIcon, 
-  HelpCircle, 
+import {
+  HelpCircleIcon,
+  BookOpenIcon,
+  CompassIcon,
+  HelpCircle,
   Mail,
-  ThumbsUpIcon
+  ThumbsUpIcon,
 } from "lucide-react";
 
 export function HelpSkeleton() {
@@ -19,7 +19,7 @@ export function HelpSkeleton() {
         <Skeleton className="h-8 w-48 mx-auto mb-2" />
         <Skeleton className="h-4 w-full max-w-2xl mx-auto mb-2" />
         <Skeleton className="h-4 w-full max-w-xl mx-auto mb-6" />
-        
+
         {/* Search bar skeleton */}
         <div className="relative max-w-md mx-auto">
           <Skeleton className="h-10 w-full rounded-md" />
@@ -29,11 +29,27 @@ export function HelpSkeleton() {
       {/* Tab Navigation Skeleton */}
       <div className="max-w-5xl mx-auto">
         <div className="flex w-full justify-center mb-6 gap-2">
-          <TabSkeleton icon={<BookOpenIcon className="h-4 w-4 text-muted-foreground/40" />} text="Getting Started" active />
-          <TabSkeleton icon={<CompassIcon className="h-4 w-4 text-muted-foreground/40" />} text="Features" />
-          <TabSkeleton icon={<HelpCircle className="h-4 w-4 text-muted-foreground/40" />} text="FAQs" />
-          <TabSkeleton icon={<Mail className="h-4 w-4 text-muted-foreground/40" />} text="Support" />
-          <TabSkeleton icon={<ThumbsUpIcon className="size-4 text-muted-foreground/40" />} text="Feedback"/>
+          <TabSkeleton
+            icon={<BookOpenIcon className="h-4 w-4 text-muted-foreground/40" />}
+            text="Getting Started"
+            active
+          />
+          <TabSkeleton
+            icon={<CompassIcon className="h-4 w-4 text-muted-foreground/40" />}
+            text="Features"
+          />
+          <TabSkeleton
+            icon={<HelpCircle className="h-4 w-4 text-muted-foreground/40" />}
+            text="FAQs"
+          />
+          <TabSkeleton
+            icon={<Mail className="h-4 w-4 text-muted-foreground/40" />}
+            text="Support"
+          />
+          <TabSkeleton
+            icon={<ThumbsUpIcon className="size-4 text-muted-foreground/40" />}
+            text="Feedback"
+          />
         </div>
 
         {/* Content Skeleton - Getting Started */}
@@ -41,7 +57,7 @@ export function HelpSkeleton() {
           <div className="space-y-6">
             <div className="bg-card/50 rounded-lg border border-border/50 p-6">
               <Skeleton className="h-6 w-48 mb-6" />
-              
+
               <div className="space-y-8">
                 {[1, 2, 3, 4].map((item) => (
                   <div key={item} className="flex gap-4">
@@ -76,11 +92,21 @@ export function HelpSkeleton() {
 }
 
 // Tab skeleton component
-function TabSkeleton({ icon, text, active = false }: { icon: React.ReactNode, text: string, active?: boolean }) {
+function TabSkeleton({
+  icon,
+  text,
+  active = false,
+}: {
+  icon: React.ReactNode;
+  text: string;
+  active?: boolean;
+}) {
   return (
-    <div className={`flex items-center gap-2 px-4 py-2 rounded-md ${active ? 'bg-muted' : 'bg-transparent'}`}>
+    <div
+      className={`flex items-center gap-2 px-4 py-2 rounded-md ${active ? "bg-muted" : "bg-transparent"}`}
+    >
       {icon}
       <Skeleton className="h-4 w-20" />
     </div>
   );
-} 
+}

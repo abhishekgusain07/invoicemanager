@@ -2,7 +2,14 @@ import { z } from "zod";
 import { invoiceStatusEnum } from "@/db/schema";
 
 // Convert the PostgreSQL enum to a Zod enum
-const statusEnum = z.enum(['pending', 'paid', 'overdue', 'cancelled', 'draft', 'partially_paid']);
+const statusEnum = z.enum([
+  "pending",
+  "paid",
+  "overdue",
+  "cancelled",
+  "draft",
+  "partially_paid",
+]);
 
 export const invoiceFormSchema = z.object({
   clientName: z.string().min(1, "Client name is required"),
@@ -34,4 +41,4 @@ export const invoiceSchema = invoiceFormSchema.extend({
 });
 
 // Type for the full invoice data
-export type Invoice = z.infer<typeof invoiceSchema>; 
+export type Invoice = z.infer<typeof invoiceSchema>;

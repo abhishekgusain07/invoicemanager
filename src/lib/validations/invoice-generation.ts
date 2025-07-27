@@ -269,7 +269,9 @@ export const invoiceGenerationItemSchema = z
   })
   .strict();
 
-export type InvoiceGenerationItemData = z.infer<typeof invoiceGenerationItemSchema>;
+export type InvoiceGenerationItemData = z.infer<
+  typeof invoiceGenerationItemSchema
+>;
 
 export const invoiceGenerationSellerSchema = z
   .object({
@@ -318,7 +320,9 @@ export const invoiceGenerationSellerSchema = z
   })
   .strict();
 
-export type InvoiceGenerationSellerData = z.infer<typeof invoiceGenerationSellerSchema>;
+export type InvoiceGenerationSellerData = z.infer<
+  typeof invoiceGenerationSellerSchema
+>;
 
 export const invoiceGenerationBuyerSchema = z
   .object({
@@ -352,7 +356,9 @@ export const invoiceGenerationBuyerSchema = z
   })
   .strict();
 
-export type InvoiceGenerationBuyerData = z.infer<typeof invoiceGenerationBuyerSchema>;
+export type InvoiceGenerationBuyerData = z.infer<
+  typeof invoiceGenerationBuyerSchema
+>;
 
 export const invoiceGenerationSchema = z.object({
   language: z.enum(SUPPORTED_LANGUAGES).default("en"),
@@ -428,7 +434,9 @@ export const invoiceGenerationSchema = z.object({
   seller: invoiceGenerationSellerSchema,
   buyer: invoiceGenerationBuyerSchema,
 
-  items: z.array(invoiceGenerationItemSchema).min(1, "At least one item is required"),
+  items: z
+    .array(invoiceGenerationItemSchema)
+    .min(1, "At least one item is required"),
   total: z.coerce.number().nonnegative("Total must be non-negative"),
 
   vatTableSummaryIsVisible: z.boolean().default(true),
@@ -494,9 +502,12 @@ export const accordionGenerationSchema = z
   })
   .strict();
 
-export type AccordionGenerationState = z.infer<typeof accordionGenerationSchema>;
+export type AccordionGenerationState = z.infer<
+  typeof accordionGenerationSchema
+>;
 
-export const ACCORDION_STATE_LOCAL_STORAGE_KEY = "INVOICE_GENERATION_ACCORDION_STATE";
+export const ACCORDION_STATE_LOCAL_STORAGE_KEY =
+  "INVOICE_GENERATION_ACCORDION_STATE";
 
 // Validate that currencies are unique
 const uniqueCurrencies = new Set(SUPPORTED_CURRENCIES);

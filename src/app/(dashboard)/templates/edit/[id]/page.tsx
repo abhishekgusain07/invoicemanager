@@ -18,14 +18,14 @@ export default function EditTemplatePage() {
   useEffect(() => {
     const fetchTemplate = async () => {
       setIsLoading(true);
-      
+
       try {
-        if (!params.id || typeof params.id !== 'string') {
+        if (!params.id || typeof params.id !== "string") {
           throw new Error("Invalid template ID");
         }
 
         const result = await getTemplateById(params.id);
-        
+
         if (result.success && result.data) {
           setTemplate(result.data);
         } else {
@@ -63,9 +63,7 @@ export default function EditTemplatePage() {
         </Button>
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Edit Template</h2>
-          <p className="text-muted-foreground">
-            Edit your email template
-          </p>
+          <p className="text-muted-foreground">Edit your email template</p>
         </div>
       </div>
 
@@ -76,10 +74,7 @@ export default function EditTemplatePage() {
           <p className="text-muted-foreground">Loading template...</p>
         </div>
       ) : template ? (
-        <TemplateForm
-          template={template}
-          onCancel={handleCancel}
-        />
+        <TemplateForm template={template} onCancel={handleCancel} />
       ) : (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-muted-foreground mb-4">Template not found</p>
@@ -88,4 +83,4 @@ export default function EditTemplatePage() {
       )}
     </div>
   );
-} 
+}

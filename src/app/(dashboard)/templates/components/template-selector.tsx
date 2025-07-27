@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { EmailTemplate } from "@/lib/validations/email-template";
 import { getTemplatesByTone } from "@/actions/templates";
@@ -16,7 +22,12 @@ interface TemplateSelectorProps {
   onCreateNew?: () => void;
 }
 
-export function TemplateSelector({ tone, value, onChange, onCreateNew }: TemplateSelectorProps) {
+export function TemplateSelector({
+  tone,
+  value,
+  onChange,
+  onCreateNew,
+}: TemplateSelectorProps) {
   const router = useRouter();
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +41,7 @@ export function TemplateSelector({ tone, value, onChange, onCreateNew }: Templat
         setTemplates(result.data);
 
         // If we have a default template and no value is selected, use the default
-        const defaultTemplate = result.data.find(t => t.isDefault);
+        const defaultTemplate = result.data.find((t) => t.isDefault);
         if (defaultTemplate && !value && defaultTemplate.id) {
           onChange(defaultTemplate.id);
         }
@@ -66,12 +77,14 @@ export function TemplateSelector({ tone, value, onChange, onCreateNew }: Templat
           disabled={isLoading || templates.length === 0}
         >
           <SelectTrigger className="w-full md:w-[350px]">
-            <SelectValue 
+            <SelectValue
               placeholder={
-                isLoading ? "Loading templates..." : 
-                templates.length === 0 ? "No templates available" : 
-                "Select a template"
-              } 
+                isLoading
+                  ? "Loading templates..."
+                  : templates.length === 0
+                    ? "No templates available"
+                    : "Select a template"
+              }
             />
           </SelectTrigger>
           <SelectContent>
@@ -99,9 +112,11 @@ export function TemplateSelector({ tone, value, onChange, onCreateNew }: Templat
             disabled={isLoading}
             title="Refresh templates"
           >
-            <RefreshCwIcon className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            <RefreshCwIcon
+              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
           </Button>
-          
+
           {value && (
             <Button
               type="button"
@@ -114,7 +129,7 @@ export function TemplateSelector({ tone, value, onChange, onCreateNew }: Templat
               Edit
             </Button>
           )}
-          
+
           {onCreateNew && (
             <Button
               type="button"
@@ -130,12 +145,13 @@ export function TemplateSelector({ tone, value, onChange, onCreateNew }: Templat
           )}
         </div>
       </div>
-      
+
       {templates.length === 0 && !isLoading && (
         <p className="text-sm text-muted-foreground">
-          No templates available for {tone} tone. Create a new template to get started.
+          No templates available for {tone} tone. Create a new template to get
+          started.
         </p>
       )}
     </div>
   );
-} 
+}

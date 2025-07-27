@@ -1,7 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { type InvoiceGenerationData, invoiceGenerationSchema } from "@/lib/validations/invoice-generation";
+import {
+  type InvoiceGenerationData,
+  invoiceGenerationSchema,
+} from "@/lib/validations/invoice-generation";
 import { Share2, Loader2, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -14,10 +17,10 @@ interface ShareInvoiceButtonProps {
   disabled?: boolean;
 }
 
-export function ShareInvoiceButton({ 
-  invoiceData, 
-  canShareInvoice, 
-  disabled = false 
+export function ShareInvoiceButton({
+  invoiceData,
+  canShareInvoice,
+  disabled = false,
 }: ShareInvoiceButtonProps) {
   const [isSharing, setIsSharing] = useState(false);
   const [isShared, setIsShared] = useState(false);
@@ -27,7 +30,7 @@ export function ShareInvoiceButton({
     if (disabled || isSharing || !canShareInvoice) return;
 
     setIsSharing(true);
-    
+
     try {
       const validatedData = invoiceGenerationSchema.parse(invoiceData);
       const stringified = JSON.stringify(validatedData);
@@ -67,7 +70,8 @@ export function ShareInvoiceButton({
     } catch (error) {
       console.error("Failed to share invoice:", error);
       toast.error("Failed to generate shareable link", {
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "Unknown error occurred",
       });
     } finally {
       setIsSharing(false);

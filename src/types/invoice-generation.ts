@@ -114,7 +114,8 @@ export interface SellerBuyerDialogProps {
   type: "seller" | "buyer";
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (data: InvoiceGenerationSellerData | InvoiceGenerationBuyerData) => void;
+  onSelect: (
+    data: InvoiceGenerationSellerData | InvoiceGenerationBuyerData
+  ) => void;
   currentData?: InvoiceGenerationSellerData | InvoiceGenerationBuyerData;
 }
-

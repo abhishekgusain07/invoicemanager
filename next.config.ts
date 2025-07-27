@@ -1,10 +1,10 @@
-import {withSentryConfig} from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import config from "./src/config";
 
 const nextConfig: NextConfig = {
-  eslint:{
-    ignoreDuringBuilds: true
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   /* config options here */
   async rewrites() {
@@ -53,7 +53,7 @@ const sentryWebpackPluginOptions = {
 };
 
 // Only apply Sentry configuration if enabled
-const finalConfig = config.monitoring.sentry.enabled 
+const finalConfig = config.monitoring.sentry.enabled
   ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
   : nextConfig;
 

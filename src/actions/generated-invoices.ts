@@ -4,14 +4,17 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db/drizzle";
 import { generatedInvoices } from "@/db/schema";
 import { eq, and, desc, isNull } from "drizzle-orm";
-import { type InvoiceGenerationData, invoiceGenerationSchema } from "@/lib/validations/invoice-generation";
+import {
+  type InvoiceGenerationData,
+  invoiceGenerationSchema,
+} from "@/lib/validations/invoice-generation";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 export async function saveGeneratedInvoice(invoiceData: InvoiceGenerationData) {
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
   if (!session?.user?.id) {
     redirect("/sign-in");
@@ -20,10 +23,10 @@ export async function saveGeneratedInvoice(invoiceData: InvoiceGenerationData) {
   try {
     // Validate the invoice data
     const validatedData = invoiceGenerationSchema.parse(invoiceData);
-    
+
     // Calculate total amount
     const totalAmount = validatedData.items.reduce((total, item) => {
-      const vatRate = typeof item.vat === 'number' ? item.vat : 0;
+      const vatRate = typeof item.vat === "number" ? item.vat : 0;
       const itemTotal = item.amount * item.netPrice * (1 + vatRate / 100);
       return total + itemTotal;
     }, 0);
@@ -32,11 +35,12 @@ export async function saveGeneratedInvoice(invoiceData: InvoiceGenerationData) {
     const shareableToken = crypto.randomUUID();
 
     const invoiceId = crypto.randomUUID();
-    
+
     await db.insert(generatedInvoices).values({
       id: invoiceId,
       userId: session.user.id,
-      invoiceNumber: validatedData.invoiceNumberObject?.value || `INV-${Date.now()}`,
+      invoiceNumber:
+        validatedData.invoiceNumberObject?.value || `INV-${Date.now()}`,
       invoiceTitle: validatedData.invoiceTitle || null,
       dateOfIssue: new Date(validatedData.dateOfIssue),
       paymentDue: new Date(validatedData.paymentDue),
@@ -54,16 +58,16 @@ export async function saveGeneratedInvoice(invoiceData: InvoiceGenerationData) {
     return { success: true, invoiceId, shareableToken };
   } catch (error) {
     console.error("Failed to save generated invoice:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to save invoice" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to save invoice",
     };
   }
 }
 
 export async function loadGeneratedInvoices() {
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
   if (!session?.user?.id) {
     redirect("/sign-in");
@@ -85,16 +89,16 @@ export async function loadGeneratedInvoices() {
     return { success: true, invoices };
   } catch (error) {
     console.error("Failed to load generated invoices:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to load invoices" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to load invoices",
     };
   }
 }
 
 export async function loadGeneratedInvoice(invoiceId: string) {
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
   if (!session?.user?.id) {
     redirect("/sign-in");
@@ -117,20 +121,25 @@ export async function loadGeneratedInvoice(invoiceId: string) {
       return { success: false, error: "Invoice not found" };
     }
 
-    const invoiceData = JSON.parse(invoice[0].invoiceData) as InvoiceGenerationData;
+    const invoiceData = JSON.parse(
+      invoice[0].invoiceData
+    ) as InvoiceGenerationData;
     return { success: true, invoice: invoice[0], invoiceData };
   } catch (error) {
     console.error("Failed to load generated invoice:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to load invoice" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to load invoice",
     };
   }
 }
 
-export async function updateGeneratedInvoice(invoiceId: string, invoiceData: InvoiceGenerationData) {
+export async function updateGeneratedInvoice(
+  invoiceId: string,
+  invoiceData: InvoiceGenerationData
+) {
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
   if (!session?.user?.id) {
     redirect("/sign-in");
@@ -139,10 +148,10 @@ export async function updateGeneratedInvoice(invoiceId: string, invoiceData: Inv
   try {
     // Validate the invoice data
     const validatedData = invoiceGenerationSchema.parse(invoiceData);
-    
+
     // Calculate total amount
     const totalAmount = validatedData.items.reduce((total, item) => {
-      const vatRate = typeof item.vat === 'number' ? item.vat : 0;
+      const vatRate = typeof item.vat === "number" ? item.vat : 0;
       const itemTotal = item.amount * item.netPrice * (1 + vatRate / 100);
       return total + itemTotal;
     }, 0);
@@ -150,7 +159,8 @@ export async function updateGeneratedInvoice(invoiceId: string, invoiceData: Inv
     await db
       .update(generatedInvoices)
       .set({
-        invoiceNumber: validatedData.invoiceNumberObject?.value || `INV-${Date.now()}`,
+        invoiceNumber:
+          validatedData.invoiceNumberObject?.value || `INV-${Date.now()}`,
         invoiceTitle: validatedData.invoiceTitle || null,
         dateOfIssue: new Date(validatedData.dateOfIssue),
         paymentDue: new Date(validatedData.paymentDue),
@@ -174,16 +184,17 @@ export async function updateGeneratedInvoice(invoiceId: string, invoiceData: Inv
     return { success: true };
   } catch (error) {
     console.error("Failed to update generated invoice:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to update invoice" 
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to update invoice",
     };
   }
 }
 
 export async function deleteGeneratedInvoice(invoiceId: string) {
   const session = await auth.api.getSession({
-    headers: await headers()
+    headers: await headers(),
   });
   if (!session?.user?.id) {
     redirect("/sign-in");
@@ -208,9 +219,10 @@ export async function deleteGeneratedInvoice(invoiceId: string) {
     return { success: true };
   } catch (error) {
     console.error("Failed to delete generated invoice:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to delete invoice" 
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to delete invoice",
     };
   }
 }
@@ -230,16 +242,21 @@ export async function loadPublicInvoiceByToken(token: string) {
       .limit(1);
 
     if (!invoice[0]) {
-      return { success: false, error: "Invoice not found or not publicly accessible" };
+      return {
+        success: false,
+        error: "Invoice not found or not publicly accessible",
+      };
     }
 
-    const invoiceData = JSON.parse(invoice[0].invoiceData) as InvoiceGenerationData;
+    const invoiceData = JSON.parse(
+      invoice[0].invoiceData
+    ) as InvoiceGenerationData;
     return { success: true, invoice: invoice[0], invoiceData };
   } catch (error) {
     console.error("Failed to load public invoice:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Failed to load invoice" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to load invoice",
     };
   }
 }

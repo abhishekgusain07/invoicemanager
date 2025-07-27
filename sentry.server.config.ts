@@ -9,13 +9,13 @@ import config from "./src/config";
 if (config.monitoring.sentry.enabled) {
   Sentry.init({
     dsn: config.monitoring.sentry.dsn || process.env.NEXT_PUBLIC_SENTRY_DSN,
-    
+
     // Use config values or fall back to default values
     tracesSampleRate: config.monitoring.sentry.tracesSampleRate || 1.0,
-    
+
     // Setting this option to true will print useful information to the console while you're setting up Sentry.
     debug: false,
   });
 } else {
-  console.log('Sentry monitoring is disabled for server-side.');
+  console.log("Sentry monitoring is disabled for server-side.");
 }

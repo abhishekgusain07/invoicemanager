@@ -19,7 +19,7 @@ export const InvoiceBody = memo(function InvoiceBody({
 }: InvoiceBodyProps) {
   // Calculate total
   const invoiceTotal = invoiceData.items.reduce((total, item) => {
-    const vatRate = typeof item.vat === 'number' ? item.vat : 0;
+    const vatRate = typeof item.vat === "number" ? item.vat : 0;
     const itemTotal = item.amount * item.netPrice * (1 + vatRate / 100);
     return total + itemTotal;
   }, 0);
@@ -32,8 +32,15 @@ export const InvoiceBody = memo(function InvoiceBody({
     .replaceAll(",", " ");
 
   // Check if VAT summary should be visible (when there are items with different tax rates)
-  const uniqueVatRates = [...new Set(invoiceData.items.map(item => typeof item.vat === 'number' ? item.vat : 0))];
-  const vatTableSummaryIsVisible = uniqueVatRates.length > 1 || (uniqueVatRates[0] && uniqueVatRates[0] > 0);
+  const uniqueVatRates = [
+    ...new Set(
+      invoiceData.items.map((item) =>
+        typeof item.vat === "number" ? item.vat : 0
+      )
+    ),
+  ];
+  const vatTableSummaryIsVisible =
+    uniqueVatRates.length > 1 || (uniqueVatRates[0] && uniqueVatRates[0] > 0);
 
   return (
     <View>

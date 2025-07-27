@@ -10,17 +10,17 @@ import { headers } from "next/headers";
 export const isAuthorized = async (
   userId: string
 ): Promise<{ authorized: boolean; message: string }> => {
-  console.log("GET HIT")
+  console.log("GET HIT");
   if (!config?.payments?.enabled) {
-    console.log("Payments are disabled")
+    console.log("Payments are disabled");
     return {
       authorized: true,
       message: "Payments are disabled",
     };
   }
-    const session = await auth.api.getSession({
-      headers: await headers() 
-  })
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
   const result = await session?.user.id;
 
   if (!result) {
@@ -51,4 +51,3 @@ export const isAuthorized = async (
     };
   }
 };
-

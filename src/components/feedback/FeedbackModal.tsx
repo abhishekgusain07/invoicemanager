@@ -45,7 +45,11 @@ interface FeedbackModalProps {
   userId?: string;
 }
 
-export function FeedbackModal({ open, onOpenChange, userId }: FeedbackModalProps) {
+export function FeedbackModal({
+  open,
+  onOpenChange,
+  userId,
+}: FeedbackModalProps) {
   const [hoveredStar, setHoveredStar] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -59,7 +63,7 @@ export function FeedbackModal({ open, onOpenChange, userId }: FeedbackModalProps
   });
 
   const watchedStars = form.watch("stars");
-  
+
   const handleStarClick = (rating: number) => {
     form.setValue("stars", rating, { shouldValidate: true });
   };
@@ -76,7 +80,7 @@ export function FeedbackModal({ open, onOpenChange, userId }: FeedbackModalProps
         ...data,
         userId,
       });
-      
+
       toast.success("Thank you for your feedback!");
       form.reset();
       onOpenChange(false);
@@ -91,7 +95,10 @@ export function FeedbackModal({ open, onOpenChange, userId }: FeedbackModalProps
   // Helper function to determine star color
   const getStarColor = (index: number) => {
     // If star is hovered or has been selected
-    if ((hoveredStar !== null && index <= hoveredStar) || (hoveredStar === null && index <= watchedStars)) {
+    if (
+      (hoveredStar !== null && index <= hoveredStar) ||
+      (hoveredStar === null && index <= watchedStars)
+    ) {
       return "text-yellow-400 fill-yellow-400";
     }
     return "text-gray-300";
@@ -101,7 +108,9 @@ export function FeedbackModal({ open, onOpenChange, userId }: FeedbackModalProps
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] rounded-lg border-0 shadow-lg">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">Your Feedback Matters</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-center">
+            Your Feedback Matters
+          </DialogTitle>
           <DialogDescription className="text-center text-muted-foreground">
             Help us improve by sharing your thoughts and experience.
           </DialogDescription>
@@ -185,4 +194,4 @@ export function FeedbackModal({ open, onOpenChange, userId }: FeedbackModalProps
       </DialogContent>
     </Dialog>
   );
-} 
+}
