@@ -53,8 +53,7 @@ export const PDF_DEFAULT_TEMPLATE_STYLES = StyleSheet.create({
     fontWeight: 600,
   },
   table: {
-    display: "table",
-    width: "auto",
+    width: "100%",
     borderStyle: "solid",
     borderWidth: 1,
     borderColor: "#000",
@@ -173,6 +172,9 @@ export const PDF_DEFAULT_TEMPLATE_STYLES = StyleSheet.create({
   py2: {
     paddingTop: 8,
     paddingBottom: 8,
+  },
+  pt2: {
+    paddingTop: 8,
   },
 });
 

@@ -55,7 +55,7 @@ export function SellerBuyerManagement({
   const isSeller = type === "seller";
   
   const form = useForm({
-    resolver: zodResolver(isSeller ? invoiceGenerationSellerSchema : invoiceGenerationBuyerSchema),
+    resolver: zodResolver(isSeller ? invoiceGenerationSellerSchema : invoiceGenerationBuyerSchema) as any,
     defaultValues: isSeller ? {
       name: "",
       address: "",
@@ -68,7 +68,7 @@ export function SellerBuyerManagement({
       accountNumberFieldIsVisible: true,
       swiftBicFieldIsVisible: true,
       notesFieldIsVisible: true,
-    } : {
+    } as any : {
       name: "",
       address: "",
       email: "",
@@ -76,7 +76,7 @@ export function SellerBuyerManagement({
       notes: "",
       vatNoFieldIsVisible: true,
       notesFieldIsVisible: true,
-    },
+    } as any,
   });
 
   // Load saved contacts from localStorage

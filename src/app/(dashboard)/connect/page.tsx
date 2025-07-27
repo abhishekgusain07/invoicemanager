@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   Star,
   Globe,
-  Workflow
+  Workflow,
+  TrendingUp
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";

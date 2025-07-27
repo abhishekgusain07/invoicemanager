@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       headers:  await headers()
     });
     if (!session?.user) {
-      return { success: false, data: null, error: "Unauthorized" };
+      return NextResponse.json({ success: false, data: null, error: "Unauthorized" }, { status: 401 });
     }
   
     // Get code and state from URL

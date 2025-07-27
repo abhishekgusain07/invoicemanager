@@ -1,6 +1,7 @@
 import { invoiceGenerationSchema } from "@/lib/validations/invoice-generation";
 import { NextResponse, type NextRequest } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
+import React from "react";
 import { InvoicePdfTemplate } from "@/app/(dashboard)/generateinvoice/components/pdf-templates/invoice-pdf-template";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
     
     // Generate PDF buffer
     const pdfBuffer = await renderToBuffer(
-      <InvoicePdfTemplate invoiceData={validatedData} />
+      React.createElement(InvoicePdfTemplate, { invoiceData: validatedData }) as any
     );
 
     // Return the PDF as a response

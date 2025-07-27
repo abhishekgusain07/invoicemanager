@@ -64,8 +64,13 @@ export const InvoiceForm = memo(function InvoiceForm({
   setCanShareInvoice,
 }: InvoiceFormProps) {
   const form = useForm<InvoiceGenerationData>({
-    resolver: zodResolver(invoiceGenerationSchema),
-    defaultValues: invoiceData,
+    resolver: zodResolver(invoiceGenerationSchema) as any,
+    defaultValues: {
+      ...invoiceData,
+      language: invoiceData.language || "en",
+      dateFormat: invoiceData.dateFormat || "YYYY-MM-DD",
+      currency: invoiceData.currency || "EUR",
+    },
     mode: "onChange",
   });
 

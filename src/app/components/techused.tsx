@@ -1,5 +1,6 @@
 import React from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 const TechnologyUsed = () => {
   const logos = [
@@ -82,7 +83,7 @@ const TechnologyUsed = () => {
   ];
 
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={0}>
       <section className="bg-background/50 backdrop-blur-sm py-10 border-t border-b border-slate-100 dark:border-slate-800">
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center mb-6">
@@ -91,7 +92,7 @@ const TechnologyUsed = () => {
           <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-8 gap-y-6 sm:gap-x-12">
             {logos.map((logo, index) => (
               logo.tooltip ? (
-                <Tooltip key={index}>
+                <TooltipPrimitive.Root key={index}>
                   <TooltipTrigger asChild>
                     <div className="filter grayscale hover:grayscale-0 hover:brightness-110 transition-all duration-300">
                       <img
@@ -105,7 +106,7 @@ const TechnologyUsed = () => {
                   <TooltipContent>
                     <p>{logo.tooltip}</p>
                   </TooltipContent>
-                </Tooltip>
+                </TooltipPrimitive.Root>
               ) : (
                 <div key={index} className="filter grayscale hover:grayscale-0 hover:brightness-110 transition-all duration-300">
                   <img
