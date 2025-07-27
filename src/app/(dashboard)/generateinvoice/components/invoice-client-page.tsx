@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { InvoiceForm } from "./invoice-form";
+import { PDFPreview } from "./pdf-preview";
+import { PDFDownloadButton } from "./pdf-download-button";
 import { INITIAL_INVOICE_DATA, PDF_DATA_LOCAL_STORAGE_KEY } from "../constants";
 import { invoiceGenerationSchema, type InvoiceGenerationData } from "@/lib/validations/invoice-generation";
 import { toast } from "sonner";
@@ -87,18 +89,14 @@ export function InvoiceClientPage() {
           {/* Preview Section */}
           <div className="lg:col-span-6">
             <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold mb-4">PDF Preview</h2>
-              <div className="bg-gray-100 rounded-lg p-8 text-center min-h-[400px] flex items-center justify-center">
-                <div>
-                  <div className="text-4xl mb-4">📄</div>
-                  <p className="text-gray-600">
-                    PDF preview will be available soon
-                  </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Form data is being saved automatically
-                  </p>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">PDF Preview</h2>
+                <PDFDownloadButton 
+                  invoiceData={invoiceDataState}
+                  disabled={!invoiceDataState.seller.name || !invoiceDataState.buyer.name || invoiceDataState.items.length === 0}
+                />
               </div>
+              <PDFPreview invoiceData={invoiceDataState} />
             </div>
           </div>
         </div>
