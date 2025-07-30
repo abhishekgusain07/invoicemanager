@@ -1,13 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@/hooks/useUser";
-import {
-  getInvoicesByStatus,
-  deleteInvoice,
-  updateInvoiceStatus,
-} from "@/actions/invoice";
-import { checkGmailConnection } from "@/actions/gmail";
+import { api } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
   filterInvoices,
@@ -17,9 +12,6 @@ import {
 
 export const useInvoiceData = () => {
   const { user, isLoading: isUserLoading } = useUser();
-  const [isLoading, setIsLoading] = useState(true);
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [filteredInvoices, setFilteredInvoices] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -28,67 +20,76 @@ export const useInvoiceData = () => {
   });
   const [refreshReminders, setRefreshReminders] = useState(0);
 
-  // Gmail connection state
-  const [isGmailConnected, setIsGmailConnected] = useState<boolean>(false);
-  const [checkingGmailConnection, setCheckingGmailConnection] =
-    useState<boolean>(true);
-
-  // Fetch invoices
-  const fetchInvoices = useCallback(async () => {
-    if (isUserLoading || !user) return;
-
-    setIsLoading(true);
-    try {
-      const data = await getInvoicesByStatus(statusFilter as any);
-      console.log("Fetched invoices:", data);
-
-      // Verify the statuses of each invoice
-      data.forEach((invoice: any) => {
-        console.log(
-          `Invoice ${invoice.invoiceNumber}: status=${invoice.status}, dueDate=${invoice.dueDate}`
-        );
-      });
-
-      setInvoices(data);
-      setFilteredInvoices(data);
-    } catch (error) {
-      console.error("Error fetching invoices:", error);
-      toast.error("Failed to load invoices");
-    } finally {
-      setIsLoading(false);
+  // Use tRPC queries for data fetching
+  const { 
+    data: invoices = [], 
+    isLoading: isLoadingInvoices, 
+    error: invoicesError,
+    refetch: refetchInvoices 
+  } = api.invoice.getByStatus.useQuery(
+    { status: statusFilter as "pending" | "paid" | "overdue" | "all" },
+    {
+      enabled: !isUserLoading && !!user,
+      staleTime: 2 * 60 * 1000, // 2 minutes for invoice data
+      refetchOnWindowFocus: false,
     }
-  }, [user, isUserLoading, statusFilter]);
+  );
 
-  // Check Gmail connection status
-  const checkGmailConnectionStatus = useCallback(async () => {
-    if (isUserLoading || !user) return;
-
-    setCheckingGmailConnection(true);
-    try {
-      const { isConnected } = await checkGmailConnection(user.id);
-      setIsGmailConnected(isConnected);
-    } catch (error) {
-      console.error("Error checking Gmail connection:", error);
-    } finally {
-      setCheckingGmailConnection(false);
+  // Use tRPC query for Gmail connection status
+  const { 
+    data: gmailConnectionData, 
+    isLoading: checkingGmailConnection 
+  } = api.connections.checkGmailConnection.useQuery(
+    undefined,
+    {
+      enabled: !isUserLoading && !!user,
+      staleTime: 5 * 60 * 1000, // 5 minutes for connection status
+      refetchOnWindowFocus: false,
     }
-  }, [user, isUserLoading]);
+  );
 
-  // Effects
-  useEffect(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
+  const isGmailConnected = gmailConnectionData?.isConnected ?? false;
 
-  useEffect(() => {
-    checkGmailConnectionStatus();
-  }, [checkGmailConnectionStatus]);
-
-  // Filter invoices when search query changes
-  useEffect(() => {
+  // Client-side filtering and sorting with useMemo for performance
+  const filteredInvoices = useMemo(() => {
+    if (!invoices.length) return [];
+    
     const filtered = filterInvoices(invoices, searchQuery);
-    const sorted = sortInvoices(filtered, sortConfig);
-    setFilteredInvoices(sorted);
-  }, [searchQuery, invoices, sortConfig]);
+    return sortInvoices(filtered, sortConfig);
+  }, [invoices, searchQuery, sortConfig]);
+
+  // Handle errors
+  useEffect(() => {
+    if (invoicesError) {
+      console.error("Error fetching invoices:", invoicesError);
+      toast.error("Failed to load invoices");
+    }
+  }, [invoicesError]);
+
+  // tRPC mutations for invoice operations
+  const deleteInvoiceMutation = api.invoice.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice deleted successfully");
+      // Invalidate and refetch invoices
+      refetchInvoices();
+    },
+    onError: (error) => {
+      console.error("Error deleting invoice:", error);
+      toast.error(error.message || "Failed to delete invoice");
+    },
+  });
+
+  const updateInvoiceStatusMutation = api.invoice.updateStatus.useMutation({
+    onSuccess: (data, variables) => {
+      toast.success(`Invoice status updated to ${variables.status} successfully`);
+      // Invalidate and refetch invoices
+      refetchInvoices();
+    },
+    onError: (error) => {
+      console.error("Error updating invoice status:", error);
+      toast.error(error.message || "Failed to update invoice status");
+    },
+  });
 
   // Handle sort click
   const handleSort = (key: string) => {
@@ -99,76 +100,39 @@ export const useInvoiceData = () => {
         sortConfig.direction === "ascending" ? "descending" : "ascending";
     }
 
-    const newSortConfig = { key, direction };
-    setSortConfig(newSortConfig);
-
-    const sorted = sortInvoices(filteredInvoices, newSortConfig);
-    setFilteredInvoices(sorted);
+    setSortConfig({ key, direction });
   };
 
-  // Delete invoice
+  // Delete invoice with optimistic updates
   const handleDeleteInvoice = async (invoiceId: string) => {
     try {
-      const result = await deleteInvoice(invoiceId);
-      if (result.success) {
-        toast.success("Invoice deleted successfully");
-        // Remove the invoice from the main local state
-        const updatedInvoices = invoices.filter(
-          (invoice) => invoice.id !== invoiceId
-        );
-        setInvoices(updatedInvoices);
-        return true;
-      } else {
-        toast.error(result.error || "Failed to delete invoice");
-        return false;
-      }
+      await deleteInvoiceMutation.mutateAsync({ id: invoiceId });
+      return true;
     } catch (error) {
-      console.error("Error deleting invoice:", error);
-      toast.error("An error occurred while deleting the invoice");
       return false;
     }
   };
 
-  // Update invoice status
+  // Update invoice status with optimistic updates
   const handleUpdateInvoiceStatus = async (
     invoiceId: string,
     newStatus: string
   ) => {
     try {
-      const result = await updateInvoiceStatus(invoiceId, newStatus as any);
-
-      if (result.success) {
-        toast.success(`Invoice status updated to ${newStatus} successfully`);
-
-        // Update the invoice in the local state
-        setInvoices((prev) =>
-          prev.map((inv) =>
-            inv.id === invoiceId ? { ...inv, status: newStatus } : inv
-          )
-        );
-
-        // Update filtered invoices too
-        setFilteredInvoices((prev) =>
-          prev.map((inv) =>
-            inv.id === invoiceId ? { ...inv, status: newStatus } : inv
-          )
-        );
-        return true;
-      } else {
-        toast.error(result.error || "Failed to update invoice status");
-        return false;
-      }
+      await updateInvoiceStatusMutation.mutateAsync({
+        id: invoiceId,
+        status: newStatus as any,
+      });
+      return true;
     } catch (error) {
-      console.error("Error updating invoice status:", error);
-      toast.error("An error occurred while updating the invoice");
       return false;
     }
   };
 
   // Refresh data after modal close
-  const handleRefreshData = useCallback(() => {
-    fetchInvoices();
-  }, [fetchInvoices]);
+  const handleRefreshData = () => {
+    refetchInvoices();
+  };
 
   // Increment refresh trigger for reminders
   const handleRefreshReminders = () => {
@@ -179,13 +143,17 @@ export const useInvoiceData = () => {
     // Data
     invoices,
     filteredInvoices,
-    isLoading,
+    isLoading: isLoadingInvoices,
     searchQuery,
     statusFilter,
     sortConfig,
     refreshReminders,
     isGmailConnected,
     checkingGmailConnection,
+
+    // Mutation states
+    isDeletingInvoice: deleteInvoiceMutation.isPending,
+    isUpdatingStatus: updateInvoiceStatusMutation.isPending,
 
     // Setters
     setSearchQuery,
@@ -198,6 +166,6 @@ export const useInvoiceData = () => {
     handleUpdateInvoiceStatus,
     handleRefreshData,
     handleRefreshReminders,
-    fetchInvoices,
+    refetchInvoices,
   };
 };
