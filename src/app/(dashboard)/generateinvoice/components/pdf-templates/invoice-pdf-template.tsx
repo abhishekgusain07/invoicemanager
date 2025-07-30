@@ -3,23 +3,9 @@ import { Document, Font, Page, StyleSheet } from "@react-pdf/renderer";
 import { memo } from "react";
 import { InvoiceBody } from "./invoice-body";
 
-// Register fonts for PDF
-const fontFamily = "Open Sans";
-const fontFamilyBold = "Open Sans";
-
-// For now, we'll use system fonts - you can add custom fonts later
-Font.register({
-  family: fontFamily,
-  fonts: [
-    {
-      src: "https://fonts.gstatic.com/s/opensans/v34/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf",
-    },
-    {
-      src: "https://fonts.gstatic.com/s/opensans/v34/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4iaVQUwaEQbjB_mQ.ttf",
-      fontWeight: 700,
-    },
-  ],
-});
+// Use system fonts for PDF generation
+const fontFamily = "Helvetica";
+const fontFamilyBold = "Helvetica-Bold";
 
 // Styles for the PDF
 export const PDF_DEFAULT_TEMPLATE_STYLES = StyleSheet.create({
