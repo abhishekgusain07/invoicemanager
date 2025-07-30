@@ -52,12 +52,23 @@ export const PDF_DEFAULT_TEMPLATE_STYLES = StyleSheet.create({
     borderLeftWidth: 0,
     borderTopWidth: 0,
     borderColor: "#000",
+    minHeight: 25,
   },
   tableCell: {
-    margin: "auto",
-    marginTop: 5,
-    marginBottom: 5,
+    padding: 6,
     fontSize: 10,
+    lineHeight: 1.2,
+    overflow: "hidden",
+    wordWrap: "break-word",
+    textAlign: "left",
+  },
+  tableCellCentered: {
+    padding: 6,
+    fontSize: 10,
+    lineHeight: 1.2,
+    overflow: "hidden",
+    wordWrap: "break-word",
+    textAlign: "center",
   },
   text: {
     margin: 12,
@@ -156,6 +167,36 @@ export const PDF_DEFAULT_TEMPLATE_STYLES = StyleSheet.create({
   },
   pt2: {
     paddingTop: 8,
+  },
+  wrappedText: {
+    fontSize: 9,
+    lineHeight: 1.2,
+    wordWrap: "break-word",
+    overflow: "hidden",
+  },
+  monetaryValue: {
+    textAlign: "right",
+    fontFamily: "Helvetica",
+    fontSize: 10,
+    padding: 6,
+    lineHeight: 1.2,
+    overflow: "hidden",
+  },
+  tableCellRight: {
+    padding: 6,
+    fontSize: 10,
+    lineHeight: 1.2,
+    overflow: "hidden",
+    wordWrap: "break-word",
+    textAlign: "right",
+  },
+  descriptionCell: {
+    padding: 6,
+    fontSize: 9,
+    lineHeight: 1.3,
+    overflow: "hidden",
+    wordWrap: "break-word",
+    textAlign: "left",
   },
 });
 

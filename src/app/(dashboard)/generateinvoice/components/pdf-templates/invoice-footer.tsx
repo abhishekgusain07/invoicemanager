@@ -18,7 +18,7 @@ export const InvoiceFooter = memo(function InvoiceFooter({
           <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.subheader]}>Notes</Text>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
+              PDF_DEFAULT_TEMPLATE_STYLES.wrappedText,
               PDF_DEFAULT_TEMPLATE_STYLES.mt2,
             ]}
           >

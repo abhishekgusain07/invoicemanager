@@ -17,7 +17,7 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
     CURRENCY_SYMBOLS[invoiceData.currency] || invoiceData.currency;
 
   const formatCurrency = (amount: number) => {
-    return `${currencySymbol}${amount.toFixed(2)}`;
+    return `${currencySymbol} ${amount.toFixed(2)}`;
   };
 
   return (
@@ -40,11 +40,11 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
           ]}
         >
           <View
-            style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "5%" }]}
+            style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "8%" }]}
           >
             <Text
               style={[
-                PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
                 PDF_DEFAULT_TEMPLATE_STYLES.boldText,
                 PDF_DEFAULT_TEMPLATE_STYLES.smallText,
               ]}
@@ -53,7 +53,7 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
             </Text>
           </View>
           <View
-            style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "35%" }]}
+            style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "40%" }]}
           >
             <Text
               style={[
@@ -66,11 +66,11 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
             </Text>
           </View>
           <View
-            style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "10%" }]}
+            style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "12%" }]}
           >
             <Text
               style={[
-                PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
                 PDF_DEFAULT_TEMPLATE_STYLES.boldText,
                 PDF_DEFAULT_TEMPLATE_STYLES.smallText,
               ]}
@@ -83,7 +83,7 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
           >
             <Text
               style={[
-                PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                PDF_DEFAULT_TEMPLATE_STYLES.tableCellRight,
                 PDF_DEFAULT_TEMPLATE_STYLES.boldText,
                 PDF_DEFAULT_TEMPLATE_STYLES.smallText,
               ]}
@@ -96,7 +96,7 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
           >
             <Text
               style={[
-                PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
                 PDF_DEFAULT_TEMPLATE_STYLES.boldText,
                 PDF_DEFAULT_TEMPLATE_STYLES.smallText,
               ]}
@@ -109,25 +109,12 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
           >
             <Text
               style={[
-                PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                PDF_DEFAULT_TEMPLATE_STYLES.tableCellRight,
                 PDF_DEFAULT_TEMPLATE_STYLES.boldText,
                 PDF_DEFAULT_TEMPLATE_STYLES.smallText,
               ]}
             >
               Net Amount
-            </Text>
-          </View>
-          <View
-            style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "10%" }]}
-          >
-            <Text
-              style={[
-                PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-                PDF_DEFAULT_TEMPLATE_STYLES.boldText,
-                PDF_DEFAULT_TEMPLATE_STYLES.smallText,
-              ]}
-            >
-              Total
             </Text>
           </View>
         </View>
@@ -136,11 +123,11 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
         {invoiceData.items.map((item, index) => (
           <View key={index} style={[PDF_DEFAULT_TEMPLATE_STYLES.tableRow]}>
             <View
-              style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "5%" }]}
+              style={[{ ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "8%" }]}
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                  PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
                   PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                 ]}
               >
@@ -149,13 +136,12 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
             </View>
             <View
               style={[
-                { ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "35%" },
+                { ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "40%" },
               ]}
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-                  PDF_DEFAULT_TEMPLATE_STYLES.smallText,
+                  PDF_DEFAULT_TEMPLATE_STYLES.descriptionCell,
                 ]}
               >
                 {item.name}
@@ -163,12 +149,12 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
             </View>
             <View
               style={[
-                { ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "10%" },
+                { ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "12%" },
               ]}
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                  PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
                   PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                 ]}
               >
@@ -182,9 +168,8 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                  PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
                   PDF_DEFAULT_TEMPLATE_STYLES.smallText,
-                  PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
                 ]}
               >
                 {formatCurrency(item.netPrice)}
@@ -197,9 +182,8 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                  PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
                   PDF_DEFAULT_TEMPLATE_STYLES.smallText,
-                  PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
                 ]}
               >
                 {typeof item.vat === "number" ? `${item.vat}%` : item.vat}
@@ -212,27 +196,11 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                  PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
                   PDF_DEFAULT_TEMPLATE_STYLES.smallText,
-                  PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
                 ]}
               >
                 {formatCurrency(item.netAmount)}
-              </Text>
-            </View>
-            <View
-              style={[
-                { ...PDF_DEFAULT_TEMPLATE_STYLES.tableCol, width: "10%" },
-              ]}
-            >
-              <Text
-                style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-                  PDF_DEFAULT_TEMPLATE_STYLES.smallText,
-                  PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
-                ]}
-              >
-                {formatCurrency(item.preTaxAmount)}
               </Text>
             </View>
           </View>

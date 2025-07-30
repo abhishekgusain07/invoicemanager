@@ -17,7 +17,7 @@ export const InvoicePaymentTotals = memo(function InvoicePaymentTotals({
     CURRENCY_SYMBOLS[invoiceData.currency] || invoiceData.currency;
 
   const formatCurrency = (amount: number) => {
-    return `${currencySymbol}${amount.toFixed(2)}`;
+    return `${currencySymbol} ${amount.toFixed(2)}`;
   };
 
   // Calculate VAT summary
@@ -81,7 +81,7 @@ export const InvoicePaymentTotals = memo(function InvoicePaymentTotals({
                   >
                     <Text
                       style={[
-                        PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                        PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
                         PDF_DEFAULT_TEMPLATE_STYLES.boldText,
                         PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                       ]}
@@ -96,7 +96,7 @@ export const InvoicePaymentTotals = memo(function InvoicePaymentTotals({
                   >
                     <Text
                       style={[
-                        PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                        PDF_DEFAULT_TEMPLATE_STYLES.tableCellRight,
                         PDF_DEFAULT_TEMPLATE_STYLES.boldText,
                         PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                       ]}
@@ -111,7 +111,7 @@ export const InvoicePaymentTotals = memo(function InvoicePaymentTotals({
                   >
                     <Text
                       style={[
-                        PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                        PDF_DEFAULT_TEMPLATE_STYLES.tableCellRight,
                         PDF_DEFAULT_TEMPLATE_STYLES.boldText,
                         PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                       ]}
@@ -136,7 +136,7 @@ export const InvoicePaymentTotals = memo(function InvoicePaymentTotals({
                     >
                       <Text
                         style={[
-                          PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                          PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
                           PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                         ]}
                       >
@@ -153,9 +153,8 @@ export const InvoicePaymentTotals = memo(function InvoicePaymentTotals({
                     >
                       <Text
                         style={[
-                          PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                          PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
                           PDF_DEFAULT_TEMPLATE_STYLES.smallText,
-                          PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
                         ]}
                       >
                         {formatCurrency(summary.netAmount)}
@@ -171,9 +170,8 @@ export const InvoicePaymentTotals = memo(function InvoicePaymentTotals({
                     >
                       <Text
                         style={[
-                          PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+                          PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
                           PDF_DEFAULT_TEMPLATE_STYLES.smallText,
-                          PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
                         ]}
                       >
                         {formatCurrency(summary.vatAmount)}

@@ -35,7 +35,7 @@ export const InvoiceSellerBuyerInfo = memo(function InvoiceSellerBuyerInfo({
 
         <Text
           style={[
-            PDF_DEFAULT_TEMPLATE_STYLES.smallText,
+            PDF_DEFAULT_TEMPLATE_STYLES.wrappedText,
             PDF_DEFAULT_TEMPLATE_STYLES.mt1,
           ]}
         >
@@ -108,7 +108,7 @@ export const InvoiceSellerBuyerInfo = memo(function InvoiceSellerBuyerInfo({
 
         <Text
           style={[
-            PDF_DEFAULT_TEMPLATE_STYLES.smallText,
+            PDF_DEFAULT_TEMPLATE_STYLES.wrappedText,
             PDF_DEFAULT_TEMPLATE_STYLES.mt1,
           ]}
         >

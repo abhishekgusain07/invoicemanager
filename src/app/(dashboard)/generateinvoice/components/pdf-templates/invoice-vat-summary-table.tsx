@@ -76,8 +76,9 @@ export function InvoiceVATSummaryTable({
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
               PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
             VAT Rate
@@ -86,8 +87,9 @@ export function InvoiceVATSummaryTable({
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCellRight,
               PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
             Net
@@ -96,8 +98,9 @@ export function InvoiceVATSummaryTable({
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCellRight,
               PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
             VAT
@@ -106,8 +109,9 @@ export function InvoiceVATSummaryTable({
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCellRight,
               PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
             Total
@@ -130,8 +134,8 @@ export function InvoiceVATSummaryTable({
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-                  PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+                  PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
+                  PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                 ]}
               >
                 {displayVat}
@@ -142,8 +146,8 @@ export function InvoiceVATSummaryTable({
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-                  PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+                  PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
+                  PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                 ]}
               >
                 {formatAmount(group.netAmount)}
@@ -154,8 +158,8 @@ export function InvoiceVATSummaryTable({
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-                  PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+                  PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
+                  PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                 ]}
               >
                 {formatAmount(group.vatAmount)}
@@ -166,8 +170,8 @@ export function InvoiceVATSummaryTable({
             >
               <Text
                 style={[
-                  PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-                  PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+                  PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
+                  PDF_DEFAULT_TEMPLATE_STYLES.smallText,
                 ]}
               >
                 {formatAmount(group.totalAmount)}
@@ -182,8 +186,9 @@ export function InvoiceVATSummaryTable({
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-              PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+              PDF_DEFAULT_TEMPLATE_STYLES.tableCellCentered,
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
             Total
@@ -192,8 +197,9 @@ export function InvoiceVATSummaryTable({
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-              PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+              PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
             {formatAmount(totalNetAmount)}
@@ -202,8 +208,9 @@ export function InvoiceVATSummaryTable({
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-              PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+              PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
             {formatAmount(totalVATAmount)}
@@ -212,8 +219,9 @@ export function InvoiceVATSummaryTable({
         <View style={[PDF_DEFAULT_TEMPLATE_STYLES.tableCol, { width: "25%" }]}>
           <Text
             style={[
-              PDF_DEFAULT_TEMPLATE_STYLES.tableCell,
-              PDF_DEFAULT_TEMPLATE_STYLES.rightAlign,
+              PDF_DEFAULT_TEMPLATE_STYLES.monetaryValue,
+              PDF_DEFAULT_TEMPLATE_STYLES.boldText,
+              PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
             {formattedInvoiceTotal}
