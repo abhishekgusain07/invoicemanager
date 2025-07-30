@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
@@ -50,6 +50,9 @@ export function InvoiceClientPage() {
     handleLoadInvoice,
   } = useInvoiceActions();
 
+  // Form reset function from InvoiceForm
+  const [formResetFn, setFormResetFn] = useState<((data: InvoiceGenerationData) => void) | null>(null);
+
   // Initialize store on mount
   useEffect(() => {
     const compressedInvoiceDataInUrl = searchParams.get("data");
@@ -60,6 +63,31 @@ export function InvoiceClientPage() {
 
   const handleInvoiceDataChange = (updatedData: InvoiceGenerationData) => {
     setInvoiceData(updatedData);
+  };
+
+  // Handle loading saved invoice - reset both store and form
+  const handleLoadSavedInvoice = (invoiceData: InvoiceGenerationData, invoiceId: string) => {
+    // Update store
+    handleLoadInvoice(invoiceData, invoiceId);
+    // Reset form if reset function is available
+    if (formResetFn) {
+      formResetFn(invoiceData);
+    }
+  };
+
+  // Handle clearing template - reset both store and form
+  const handleClearTemplate = () => {
+    clearInvoice();
+    // Reset form to empty data if reset function is available
+    if (formResetFn) {
+      const emptyData = {
+        ...invoiceData!,
+        seller: { ...invoiceData!.seller, name: "", address: "", email: "" },
+        buyer: { ...invoiceData!.buyer, name: "", address: "", email: "" },
+        items: [{ ...invoiceData!.items[0], name: "", netPrice: 0, amount: 1 }],
+      };
+      formResetFn(emptyData);
+    }
   };
 
   if (isLoading || !isInitialized || !invoiceData) {
@@ -89,7 +117,7 @@ export function InvoiceClientPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={clearInvoice}
+                  onClick={handleClearTemplate}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -100,6 +128,7 @@ export function InvoiceClientPage() {
                 invoiceData={invoiceData}
                 onInvoiceDataChange={handleInvoiceDataChange}
                 setCanShareInvoice={setCanShareInvoice}
+                onFormReset={setFormResetFn}
               />
             </div>
           </div>
@@ -110,7 +139,7 @@ export function InvoiceClientPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">PDF Preview</h2>
                 <div className="flex gap-2">
-                  <SavedInvoicesList onLoadInvoice={handleLoadInvoice} />
+                  <SavedInvoicesList onLoadInvoice={handleLoadSavedInvoice} />
                   <SaveInvoiceButton
                     invoiceData={invoiceData}
                     existingInvoiceId={currentInvoiceId}

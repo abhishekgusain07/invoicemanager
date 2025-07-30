@@ -49,36 +49,104 @@ import type { Prettify, NonReadonly } from "@/types/invoice-generation";
 import { SellerBuyerManagement } from "./seller-buyer-management";
 
 interface InvoiceFormProps {
-  invoiceData: InvoiceGenerationData;
+  invoiceData?: InvoiceGenerationData; // Optional for initial load
   onInvoiceDataChange: (updatedData: InvoiceGenerationData) => void;
   setCanShareInvoice: (canShareInvoice: boolean) => void;
+  onFormReset?: (resetFn: (data: InvoiceGenerationData) => void) => void; // For loading saved invoices
 }
 
 export const InvoiceForm = memo(function InvoiceForm({
   invoiceData,
   onInvoiceDataChange,
   setCanShareInvoice,
+  onFormReset,
 }: InvoiceFormProps) {
   const form = useForm<InvoiceGenerationData>({
     resolver: zodResolver(invoiceGenerationSchema) as any,
-    defaultValues: {
-      ...invoiceData,
-      language: invoiceData.language || "en",
-      dateFormat: invoiceData.dateFormat || "YYYY-MM-DD",
-      currency: invoiceData.currency || "EUR",
+    defaultValues: invoiceData || {
+      language: "en",
+      dateFormat: "YYYY-MM-DD",
+      currency: "EUR",
+      template: "default",
+      logo: "",
+      invoiceNumberObject: {
+        label: "Invoice Number:",
+        value: "INV-001",
+      },
+      dateOfIssue: dayjs().format("YYYY-MM-DD"),
+      dateOfService: dayjs().endOf("month").format("YYYY-MM-DD"),
+      invoiceType: "Invoice",
+      invoiceTypeFieldIsVisible: true,
+      seller: {
+        name: "",
+        address: "",
+        vatNo: "",
+        vatNoFieldIsVisible: true,
+        email: "",
+        accountNumber: "",
+        accountNumberFieldIsVisible: true,
+        swiftBic: "",
+        swiftBicFieldIsVisible: true,
+        notes: "",
+        notesFieldIsVisible: true,
+      },
+      buyer: {
+        name: "",
+        address: "",
+        vatNo: "",
+        vatNoFieldIsVisible: true,
+        email: "",
+        notes: "",
+        notesFieldIsVisible: true,
+      },
+      items: [
+        {
+          invoiceItemNumberIsVisible: true,
+          name: "",
+          nameFieldIsVisible: true,
+          typeOfGTU: "",
+          typeOfGTUFieldIsVisible: true,
+          amount: 1,
+          amountFieldIsVisible: true,
+          unit: "pcs",
+          unitFieldIsVisible: true,
+          netPrice: 0,
+          netPriceFieldIsVisible: true,
+          vat: 0,
+          vatFieldIsVisible: true,
+          netAmount: 0,
+          netAmountFieldIsVisible: true,
+          vatAmount: 0,
+          vatAmountFieldIsVisible: true,
+          preTaxAmount: 0,
+          preTaxAmountFieldIsVisible: true,
+        },
+      ],
+      total: 0,
+      vatTableSummaryIsVisible: true,
+      paymentMethod: "",
+      paymentMethodFieldIsVisible: true,
+      paymentDue: dayjs().add(14, "days").format("YYYY-MM-DD"),
+      stripePayOnlineUrl: "",
+      notes: "",
+      notesFieldIsVisible: true,
+      personAuthorizedToReceiveFieldIsVisible: true,
+      personAuthorizedToIssueFieldIsVisible: true,
     },
     mode: "onChange",
   });
 
-  // Reset form when invoice data changes (from store or external sources)
+  // Only reset form when explicitly loading saved data (not on every change)
+  const resetFormWithData = useCallback((data: InvoiceGenerationData) => {
+    form.reset(data);
+  }, [form]);
+
+  // Expose reset function to parent component for loading saved invoices
   useEffect(() => {
-    form.reset({
-      ...invoiceData,
-      language: invoiceData.language || "en",
-      dateFormat: invoiceData.dateFormat || "YYYY-MM-DD",
-      currency: invoiceData.currency || "EUR",
-    });
-  }, [invoiceData, form]);
+    if (onFormReset) {
+      onFormReset(resetFormWithData);
+    }
+  }, [onFormReset, resetFormWithData]);
 
   const {
     control,
@@ -88,12 +156,18 @@ export const InvoiceForm = memo(function InvoiceForm({
     watch,
   } = form;
 
+  // Watch ALL form values for real-time preview
+  const formValues = useWatch({ control });
+  
+  // Individual watches for specific logic
   const currency = useWatch({ control, name: "currency" });
   const invoiceItems = useWatch({ control, name: "items" });
   const dateOfIssue = useWatch({ control, name: "dateOfIssue" });
   const paymentDue = useWatch({ control, name: "paymentDue" });
   const language = useWatch({ control, name: "language" });
   const selectedDateFormat = useWatch({ control, name: "dateFormat" });
+  const template = useWatch({ control, name: "template" });
+  const logo = useWatch({ control, name: "logo" });
 
   const isPaymentDueBeforeDateOfIssue = dayjs(paymentDue).isBefore(
     dayjs(dateOfIssue)
@@ -152,32 +226,24 @@ export const InvoiceForm = memo(function InvoiceForm({
     });
   }, [invoiceItems, setValue]);
 
-  // Regenerate PDF on every input change with debounce
-  const debouncedRegeneratePdfOnFormChange = useDebouncedCallback(
+  // Real-time preview updates with debounce
+  const debouncedUpdatePreview = useDebouncedCallback(
     (data: InvoiceGenerationData) => {
       try {
-        // Always call onSubmit to update the PDF preview, even with validation errors
-        onSubmit(data);
+        onInvoiceDataChange(data);
       } catch (error) {
-        console.error("Error in form change handler:", error);
+        console.error("Error updating preview:", error);
       }
     },
     DEBOUNCE_TIMEOUT
   );
 
-  // Subscribe to form changes to regenerate PDF on every input change
+  // Update preview when form values change
   useEffect(() => {
-    const subscription = watch((value) => {
-      debouncedRegeneratePdfOnFormChange(
-        value as unknown as InvoiceGenerationData
-      );
-    });
-
-    return () => subscription.unsubscribe();
-  }, [debouncedRegeneratePdfOnFormChange, watch]);
-
-  const template = useWatch({ control, name: "template" });
-  const logo = useWatch({ control, name: "logo" });
+    if (formValues) {
+      debouncedUpdatePreview(formValues as InvoiceGenerationData);
+    }
+  }, [formValues, debouncedUpdatePreview]);
 
   // Disable sharing when Stripe template contains a logo
   useEffect(() => {
@@ -188,10 +254,9 @@ export const InvoiceForm = memo(function InvoiceForm({
   const handleRemoveItem = useCallback(
     (index: number) => {
       remove(index);
-      const currentFormData = watch();
-      debouncedRegeneratePdfOnFormChange(currentFormData);
+      // Form values will automatically update and trigger preview update
     },
-    [remove, watch, debouncedRegeneratePdfOnFormChange]
+    [remove]
   );
 
   const onSubmit = (data: InvoiceGenerationData) => {
@@ -285,29 +350,47 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="invoiceNumber">Invoice Number</Label>
-        <Input
-          {...form.register("invoiceNumberObject.value")}
-          id="invoiceNumber"
-          placeholder="INV-001"
+        <Controller
+          name="invoiceNumberObject.value"
+          control={control}
+          render={({ field }) => (
+            <Input
+              {...field}
+              id="invoiceNumber"
+              placeholder="INV-001"
+            />
+          )}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="dateOfIssue">Date of Issue</Label>
-          <Input
-            {...form.register("dateOfIssue")}
-            id="dateOfIssue"
-            type="date"
+          <Controller
+            name="dateOfIssue"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="dateOfIssue"
+                type="date"
+              />
+            )}
           />
         </div>
 
         <div>
           <Label htmlFor="dateOfService">Date of Service</Label>
-          <Input
-            {...form.register("dateOfService")}
-            id="dateOfService"
-            type="date"
+          <Controller
+            name="dateOfService"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="dateOfService"
+                type="date"
+              />
+            )}
           />
         </div>
       </div>
@@ -330,16 +413,22 @@ export const InvoiceForm = memo(function InvoiceForm({
             setValue("seller.swiftBic", sellerData.swiftBic || "");
             setValue("seller.notes", sellerData.notes || "");
           }}
-          currentData={invoiceData.seller}
+          currentData={invoiceData?.seller}
         />
       </div>
       
       <div>
         <Label htmlFor="sellerName">Seller Name *</Label>
-        <Input
-          {...form.register("seller.name")}
-          id="sellerName"
-          placeholder="Your Company Name"
+        <Controller
+          name="seller.name"
+          control={control}
+          render={({ field }) => (
+            <Input
+              {...field}
+              id="sellerName"
+              placeholder="Your Company Name"
+            />
+          )}
         />
         {errors.seller?.name && (
           <p className="text-sm text-red-600 mt-1">
@@ -350,11 +439,17 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="sellerAddress">Seller Address *</Label>
-        <Textarea
-          {...form.register("seller.address")}
-          id="sellerAddress"
-          placeholder="123 Business St, City, Country"
-          rows={3}
+        <Controller
+          name="seller.address"
+          control={control}
+          render={({ field }) => (
+            <Textarea
+              {...field}
+              id="sellerAddress"
+              placeholder="123 Business St, City, Country"
+              rows={3}
+            />
+          )}
         />
         {errors.seller?.address && (
           <p className="text-sm text-red-600 mt-1">
@@ -365,11 +460,17 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="sellerEmail">Seller Email *</Label>
-        <Input
-          {...form.register("seller.email")}
-          id="sellerEmail"
-          type="email"
-          placeholder="contact@company.com"
+        <Controller
+          name="seller.email"
+          control={control}
+          render={({ field }) => (
+            <Input
+              {...field}
+              id="sellerEmail"
+              type="email"
+              placeholder="contact@company.com"
+            />
+          )}
         />
         {errors.seller?.email && (
           <p className="text-sm text-red-600 mt-1">
@@ -394,16 +495,22 @@ export const InvoiceForm = memo(function InvoiceForm({
             setValue("buyer.vatNo", buyerData.vatNo || "");
             setValue("buyer.notes", buyerData.notes || "");
           }}
-          currentData={invoiceData.buyer}
+          currentData={invoiceData?.buyer}
         />
       </div>
 
       <div>
         <Label htmlFor="buyerName">Buyer Name *</Label>
-        <Input
-          {...form.register("buyer.name")}
-          id="buyerName"
-          placeholder="Client Company Name"
+        <Controller
+          name="buyer.name"
+          control={control}
+          render={({ field }) => (
+            <Input
+              {...field}
+              id="buyerName"
+              placeholder="Client Company Name"
+            />
+          )}
         />
         {errors.buyer?.name && (
           <p className="text-sm text-red-600 mt-1">
@@ -414,11 +521,17 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="buyerAddress">Buyer Address *</Label>
-        <Textarea
-          {...form.register("buyer.address")}
-          id="buyerAddress"
-          placeholder="456 Client Ave, City, Country"
-          rows={3}
+        <Controller
+          name="buyer.address"
+          control={control}
+          render={({ field }) => (
+            <Textarea
+              {...field}
+              id="buyerAddress"
+              placeholder="456 Client Ave, City, Country"
+              rows={3}
+            />
+          )}
         />
         {errors.buyer?.address && (
           <p className="text-sm text-red-600 mt-1">
@@ -429,11 +542,17 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="buyerEmail">Buyer Email *</Label>
-        <Input
-          {...form.register("buyer.email")}
-          id="buyerEmail"
-          type="email"
-          placeholder="client@company.com"
+        <Controller
+          name="buyer.email"
+          control={control}
+          render={({ field }) => (
+            <Input
+              {...field}
+              id="buyerEmail"
+              type="email"
+              placeholder="client@company.com"
+            />
+          )}
         />
         {errors.buyer?.email && (
           <p className="text-sm text-red-600 mt-1">
@@ -472,22 +591,35 @@ export const InvoiceForm = memo(function InvoiceForm({
               <Label htmlFor={`item-${index}-name`}>
                 Item Name *
               </Label>
-              <Input
-                {...form.register(`items.${index}.name`)}
-                id={`item-${index}-name`}
-                placeholder="Service or product name"
+              <Controller
+                name={`items.${index}.name`}
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    id={`item-${index}-name`}
+                    placeholder="Service or product name"
+                  />
+                )}
               />
             </div>
 
             <div>
               <Label htmlFor={`item-${index}-amount`}>Amount *</Label>
-              <Input
-                {...form.register(`items.${index}.amount`, { valueAsNumber: true })}
-                id={`item-${index}-amount`}
-                type="number"
-                min="1"
-                step="1"
-                placeholder="1"
+              <Controller
+                name={`items.${index}.amount`}
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                    id={`item-${index}-amount`}
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="1"
+                  />
+                )}
               />
             </div>
 
@@ -495,26 +627,40 @@ export const InvoiceForm = memo(function InvoiceForm({
               <Label htmlFor={`item-${index}-netPrice`}>
                 Net Price *
               </Label>
-              <Input
-                {...form.register(`items.${index}.netPrice`, { valueAsNumber: true })}
-                id={`item-${index}-netPrice`}
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
+              <Controller
+                name={`items.${index}.netPrice`}
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                    id={`item-${index}-netPrice`}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                )}
               />
             </div>
 
             <div>
               <Label htmlFor={`item-${index}-vat`}>VAT (%)</Label>
-              <Input
-                {...form.register(`items.${index}.vat`, { valueAsNumber: true })}
-                id={`item-${index}-vat`}
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                placeholder="0"
+              <Controller
+                name={`items.${index}.vat`}
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                    id={`item-${index}-vat`}
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="0"
+                  />
+                )}
               />
             </div>
           </div>
@@ -579,19 +725,31 @@ export const InvoiceForm = memo(function InvoiceForm({
 
         <div>
           <Label htmlFor="paymentMethod">Payment Method</Label>
-          <Input
-            {...form.register("paymentMethod")}
-            id="paymentMethod"
-            placeholder="Bank Transfer, Credit Card, etc."
+          <Controller
+            name="paymentMethod"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="paymentMethod"
+                placeholder="Bank Transfer, Credit Card, etc."
+              />
+            )}
           />
         </div>
 
         <div>
           <Label htmlFor="paymentDue">Payment Due</Label>
-          <Input
-            {...form.register("paymentDue")}
-            id="paymentDue"
-            type="date"
+          <Controller
+            name="paymentDue"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="paymentDue"
+                type="date"
+              />
+            )}
           />
           {isPaymentDueBeforeDateOfIssue && (
             <p className="text-sm text-amber-600 mt-1">
@@ -602,11 +760,17 @@ export const InvoiceForm = memo(function InvoiceForm({
 
         <div>
           <Label htmlFor="notes">Notes</Label>
-          <Textarea
-            {...form.register("notes")}
-            id="notes"
-            rows={3}
-            placeholder="Additional notes or terms..."
+          <Controller
+            name="notes"
+            control={control}
+            render={({ field }) => (
+              <Textarea
+                {...field}
+                id="notes"
+                rows={3}
+                placeholder="Additional notes or terms..."
+              />
+            )}
           />
         </div>
       </div>
