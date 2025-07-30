@@ -70,21 +70,15 @@ export const InvoiceForm = memo(function InvoiceForm({
     mode: "onChange",
   });
 
-  // Update form values when invoiceData changes (but prevent infinite loops)
+  // Reset form when invoice data changes (from store or external sources)
   useEffect(() => {
-    // Only reset if the invoiceData has actually changed meaningfully
-    const currentValues = form.getValues();
-    const hasChanged = JSON.stringify(currentValues) !== JSON.stringify(invoiceData);
-    
-    if (hasChanged) {
-      form.reset({
-        ...invoiceData,
-        language: invoiceData.language || "en",
-        dateFormat: invoiceData.dateFormat || "YYYY-MM-DD",
-        currency: invoiceData.currency || "EUR",
-      });
-    }
-  }, [invoiceData]); // Removed form from dependencies to prevent loops
+    form.reset({
+      ...invoiceData,
+      language: invoiceData.language || "en",
+      dateFormat: invoiceData.dateFormat || "YYYY-MM-DD",
+      currency: invoiceData.currency || "EUR",
+    });
+  }, [invoiceData, form]);
 
   const {
     control,

@@ -1,11 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { InvoiceForm } from "./invoice-form";
 import dynamic from "next/dynamic";
+import {
+  useInvoiceData,
+  useIsLoading,
+  useCanShareInvoice,
+  useCurrentInvoiceId,
+  useIsInitialized,
+  useInvoiceActions,
+} from "@/stores/invoice-store";
+import type { InvoiceGenerationData } from "@/lib/validations/invoice-generation";
 
 const PDFPreview = dynamic(
   () => import("./pdf-preview").then((mod) => ({ default: mod.PDFPreview })),
@@ -22,128 +31,38 @@ import { PDFDownloadButton } from "./pdf-download-button";
 import { ShareInvoiceButton } from "./share-invoice-button";
 import { SaveInvoiceButton } from "./save-invoice-button";
 import { SavedInvoicesList } from "./saved-invoices-list";
-import { INITIAL_INVOICE_DATA, EMPTY_INVOICE_DATA } from "../constants";
-import { PDF_DATA_LOCAL_STORAGE_KEY } from "@/lib/validations/invoice-generation";
-import {
-  invoiceGenerationSchema,
-  type InvoiceGenerationData,
-} from "@/lib/validations/invoice-generation";
-import { toast } from "sonner";
-import { decompressFromEncodedURIComponent } from "lz-string";
 
 export function InvoiceClientPage() {
-  const [invoiceDataState, setInvoiceDataState] =
-    useState<InvoiceGenerationData | null>(null);
-  const [canShareInvoice, setCanShareInvoice] = useState(true);
-  const [currentInvoiceId, setCurrentInvoiceId] = useState<string | undefined>(
-    undefined
-  );
   const searchParams = useSearchParams();
-  const router = useRouter();
+  
+  // Zustand store hooks
+  const invoiceData = useInvoiceData();
+  const isLoading = useIsLoading();
+  const canShareInvoice = useCanShareInvoice();
+  const currentInvoiceId = useCurrentInvoiceId();
+  const isInitialized = useIsInitialized();
+  const {
+    setInvoiceData,
+    setCanShareInvoice,
+    clearInvoice,
+    initializeStore,
+    handleInvoiceSaved,
+    handleLoadInvoice,
+  } = useInvoiceActions();
 
-  // Initialize data from URL or localStorage on mount
+  // Initialize store on mount
   useEffect(() => {
     const compressedInvoiceDataInUrl = searchParams.get("data");
+    initializeStore(compressedInvoiceDataInUrl || undefined);
+  }, [searchParams, initializeStore]);
 
-    // First try to load from URL
-    if (compressedInvoiceDataInUrl) {
-      try {
-        const decompressed = decompressFromEncodedURIComponent(
-          compressedInvoiceDataInUrl
-        );
-        const parsedJSON: unknown = JSON.parse(decompressed);
-        const validated = invoiceGenerationSchema.parse(parsedJSON);
-        setInvoiceDataState(validated);
 
-        toast.info("Invoice loaded from shared link!", {
-          description: "You can now edit and customize this invoice",
-        });
-      } catch (error) {
-        console.error("Failed to parse URL data:", error);
-        toast.error("Failed to load shared invoice data", {
-          description: "Loading default invoice instead",
-        });
-        loadFromLocalStorage();
-      }
-    } else {
-      // If no data in URL, load from localStorage
-      loadFromLocalStorage();
-    }
-  }, [searchParams]);
-
-  // Helper function to load from localStorage
-  const loadFromLocalStorage = () => {
-    try {
-      const savedData = localStorage.getItem(PDF_DATA_LOCAL_STORAGE_KEY);
-      if (savedData) {
-        const json: unknown = JSON.parse(savedData);
-        const parsedData = invoiceGenerationSchema.parse(json);
-        setInvoiceDataState(parsedData);
-      } else {
-        setInvoiceDataState(INITIAL_INVOICE_DATA);
-      }
-    } catch (error) {
-      console.error("Failed to load saved invoice data:", error);
-      setInvoiceDataState(INITIAL_INVOICE_DATA);
-      toast.error(
-        "Unable to load your saved invoice data. Starting with default values.",
-        {
-          duration: 5000,
-        }
-      );
-    }
-  };
-
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    if (invoiceDataState) {
-      try {
-        // Use safeParse to avoid throwing errors on invalid data
-        const validationResult = invoiceGenerationSchema.safeParse(invoiceDataState);
-        if (validationResult.success) {
-          localStorage.setItem(
-            PDF_DATA_LOCAL_STORAGE_KEY,
-            JSON.stringify(validationResult.data)
-          );
-        } else {
-          // Just save the raw data without validation - user might be in the middle of typing
-          localStorage.setItem(
-            PDF_DATA_LOCAL_STORAGE_KEY,
-            JSON.stringify(invoiceDataState)
-          );
-        }
-      } catch (error) {
-        console.error("Failed to save invoice data:", error);
-        // Only show toast for actual save failures, not validation errors
-      }
-    }
-  }, [invoiceDataState]);
 
   const handleInvoiceDataChange = (updatedData: InvoiceGenerationData) => {
-    setInvoiceDataState(updatedData);
+    setInvoiceData(updatedData);
   };
 
-  const handleLoadInvoice = (
-    invoiceData: InvoiceGenerationData,
-    invoiceId: string
-  ) => {
-    setInvoiceDataState(invoiceData);
-    setCurrentInvoiceId(invoiceId);
-  };
-
-  const handleInvoiceSaved = (invoiceId: string) => {
-    setCurrentInvoiceId(invoiceId);
-  };
-
-  const handleClearTemplate = () => {
-    setInvoiceDataState(EMPTY_INVOICE_DATA);
-    setCurrentInvoiceId(undefined);
-    toast.success("Invoice template cleared", {
-      description: "All fields have been reset to empty values",
-    });
-  };
-
-  if (!invoiceDataState) {
+  if (isLoading || !isInitialized || !invoiceData) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
@@ -170,7 +89,7 @@ export function InvoiceClientPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleClearTemplate}
+                  onClick={clearInvoice}
                   className="text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -178,7 +97,7 @@ export function InvoiceClientPage() {
                 </Button>
               </div>
               <InvoiceForm
-                invoiceData={invoiceDataState}
+                invoiceData={invoiceData}
                 onInvoiceDataChange={handleInvoiceDataChange}
                 setCanShareInvoice={setCanShareInvoice}
               />
@@ -193,35 +112,35 @@ export function InvoiceClientPage() {
                 <div className="flex gap-2">
                   <SavedInvoicesList onLoadInvoice={handleLoadInvoice} />
                   <SaveInvoiceButton
-                    invoiceData={invoiceDataState}
+                    invoiceData={invoiceData}
                     existingInvoiceId={currentInvoiceId}
                     onSaved={handleInvoiceSaved}
                     disabled={
-                      !invoiceDataState.seller.name ||
-                      !invoiceDataState.buyer.name ||
-                      invoiceDataState.items.length === 0
+                      !invoiceData.seller.name ||
+                      !invoiceData.buyer.name ||
+                      invoiceData.items.length === 0
                     }
                   />
                   <ShareInvoiceButton
-                    invoiceData={invoiceDataState}
+                    invoiceData={invoiceData}
                     canShareInvoice={canShareInvoice}
                     disabled={
-                      !invoiceDataState.seller.name ||
-                      !invoiceDataState.buyer.name ||
-                      invoiceDataState.items.length === 0
+                      !invoiceData.seller.name ||
+                      !invoiceData.buyer.name ||
+                      invoiceData.items.length === 0
                     }
                   />
                   <PDFDownloadButton
-                    invoiceData={invoiceDataState}
+                    invoiceData={invoiceData}
                     disabled={
-                      !invoiceDataState.seller.name ||
-                      !invoiceDataState.buyer.name ||
-                      invoiceDataState.items.length === 0
+                      !invoiceData.seller.name ||
+                      !invoiceData.buyer.name ||
+                      invoiceData.items.length === 0
                     }
                   />
                 </div>
               </div>
-              <PDFPreview invoiceData={invoiceDataState} />
+              <PDFPreview invoiceData={invoiceData} />
             </div>
           </div>
         </div>
