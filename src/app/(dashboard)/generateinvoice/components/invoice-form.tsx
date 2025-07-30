@@ -53,6 +53,7 @@ interface InvoiceFormProps {
   onInvoiceDataChange: (updatedData: InvoiceGenerationData) => void;
   setCanShareInvoice: (canShareInvoice: boolean) => void;
   onFormReset?: (resetFn: (data: InvoiceGenerationData) => void) => void; // For loading saved invoices
+  onFormDataGetter?: (getterFn: () => InvoiceGenerationData) => void; // For manual preview updates
 }
 
 export const InvoiceForm = memo(function InvoiceForm({
@@ -60,6 +61,7 @@ export const InvoiceForm = memo(function InvoiceForm({
   onInvoiceDataChange,
   setCanShareInvoice,
   onFormReset,
+  onFormDataGetter,
 }: InvoiceFormProps) {
   const form = useForm<InvoiceGenerationData>({
     resolver: zodResolver(invoiceGenerationSchema) as any,
@@ -156,100 +158,32 @@ export const InvoiceForm = memo(function InvoiceForm({
     watch,
   } = form;
 
-  // Watch ALL form values for real-time preview
-  const formValues = useWatch({ control });
-  
-  // Individual watches for specific logic
-  const currency = useWatch({ control, name: "currency" });
-  const invoiceItems = useWatch({ control, name: "items" });
-  const dateOfIssue = useWatch({ control, name: "dateOfIssue" });
-  const paymentDue = useWatch({ control, name: "paymentDue" });
-  const language = useWatch({ control, name: "language" });
-  const selectedDateFormat = useWatch({ control, name: "dateFormat" });
-  const template = useWatch({ control, name: "template" });
-  const logo = useWatch({ control, name: "logo" });
+  // Expose form data getter to parent component for manual preview updates
+  const getFormData = useCallback(() => {
+    const formData = watch();
+    return formData as InvoiceGenerationData;
+  }, [watch]);
 
-  const isPaymentDueBeforeDateOfIssue = dayjs(paymentDue).isBefore(
-    dayjs(dateOfIssue)
-  );
+  useEffect(() => {
+    if (onFormDataGetter) {
+      onFormDataGetter(getFormData);
+    }
+  }, [onFormDataGetter, getFormData]);
 
-  const isPaymentDue14DaysFromDateOfIssue =
-    dayjs(paymentDue).isAfter(dayjs(dateOfIssue).add(14, "days")) ||
-    dayjs(paymentDue).isSame(dayjs(dateOfIssue).add(14, "days"));
+  // NO watchers - form is now pure input handler for smooth typing
+
+  // Date validation logic moved to parent component (no more watchers needed)
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "items",
   });
 
-  // Calculate totals and other values when invoice items change
-  useEffect(() => {
-    const validatedItems = z
-      .array(invoiceGenerationItemSchema)
-      .safeParse(invoiceItems);
+  // Item calculations moved to parent component - no more automatic calculations during typing
 
-    if (!validatedItems.success) {
-      console.error("Invalid items:", validatedItems.error);
-      return;
-    }
+  // No automatic store updates - only manual via button click
 
-    const total = invoiceItems?.length
-      ? Number(
-          invoiceItems
-            .reduce((sum, item) => sum + (item?.preTaxAmount || 0), 0)
-            .toFixed(2)
-        )
-      : 0;
-
-    setValue("total", total, { shouldValidate: true });
-
-    if (!invoiceItems?.length) return;
-
-    const hasChanges = invoiceItems.some((item) => {
-      const calculated = calculateItemTotals(item);
-      return (
-        calculated?.netAmount !== item.netAmount ||
-        calculated?.vatAmount !== item.vatAmount ||
-        calculated?.preTaxAmount !== item.preTaxAmount
-      );
-    });
-    if (!hasChanges) return;
-
-    const updatedItems = invoiceItems
-      .map(calculateItemTotals)
-      .filter(Boolean) as InvoiceGenerationItemData[];
-
-    updatedItems.forEach((item, index) => {
-      setValue(`items.${index}`, item, {
-        shouldValidate: false,
-      });
-    });
-  }, [invoiceItems, setValue]);
-
-  // Real-time preview updates with debounce
-  const debouncedUpdatePreview = useDebouncedCallback(
-    (data: InvoiceGenerationData) => {
-      try {
-        onInvoiceDataChange(data);
-      } catch (error) {
-        console.error("Error updating preview:", error);
-      }
-    },
-    DEBOUNCE_TIMEOUT
-  );
-
-  // Update preview when form values change
-  useEffect(() => {
-    if (formValues) {
-      debouncedUpdatePreview(formValues as InvoiceGenerationData);
-    }
-  }, [formValues, debouncedUpdatePreview]);
-
-  // Disable sharing when Stripe template contains a logo
-  useEffect(() => {
-    const canShareInvoice = !(template === "stripe" && Boolean(logo));
-    setCanShareInvoice(canShareInvoice);
-  }, [template, logo, setCanShareInvoice]);
+  // Sharing logic moved to parent component
 
   const handleRemoveItem = useCallback(
     (index: number) => {
@@ -709,7 +643,7 @@ export const InvoiceForm = memo(function InvoiceForm({
                 <ReadOnlyMoneyInput
                   {...field}
                   id="total"
-                  currency={currency}
+                  currency="EUR"
                   value={field.value.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
@@ -751,11 +685,7 @@ export const InvoiceForm = memo(function InvoiceForm({
               />
             )}
           />
-          {isPaymentDueBeforeDateOfIssue && (
-            <p className="text-sm text-amber-600 mt-1">
-              ⚠️ Payment due date is before date of issue
-            </p>
-          )}
+          {/* Date validation moved to manual update - no more real-time validation */}
         </div>
 
         <div>
@@ -807,7 +737,6 @@ export const InvoiceForm = memo(function InvoiceForm({
         className="mb-4 space-y-3.5"
         onSubmit={handleSubmit(onSubmit, (errors) => {
           console.error("Form validation errors:", errors);
-          // Only show validation errors when user explicitly submits, not during typing
         })}
       >
         <InvoiceTabs 

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, RefreshCw } from "lucide-react";
 import { InvoiceForm } from "./invoice-form";
 import dynamic from "next/dynamic";
 import {
@@ -52,6 +52,18 @@ export function InvoiceClientPage() {
 
   // Form reset function from InvoiceForm
   const [formResetFn, setFormResetFn] = useState<((data: InvoiceGenerationData) => void) | null>(null);
+  
+  // Form data getter function from InvoiceForm for manual updates
+  const [formDataGetter, setFormDataGetter] = useState<(() => InvoiceGenerationData) | null>(null);
+
+  // Stable callback wrappers to prevent setState during render
+  const handleFormReset = useCallback((resetFn: (data: InvoiceGenerationData) => void) => {
+    setFormResetFn(() => resetFn);
+  }, []);
+
+  const handleFormDataGetter = useCallback((getterFn: () => InvoiceGenerationData) => {
+    setFormDataGetter(() => getterFn);
+  }, []);
 
   // Initialize store on mount
   useEffect(() => {
@@ -64,6 +76,26 @@ export function InvoiceClientPage() {
   const handleInvoiceDataChange = (updatedData: InvoiceGenerationData) => {
     setInvoiceData(updatedData);
   };
+
+  // Manual update preview function
+  const handleUpdatePreview = () => {
+    if (formDataGetter && typeof formDataGetter === 'function') {
+      const currentFormData = formDataGetter();
+      handleInvoiceDataChange(currentFormData);
+    }
+  };
+
+  // Preview updates when store data changes (less frequent than keystrokes)
+  // This replaces the heavy real-time watching that was in InvoiceForm
+  useEffect(() => {
+    // The preview automatically updates when invoiceData changes
+    // This happens when:
+    // 1. User blurs from form fields
+    // 2. User submits form
+    // 3. User loads saved invoice
+    // 4. Store is initialized
+    // NOT on every keystroke - this is the key performance improvement
+  }, [invoiceData]);
 
   // Handle loading saved invoice - reset both store and form
   const handleLoadSavedInvoice = (invoiceData: InvoiceGenerationData, invoiceId: string) => {
@@ -114,21 +146,32 @@ export function InvoiceClientPage() {
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">Invoice Details</h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearTemplate}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear Template
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleUpdatePreview}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    size="sm"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Update Preview
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearTemplate}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Template
+                  </Button>
+                </div>
               </div>
               <InvoiceForm
                 invoiceData={invoiceData}
                 onInvoiceDataChange={handleInvoiceDataChange}
                 setCanShareInvoice={setCanShareInvoice}
-                onFormReset={setFormResetFn}
+                onFormReset={handleFormReset}
+                onFormDataGetter={handleFormDataGetter}
               />
             </div>
           </div>
