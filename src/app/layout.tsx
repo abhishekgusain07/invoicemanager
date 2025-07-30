@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { PostHogProvider } from "../components/PostHogProvider";
+import { TRPCReactProvider } from "@/lib/trpc";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,10 +15,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <PostHogProvider>
-          <Toaster />
-          {children}
-        </PostHogProvider>
+        <TRPCReactProvider>
+          <PostHogProvider>
+            <Toaster />
+            {children}
+          </PostHogProvider>
+        </TRPCReactProvider>
       </body>
     </html>
   );

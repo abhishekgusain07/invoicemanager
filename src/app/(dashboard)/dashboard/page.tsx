@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
-import { getInvoiceStats, getMonthlyInvoiceData } from "@/actions/invoice";
+import { api } from "@/lib/trpc";
 import { toast } from "sonner";
 
 // Default chart data structure
@@ -43,48 +43,33 @@ const defaultStats = {
 export default function DashboardPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [invoiceStats, setInvoiceStats] = useState(defaultStats);
-  const [chartData, setChartData] = useState(defaultChartData);
   const [selectedPeriod, setSelectedPeriod] = useState("all");
+  
+  // Use tRPC query for dashboard data
+  const { 
+    data: dashboardData, 
+    isLoading, 
+    error, 
+    refetch: refetchDashboardData 
+  } = api.dashboard.getAllDashboardData.useQuery(
+    undefined, // no input needed
+    {
+      enabled: !isUserLoading && !!user, // Only run when user is loaded
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    }
+  );
 
+  // Extract data with fallbacks
+  const invoiceStats = dashboardData?.stats || defaultStats;
+  const chartData = dashboardData?.monthlyData || defaultChartData;
   const hasInvoices = invoiceStats.recentInvoices.length > 0;
 
-  // Fetch dashboard data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (isUserLoading || !user) return;
-
-      setIsLoading(true);
-      try {
-        // Fetch stats and chart data in parallel
-        const [stats, monthlyData] = await Promise.all([
-          getInvoiceStats(),
-          getMonthlyInvoiceData(),
-        ]);
-
-        setInvoiceStats({
-          ...defaultStats,
-          pendingInvoices: Number(stats.pendingInvoices),
-          overdueInvoices: Number(stats.overdueInvoices),
-          paidInvoices: Number(stats.paidInvoices),
-          outstandingAmount: stats.outstandingAmount,
-          recentInvoices: stats.recentInvoices || [],
-        });
-
-        if (monthlyData?.length > 0) {
-          setChartData(monthlyData);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        toast.error("Failed to load dashboard data");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [user, isUserLoading]);
+  // Handle errors
+  if (error) {
+    console.error("Error fetching dashboard data:", error);
+    toast.error("Failed to load dashboard data");
+  }
 
   // Format status for display
   const getStatusBadge = (status: string) => {
@@ -452,19 +437,8 @@ export default function DashboardPage() {
         <CreateInvoiceForm
           onClose={() => {
             setIsModalOpen(false);
-            // Re-fetch data when modal is closed to update with new invoice
-            if (!isUserLoading && user) {
-              Promise.all([getInvoiceStats(), getMonthlyInvoiceData()])
-                .then(([stats, monthlyData]) => {
-                  setInvoiceStats(stats);
-                  if (monthlyData?.length > 0) {
-                    setChartData(monthlyData);
-                  }
-                })
-                .catch((error) => {
-                  console.error("Error refreshing data:", error);
-                });
-            }
+            // Invalidate and refetch dashboard data when modal is closed
+            refetchDashboardData();
           }}
         />
       )}
