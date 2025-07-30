@@ -274,7 +274,7 @@ export const InvoicePaymentTotals = memo(function InvoicePaymentTotals({
             invoiceData.paymentMethodFieldIsVisible && (
               <View style={[PDF_DEFAULT_TEMPLATE_STYLES.mt3]}>
                 <Text style={[PDF_DEFAULT_TEMPLATE_STYLES.smallText]}>
-                  Payment Method: {invoiceData.paymentMethod}
+                  Payment Method: {invoiceData.paymentMethod || "[Payment Method]"}
                 </Text>
               </View>
             )}

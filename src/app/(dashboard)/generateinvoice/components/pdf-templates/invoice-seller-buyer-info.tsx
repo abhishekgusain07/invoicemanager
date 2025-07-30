@@ -30,7 +30,7 @@ export const InvoiceSellerBuyerInfo = memo(function InvoiceSellerBuyerInfo({
             PDF_DEFAULT_TEMPLATE_STYLES.mt2,
           ]}
         >
-          {invoiceData.seller.name}
+          {invoiceData.seller.name || "[Seller Name]"}
         </Text>
 
         <Text
@@ -39,7 +39,7 @@ export const InvoiceSellerBuyerInfo = memo(function InvoiceSellerBuyerInfo({
             PDF_DEFAULT_TEMPLATE_STYLES.mt1,
           ]}
         >
-          {invoiceData.seller.address}
+          {invoiceData.seller.address || "[Seller Address]"}
         </Text>
 
         <Text
@@ -48,7 +48,7 @@ export const InvoiceSellerBuyerInfo = memo(function InvoiceSellerBuyerInfo({
             PDF_DEFAULT_TEMPLATE_STYLES.mt1,
           ]}
         >
-          Email: {invoiceData.seller.email}
+          Email: {invoiceData.seller.email || "[seller@company.com]"}
         </Text>
 
         {invoiceData.seller.vatNo && invoiceData.seller.vatNoFieldIsVisible && (
@@ -103,7 +103,7 @@ export const InvoiceSellerBuyerInfo = memo(function InvoiceSellerBuyerInfo({
             PDF_DEFAULT_TEMPLATE_STYLES.mt2,
           ]}
         >
-          {invoiceData.buyer.name}
+          {invoiceData.buyer.name || "[Buyer Name]"}
         </Text>
 
         <Text
@@ -112,7 +112,7 @@ export const InvoiceSellerBuyerInfo = memo(function InvoiceSellerBuyerInfo({
             PDF_DEFAULT_TEMPLATE_STYLES.mt1,
           ]}
         >
-          {invoiceData.buyer.address}
+          {invoiceData.buyer.address || "[Buyer Address]"}
         </Text>
 
         <Text
@@ -121,7 +121,7 @@ export const InvoiceSellerBuyerInfo = memo(function InvoiceSellerBuyerInfo({
             PDF_DEFAULT_TEMPLATE_STYLES.mt1,
           ]}
         >
-          Email: {invoiceData.buyer.email}
+          Email: {invoiceData.buyer.email || "[buyer@company.com]"}
         </Text>
 
         {invoiceData.buyer.vatNo && invoiceData.buyer.vatNoFieldIsVisible && (

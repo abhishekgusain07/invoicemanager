@@ -84,6 +84,89 @@ export const INITIAL_INVOICE_DATA: InvoiceGenerationData = {
   personAuthorizedToIssueFieldIsVisible: true,
 };
 
+export const EMPTY_INVOICE_DATA: InvoiceGenerationData = {
+  language: "en",
+  dateFormat: "YYYY-MM-DD",
+  currency: "EUR",
+  template: "default",
+  logo: "",
+
+  invoiceNumberObject: {
+    label: "Invoice Number:",
+    value: "INV-000",
+  },
+
+  dateOfIssue: dayjs().format("YYYY-MM-DD"),
+  dateOfService: dayjs().endOf("month").format("YYYY-MM-DD"),
+
+  invoiceType: "Invoice",
+  invoiceTypeFieldIsVisible: true,
+
+  seller: {
+    name: "[Your Company Name]",
+    address: "[Your Company Address]",
+    vatNo: "",
+    vatNoFieldIsVisible: true,
+    email: "your-email@company.com",
+    accountNumber: "",
+    accountNumberFieldIsVisible: true,
+    swiftBic: "",
+    swiftBicFieldIsVisible: true,
+    notes: "",
+    notesFieldIsVisible: true,
+  },
+
+  buyer: {
+    name: "[Client Company Name]",
+    address: "[Client Company Address]",
+    vatNo: "",
+    vatNoFieldIsVisible: true,
+    email: "client@company.com",
+    notes: "",
+    notesFieldIsVisible: true,
+  },
+
+  items: [
+    {
+      invoiceItemNumberIsVisible: true,
+      name: "[Service/Product Name]",
+      nameFieldIsVisible: true,
+      typeOfGTU: "",
+      typeOfGTUFieldIsVisible: true,
+      amount: 1,
+      amountFieldIsVisible: true,
+      unit: "pcs",
+      unitFieldIsVisible: true,
+      netPrice: 0,
+      netPriceFieldIsVisible: true,
+      vat: 0,
+      vatFieldIsVisible: true,
+      netAmount: 0,
+      netAmountFieldIsVisible: true,
+      vatAmount: 0,
+      vatAmountFieldIsVisible: true,
+      preTaxAmount: 0,
+      preTaxAmountFieldIsVisible: true,
+    },
+  ],
+
+  total: 0,
+  vatTableSummaryIsVisible: true,
+
+  paymentMethod: "",
+  paymentMethodFieldIsVisible: true,
+
+  paymentDue: dayjs().add(14, "days").format("YYYY-MM-DD"),
+
+  stripePayOnlineUrl: "",
+
+  notes: "",
+  notesFieldIsVisible: true,
+
+  personAuthorizedToReceiveFieldIsVisible: true,
+  personAuthorizedToIssueFieldIsVisible: true,
+};
+
 export const DEFAULT_ACCORDION_VALUES = [
   "general",
   "seller",

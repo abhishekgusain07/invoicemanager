@@ -70,6 +70,22 @@ export const InvoiceForm = memo(function InvoiceForm({
     mode: "onChange",
   });
 
+  // Update form values when invoiceData changes (but prevent infinite loops)
+  useEffect(() => {
+    // Only reset if the invoiceData has actually changed meaningfully
+    const currentValues = form.getValues();
+    const hasChanged = JSON.stringify(currentValues) !== JSON.stringify(invoiceData);
+    
+    if (hasChanged) {
+      form.reset({
+        ...invoiceData,
+        language: invoiceData.language || "en",
+        dateFormat: invoiceData.dateFormat || "YYYY-MM-DD",
+        currency: invoiceData.currency || "EUR",
+      });
+    }
+  }, [invoiceData]); // Removed form from dependencies to prevent loops
+
   const {
     control,
     handleSubmit,
@@ -145,14 +161,11 @@ export const InvoiceForm = memo(function InvoiceForm({
   // Regenerate PDF on every input change with debounce
   const debouncedRegeneratePdfOnFormChange = useDebouncedCallback(
     (data: InvoiceGenerationData) => {
-      void handleSubmit(onSubmit)(data as unknown as React.BaseSyntheticEvent);
-
       try {
-        const validatedData = invoiceGenerationSchema.parse(data);
-        const stringifiedData = JSON.stringify(validatedData);
-        localStorage.setItem(PDF_DATA_LOCAL_STORAGE_KEY, stringifiedData);
+        // Always call onSubmit to update the PDF preview, even with validation errors
+        onSubmit(data);
       } catch (error) {
-        console.error("Error saving to local storage:", error);
+        console.error("Error in form change handler:", error);
       }
     },
     DEBOUNCE_TIMEOUT
@@ -188,7 +201,12 @@ export const InvoiceForm = memo(function InvoiceForm({
   );
 
   const onSubmit = (data: InvoiceGenerationData) => {
-    onInvoiceDataChange(data);
+    try {
+      onInvoiceDataChange(data);
+    } catch (error) {
+      console.error("Error in onSubmit:", error);
+      // Don't show toast for every form change - only for critical errors
+    }
   };
 
   // Define tab content components
@@ -273,39 +291,29 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="invoiceNumber">Invoice Number</Label>
-        <Controller
-          name="invoiceNumberObject.value"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              id="invoiceNumber"
-              placeholder="INV-001"
-            />
-          )}
+        <Input
+          {...form.register("invoiceNumberObject.value")}
+          id="invoiceNumber"
+          placeholder="INV-001"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="dateOfIssue">Date of Issue</Label>
-          <Controller
-            name="dateOfIssue"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} id="dateOfIssue" type="date" />
-            )}
+          <Input
+            {...form.register("dateOfIssue")}
+            id="dateOfIssue"
+            type="date"
           />
         </div>
 
         <div>
           <Label htmlFor="dateOfService">Date of Service</Label>
-          <Controller
-            name="dateOfService"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} id="dateOfService" type="date" />
-            )}
+          <Input
+            {...form.register("dateOfService")}
+            id="dateOfService"
+            type="date"
           />
         </div>
       </div>
@@ -334,16 +342,10 @@ export const InvoiceForm = memo(function InvoiceForm({
       
       <div>
         <Label htmlFor="sellerName">Seller Name *</Label>
-        <Controller
-          name="seller.name"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              id="sellerName"
-              placeholder="Your Company Name"
-            />
-          )}
+        <Input
+          {...form.register("seller.name")}
+          id="sellerName"
+          placeholder="Your Company Name"
         />
         {errors.seller?.name && (
           <p className="text-sm text-red-600 mt-1">
@@ -369,17 +371,11 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="sellerEmail">Seller Email *</Label>
-        <Controller
-          name="seller.email"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              id="sellerEmail"
-              type="email"
-              placeholder="contact@company.com"
-            />
-          )}
+        <Input
+          {...form.register("seller.email")}
+          id="sellerEmail"
+          type="email"
+          placeholder="contact@company.com"
         />
         {errors.seller?.email && (
           <p className="text-sm text-red-600 mt-1">
@@ -410,16 +406,10 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="buyerName">Buyer Name *</Label>
-        <Controller
-          name="buyer.name"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              id="buyerName"
-              placeholder="Client Company Name"
-            />
-          )}
+        <Input
+          {...form.register("buyer.name")}
+          id="buyerName"
+          placeholder="Client Company Name"
         />
         {errors.buyer?.name && (
           <p className="text-sm text-red-600 mt-1">
@@ -445,17 +435,11 @@ export const InvoiceForm = memo(function InvoiceForm({
 
       <div>
         <Label htmlFor="buyerEmail">Buyer Email *</Label>
-        <Controller
-          name="buyer.email"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              id="buyerEmail"
-              type="email"
-              placeholder="client@company.com"
-            />
-          )}
+        <Input
+          {...form.register("buyer.email")}
+          id="buyerEmail"
+          type="email"
+          placeholder="client@company.com"
         />
         {errors.buyer?.email && (
           <p className="text-sm text-red-600 mt-1">
@@ -494,34 +478,22 @@ export const InvoiceForm = memo(function InvoiceForm({
               <Label htmlFor={`item-${index}-name`}>
                 Item Name *
               </Label>
-              <Controller
-                name={`items.${index}.name`}
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id={`item-${index}-name`}
-                    placeholder="Service or product name"
-                  />
-                )}
+              <Input
+                {...form.register(`items.${index}.name`)}
+                id={`item-${index}-name`}
+                placeholder="Service or product name"
               />
             </div>
 
             <div>
               <Label htmlFor={`item-${index}-amount`}>Amount *</Label>
-              <Controller
-                name={`items.${index}.amount`}
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id={`item-${index}-amount`}
-                    type="number"
-                    min="1"
-                    step="1"
-                    placeholder="1"
-                  />
-                )}
+              <Input
+                {...form.register(`items.${index}.amount`, { valueAsNumber: true })}
+                id={`item-${index}-amount`}
+                type="number"
+                min="1"
+                step="1"
+                placeholder="1"
               />
             </div>
 
@@ -529,38 +501,26 @@ export const InvoiceForm = memo(function InvoiceForm({
               <Label htmlFor={`item-${index}-netPrice`}>
                 Net Price *
               </Label>
-              <Controller
-                name={`items.${index}.netPrice`}
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id={`item-${index}-netPrice`}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                  />
-                )}
+              <Input
+                {...form.register(`items.${index}.netPrice`, { valueAsNumber: true })}
+                id={`item-${index}-netPrice`}
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
               />
             </div>
 
             <div>
               <Label htmlFor={`item-${index}-vat`}>VAT (%)</Label>
-              <Controller
-                name={`items.${index}.vat`}
-                control={control}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    id={`item-${index}-vat`}
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    placeholder="0"
-                  />
-                )}
+              <Input
+                {...form.register(`items.${index}.vat`, { valueAsNumber: true })}
+                id={`item-${index}-vat`}
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                placeholder="0"
               />
             </div>
           </div>
@@ -625,27 +585,19 @@ export const InvoiceForm = memo(function InvoiceForm({
 
         <div>
           <Label htmlFor="paymentMethod">Payment Method</Label>
-          <Controller
-            name="paymentMethod"
-            control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                id="paymentMethod"
-                placeholder="Bank Transfer, Credit Card, etc."
-              />
-            )}
+          <Input
+            {...form.register("paymentMethod")}
+            id="paymentMethod"
+            placeholder="Bank Transfer, Credit Card, etc."
           />
         </div>
 
         <div>
           <Label htmlFor="paymentDue">Payment Due</Label>
-          <Controller
-            name="paymentDue"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} id="paymentDue" type="date" />
-            )}
+          <Input
+            {...form.register("paymentDue")}
+            id="paymentDue"
+            type="date"
           />
           {isPaymentDueBeforeDateOfIssue && (
             <p className="text-sm text-amber-600 mt-1">
@@ -656,17 +608,11 @@ export const InvoiceForm = memo(function InvoiceForm({
 
         <div>
           <Label htmlFor="notes">Notes</Label>
-          <Controller
-            name="notes"
-            control={control}
-            render={({ field }) => (
-              <Textarea
-                {...field}
-                id="notes"
-                rows={3}
-                placeholder="Additional notes or terms..."
-              />
-            )}
+          <Textarea
+            {...form.register("notes")}
+            id="notes"
+            rows={3}
+            placeholder="Additional notes or terms..."
           />
         </div>
       </div>
@@ -703,7 +649,7 @@ export const InvoiceForm = memo(function InvoiceForm({
         className="mb-4 space-y-3.5"
         onSubmit={handleSubmit(onSubmit, (errors) => {
           console.error("Form validation errors:", errors);
-          toast.error("Please fix the form validation errors");
+          // Only show validation errors when user explicitly submits, not during typing
         })}
       >
         <InvoiceTabs 
@@ -711,6 +657,20 @@ export const InvoiceForm = memo(function InvoiceForm({
           tabs={tabs}
           className="w-full"
         />
+        
+        {/* Form Status Indicator */}
+        <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
+          <span>
+            {Object.keys(errors).length > 0 ? (
+              <span className="text-red-600">
+                ⚠️ {Object.keys(errors).length} validation error(s)
+              </span>
+            ) : (
+              <span className="text-green-600">✓ Form is valid</span>
+            )}
+          </span>
+          <span>Changes are saved automatically</span>
+        </div>
       </form>
     </TooltipProvider>
   );

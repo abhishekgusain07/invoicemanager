@@ -48,7 +48,7 @@ export const InvoiceHeader = memo(function InvoiceHeader({
                 PDF_DEFAULT_TEMPLATE_STYLES.boldText,
               ]}
             >
-              {invoiceData.invoiceNumberObject.value}
+              {invoiceData.invoiceNumberObject.value || "[Invoice Number]"}
             </Text>
           </View>
         )}

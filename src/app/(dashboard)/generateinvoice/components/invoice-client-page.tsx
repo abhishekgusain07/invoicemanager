@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { InvoiceForm } from "./invoice-form";
 import dynamic from "next/dynamic";
 
@@ -20,7 +22,7 @@ import { PDFDownloadButton } from "./pdf-download-button";
 import { ShareInvoiceButton } from "./share-invoice-button";
 import { SaveInvoiceButton } from "./save-invoice-button";
 import { SavedInvoicesList } from "./saved-invoices-list";
-import { INITIAL_INVOICE_DATA } from "../constants";
+import { INITIAL_INVOICE_DATA, EMPTY_INVOICE_DATA } from "../constants";
 import { PDF_DATA_LOCAL_STORAGE_KEY } from "@/lib/validations/invoice-generation";
 import {
   invoiceGenerationSchema,
@@ -96,15 +98,23 @@ export function InvoiceClientPage() {
   useEffect(() => {
     if (invoiceDataState) {
       try {
-        const newInvoiceDataValidated =
-          invoiceGenerationSchema.parse(invoiceDataState);
-        localStorage.setItem(
-          PDF_DATA_LOCAL_STORAGE_KEY,
-          JSON.stringify(newInvoiceDataValidated)
-        );
+        // Use safeParse to avoid throwing errors on invalid data
+        const validationResult = invoiceGenerationSchema.safeParse(invoiceDataState);
+        if (validationResult.success) {
+          localStorage.setItem(
+            PDF_DATA_LOCAL_STORAGE_KEY,
+            JSON.stringify(validationResult.data)
+          );
+        } else {
+          // Just save the raw data without validation - user might be in the middle of typing
+          localStorage.setItem(
+            PDF_DATA_LOCAL_STORAGE_KEY,
+            JSON.stringify(invoiceDataState)
+          );
+        }
       } catch (error) {
         console.error("Failed to save invoice data:", error);
-        toast.error("Failed to save invoice data");
+        // Only show toast for actual save failures, not validation errors
       }
     }
   }, [invoiceDataState]);
@@ -123,6 +133,14 @@ export function InvoiceClientPage() {
 
   const handleInvoiceSaved = (invoiceId: string) => {
     setCurrentInvoiceId(invoiceId);
+  };
+
+  const handleClearTemplate = () => {
+    setInvoiceDataState(EMPTY_INVOICE_DATA);
+    setCurrentInvoiceId(undefined);
+    toast.success("Invoice template cleared", {
+      description: "All fields have been reset to empty values",
+    });
   };
 
   if (!invoiceDataState) {
@@ -147,7 +165,18 @@ export function InvoiceClientPage() {
           {/* Form Section */}
           <div className="lg:col-span-6">
             <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold mb-4">Invoice Details</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Invoice Details</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearTemplate}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Clear Template
+                </Button>
+              </div>
               <InvoiceForm
                 invoiceData={invoiceDataState}
                 onInvoiceDataChange={handleInvoiceDataChange}

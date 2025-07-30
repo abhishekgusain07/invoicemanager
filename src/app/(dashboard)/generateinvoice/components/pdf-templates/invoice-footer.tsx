@@ -22,7 +22,7 @@ export const InvoiceFooter = memo(function InvoiceFooter({
               PDF_DEFAULT_TEMPLATE_STYLES.mt2,
             ]}
           >
-            {invoiceData.notes}
+            {invoiceData.notes || "[No notes]"}
           </Text>
         </View>
       )}

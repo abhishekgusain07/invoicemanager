@@ -21,7 +21,7 @@ export function InvoicePaymentInfo({ invoiceData }: InvoicePaymentInfoProps) {
               PDF_DEFAULT_TEMPLATE_STYLES.smallText,
             ]}
           >
-            {invoiceData.paymentMethod}
+            {invoiceData.paymentMethod || "[Payment Method]"}
           </Text>
         </Text>
       )}

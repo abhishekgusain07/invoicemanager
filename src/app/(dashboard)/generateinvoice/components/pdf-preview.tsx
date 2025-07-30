@@ -1,7 +1,7 @@
 "use client";
 
 import { type InvoiceGenerationData } from "@/lib/validations/invoice-generation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, RotateCcw, Loader2, AlertCircle } from "lucide-react";
@@ -20,6 +20,7 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
   const [error, setError] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number | null>(null);
   const [scale, setScale] = useState(1.0);
+  const lastDataRef = useRef<string>("");
 
   // Debounced function to generate PDF
   const debouncedGeneratePDF = useDebouncedCallback(
@@ -28,12 +29,25 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
       setError(null);
 
       try {
+        // Defensive check - make sure data exists and is serializable
+        if (!data) {
+          throw new Error("No invoice data provided");
+        }
+
+        let jsonBody;
+        try {
+          jsonBody = JSON.stringify(data);
+        } catch (stringifyError) {
+          console.error("JSON stringify error:", stringifyError);
+          throw new Error("Failed to serialize invoice data");
+        }
+
         const response = await fetch("/api/generate-invoice-pdf", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(data),
+          body: jsonBody,
         });
 
         if (!response.ok) {
@@ -59,18 +73,20 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
         setIsLoading(false);
       }
     },
-    1000
+    500
   );
 
   // Generate PDF when invoice data changes
   useEffect(() => {
-    // Only generate if we have required data
-    if (
-      invoiceData.seller.name &&
-      invoiceData.buyer.name &&
-      invoiceData.items.length > 0
-    ) {
-      debouncedGeneratePDF(invoiceData);
+    // Only generate PDF if we have valid invoice data and it has actually changed
+    if (invoiceData && typeof invoiceData === 'object') {
+      const currentDataString = JSON.stringify(invoiceData);
+      
+      // Only regenerate if the data has actually changed
+      if (currentDataString !== lastDataRef.current) {
+        lastDataRef.current = currentDataString;
+        debouncedGeneratePDF(invoiceData);
+      }
     }
 
     // Cleanup function
@@ -169,9 +185,17 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
           </Button>
         </div>
 
-        {numPages && (
-          <span className="text-sm text-gray-600">1 of {numPages} pages</span>
-        )}
+        <div className="flex items-center space-x-2">
+          {isLoading && (
+            <div className="flex items-center text-sm text-blue-600">
+              <Loader2 className="w-4 h-4 animate-spin mr-1" />
+              Updating...
+            </div>
+          )}
+          {numPages && (
+            <span className="text-sm text-gray-600">1 of {numPages} pages</span>
+          )}
+        </div>
       </div>
 
       {/* PDF Viewer */}

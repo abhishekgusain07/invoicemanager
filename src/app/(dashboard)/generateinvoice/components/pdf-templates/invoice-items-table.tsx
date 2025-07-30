@@ -144,7 +144,7 @@ export const InvoiceItemsTable = memo(function InvoiceItemsTable({
                   PDF_DEFAULT_TEMPLATE_STYLES.descriptionCell,
                 ]}
               >
-                {item.name}
+                {item.name || "[Item Name]"}
               </Text>
             </View>
             <View
