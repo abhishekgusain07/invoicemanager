@@ -139,9 +139,12 @@ export const InvoiceForm = memo(function InvoiceForm({
   });
 
   // Only reset form when explicitly loading saved data (not on every change)
-  const resetFormWithData = useCallback((data: InvoiceGenerationData) => {
-    form.reset(data);
-  }, [form]);
+  const resetFormWithData = useCallback(
+    (data: InvoiceGenerationData) => {
+      form.reset(data);
+    },
+    [form]
+  );
 
   // Expose reset function to parent component for loading saved invoices
   useEffect(() => {
@@ -212,10 +215,7 @@ export const InvoiceForm = memo(function InvoiceForm({
             name="language"
             control={control}
             render={({ field }) => (
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-              >
+              <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
@@ -237,10 +237,7 @@ export const InvoiceForm = memo(function InvoiceForm({
             name="currency"
             control={control}
             render={({ field }) => (
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-              >
+              <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
@@ -263,10 +260,7 @@ export const InvoiceForm = memo(function InvoiceForm({
           name="dateFormat"
           control={control}
           render={({ field }) => (
-            <Select
-              onValueChange={field.onChange}
-              value={field.value}
-            >
+            <Select onValueChange={field.onChange} value={field.value}>
               <SelectTrigger>
                 <SelectValue placeholder="Select date format" />
               </SelectTrigger>
@@ -288,11 +282,7 @@ export const InvoiceForm = memo(function InvoiceForm({
           name="invoiceNumberObject.value"
           control={control}
           render={({ field }) => (
-            <Input
-              {...field}
-              id="invoiceNumber"
-              placeholder="INV-001"
-            />
+            <Input {...field} id="invoiceNumber" placeholder="INV-001" />
           )}
         />
       </div>
@@ -304,11 +294,7 @@ export const InvoiceForm = memo(function InvoiceForm({
             name="dateOfIssue"
             control={control}
             render={({ field }) => (
-              <Input
-                {...field}
-                id="dateOfIssue"
-                type="date"
-              />
+              <Input {...field} id="dateOfIssue" type="date" />
             )}
           />
         </div>
@@ -319,11 +305,7 @@ export const InvoiceForm = memo(function InvoiceForm({
             name="dateOfService"
             control={control}
             render={({ field }) => (
-              <Input
-                {...field}
-                id="dateOfService"
-                type="date"
-              />
+              <Input {...field} id="dateOfService" type="date" />
             )}
           />
         </div>
@@ -350,18 +332,14 @@ export const InvoiceForm = memo(function InvoiceForm({
           currentData={invoiceData?.seller}
         />
       </div>
-      
+
       <div>
         <Label htmlFor="sellerName">Seller Name *</Label>
         <Controller
           name="seller.name"
           control={control}
           render={({ field }) => (
-            <Input
-              {...field}
-              id="sellerName"
-              placeholder="Your Company Name"
-            />
+            <Input {...field} id="sellerName" placeholder="Your Company Name" />
           )}
         />
         {errors.seller?.name && (
@@ -500,12 +478,9 @@ export const InvoiceForm = memo(function InvoiceForm({
   const ItemsTab = () => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold mb-4">Invoice Items</h3>
-      
+
       {fields.map((field, index) => (
-        <div
-          key={field.id}
-          className="border rounded-lg p-4 space-y-4"
-        >
+        <div key={field.id} className="border rounded-lg p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-medium">Item {index + 1}</h4>
             {fields.length > 1 && (
@@ -522,9 +497,7 @@ export const InvoiceForm = memo(function InvoiceForm({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor={`item-${index}-name`}>
-                Item Name *
-              </Label>
+              <Label htmlFor={`item-${index}-name`}>Item Name *</Label>
               <Controller
                 name={`items.${index}.name`}
                 control={control}
@@ -546,7 +519,9 @@ export const InvoiceForm = memo(function InvoiceForm({
                 render={({ field }) => (
                   <Input
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                    onChange={(e) =>
+                      field.onChange(Number(e.target.value) || 0)
+                    }
                     id={`item-${index}-amount`}
                     type="number"
                     min="1"
@@ -558,16 +533,16 @@ export const InvoiceForm = memo(function InvoiceForm({
             </div>
 
             <div>
-              <Label htmlFor={`item-${index}-netPrice`}>
-                Net Price *
-              </Label>
+              <Label htmlFor={`item-${index}-netPrice`}>Net Price *</Label>
               <Controller
                 name={`items.${index}.netPrice`}
                 control={control}
                 render={({ field }) => (
                   <Input
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                    onChange={(e) =>
+                      field.onChange(Number(e.target.value) || 0)
+                    }
                     id={`item-${index}-netPrice`}
                     type="number"
                     min="0"
@@ -586,7 +561,9 @@ export const InvoiceForm = memo(function InvoiceForm({
                 render={({ field }) => (
                   <Input
                     {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                    onChange={(e) =>
+                      field.onChange(Number(e.target.value) || 0)
+                    }
                     id={`item-${index}-vat`}
                     type="number"
                     min="0"
@@ -678,11 +655,7 @@ export const InvoiceForm = memo(function InvoiceForm({
             name="paymentDue"
             control={control}
             render={({ field }) => (
-              <Input
-                {...field}
-                id="paymentDue"
-                type="date"
-              />
+              <Input {...field} id="paymentDue" type="date" />
             )}
           />
           {/* Date validation moved to manual update - no more real-time validation */}
@@ -712,23 +685,23 @@ export const InvoiceForm = memo(function InvoiceForm({
     {
       value: "general",
       label: "General",
-      content: <GeneralTab />
+      content: <GeneralTab />,
     },
     {
       value: "seller",
       label: "Seller",
-      content: <SellerTab />
+      content: <SellerTab />,
     },
     {
-      value: "buyer", 
+      value: "buyer",
       label: "Buyer",
-      content: <BuyerTab />
+      content: <BuyerTab />,
     },
     {
       value: "items",
       label: "Items",
-      content: <ItemsTab />
-    }
+      content: <ItemsTab />,
+    },
   ];
 
   return (
@@ -739,12 +712,8 @@ export const InvoiceForm = memo(function InvoiceForm({
           console.error("Form validation errors:", errors);
         })}
       >
-        <InvoiceTabs 
-          defaultValue="general"
-          tabs={tabs}
-          className="w-full"
-        />
-        
+        <InvoiceTabs defaultValue="general" tabs={tabs} className="w-full" />
+
         {/* Form Status Indicator */}
         <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
           <span>

@@ -50,9 +50,7 @@ export async function getTemplates(): Promise<{
 /**
  * Get a single template by ID
  */
-export async function getTemplateById(
-  id: string
-): Promise<{
+export async function getTemplateById(id: string): Promise<{
   success: boolean;
   data: EmailTemplate | null;
   error: string | null;
@@ -364,9 +362,7 @@ export async function deleteTemplate(id: string) {
 /**
  * Get templates by tone
  */
-export async function getTemplatesByTone(
-  tone: string
-): Promise<{
+export async function getTemplatesByTone(tone: string): Promise<{
   success: boolean;
   data: EmailTemplate[] | null;
   error: string | null;

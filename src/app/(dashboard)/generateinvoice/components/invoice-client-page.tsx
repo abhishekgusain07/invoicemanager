@@ -34,7 +34,7 @@ import { SavedInvoicesList } from "./saved-invoices-list";
 
 export function InvoiceClientPage() {
   const searchParams = useSearchParams();
-  
+
   // Zustand store hooks
   const invoiceData = useInvoiceData();
   const isLoading = useIsLoading();
@@ -51,19 +51,29 @@ export function InvoiceClientPage() {
   } = useInvoiceActions();
 
   // Form reset function from InvoiceForm
-  const [formResetFn, setFormResetFn] = useState<((data: InvoiceGenerationData) => void) | null>(null);
-  
+  const [formResetFn, setFormResetFn] = useState<
+    ((data: InvoiceGenerationData) => void) | null
+  >(null);
+
   // Form data getter function from InvoiceForm for manual updates
-  const [formDataGetter, setFormDataGetter] = useState<(() => InvoiceGenerationData) | null>(null);
+  const [formDataGetter, setFormDataGetter] = useState<
+    (() => InvoiceGenerationData) | null
+  >(null);
 
   // Stable callback wrappers to prevent setState during render
-  const handleFormReset = useCallback((resetFn: (data: InvoiceGenerationData) => void) => {
-    setFormResetFn(() => resetFn);
-  }, []);
+  const handleFormReset = useCallback(
+    (resetFn: (data: InvoiceGenerationData) => void) => {
+      setFormResetFn(() => resetFn);
+    },
+    []
+  );
 
-  const handleFormDataGetter = useCallback((getterFn: () => InvoiceGenerationData) => {
-    setFormDataGetter(() => getterFn);
-  }, []);
+  const handleFormDataGetter = useCallback(
+    (getterFn: () => InvoiceGenerationData) => {
+      setFormDataGetter(() => getterFn);
+    },
+    []
+  );
 
   // Initialize store on mount
   useEffect(() => {
@@ -71,15 +81,13 @@ export function InvoiceClientPage() {
     initializeStore(compressedInvoiceDataInUrl || undefined);
   }, [searchParams, initializeStore]);
 
-
-
   const handleInvoiceDataChange = (updatedData: InvoiceGenerationData) => {
     setInvoiceData(updatedData);
   };
 
   // Manual update preview function
   const handleUpdatePreview = () => {
-    if (formDataGetter && typeof formDataGetter === 'function') {
+    if (formDataGetter && typeof formDataGetter === "function") {
       const currentFormData = formDataGetter();
       handleInvoiceDataChange(currentFormData);
     }
@@ -98,7 +106,10 @@ export function InvoiceClientPage() {
   }, [invoiceData]);
 
   // Handle loading saved invoice - reset both store and form
-  const handleLoadSavedInvoice = (invoiceData: InvoiceGenerationData, invoiceId: string) => {
+  const handleLoadSavedInvoice = (
+    invoiceData: InvoiceGenerationData,
+    invoiceId: string
+  ) => {
     // Update store
     handleLoadInvoice(invoiceData, invoiceId);
     // Reset form if reset function is available

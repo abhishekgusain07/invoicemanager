@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
   try {
     // Get the raw text first to debug JSON parsing issues
     const rawBody = await req.text();
-    
-    if (!rawBody || rawBody.trim() === '') {
+
+    if (!rawBody || rawBody.trim() === "") {
       return NextResponse.json(
         { error: "Request body is empty" },
         { status: 400 }
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     // Try to validate the invoice data, but use raw data if validation fails
     const validationResult = invoiceGenerationSchema.safeParse(body);
-    
+
     // Use validated data if available, otherwise use raw data and let template handle it
     const invoiceData = validationResult.success ? validationResult.data : body;
 

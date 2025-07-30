@@ -1,9 +1,4 @@
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TabItem {
   value: string;
@@ -17,10 +12,10 @@ interface InvoiceTabsProps {
   className?: string;
 }
 
-export default function InvoiceTabs({ 
-  defaultValue, 
-  tabs, 
-  className = "w-full" 
+export default function InvoiceTabs({
+  defaultValue,
+  tabs,
+  className = "w-full",
 }: InvoiceTabsProps) {
   return (
     <Tabs defaultValue={defaultValue || tabs[0]?.value} className={className}>
@@ -37,5 +32,5 @@ export default function InvoiceTabs({
         </TabsContent>
       ))}
     </Tabs>
-  )
+  );
 }

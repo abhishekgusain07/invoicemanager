@@ -79,9 +79,9 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
   // Generate PDF when invoice data changes
   useEffect(() => {
     // Only generate PDF if we have valid invoice data and it has actually changed
-    if (invoiceData && typeof invoiceData === 'object') {
+    if (invoiceData && typeof invoiceData === "object") {
       const currentDataString = JSON.stringify(invoiceData);
-      
+
       // Only regenerate if the data has actually changed
       if (currentDataString !== lastDataRef.current) {
         lastDataRef.current = currentDataString;
