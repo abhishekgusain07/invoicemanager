@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,39 +13,28 @@ import { TemplateList } from "./components/template-list";
 import { TemplateForm } from "./components/template-form";
 import { TemplatePlaceholders } from "./components/template-placeholders";
 import { TemplateListSkeleton } from "./components/template-list-skeleton";
-import { getTemplates } from "@/actions/templates";
+import { api } from "@/lib/trpc";
 import { EmailTemplate } from "@/lib/validations/email-template";
 import { toast } from "sonner";
 
 export default function TemplatesPage() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  // tRPC query for templates
+  const {
+    data: templates = [],
+    isLoading,
+    refetch: fetchTemplates,
+    error,
+  } = api.templates.getAll.useQuery();
+
   const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
   const [editTemplate, setEditTemplate] = useState<EmailTemplate | undefined>(
     undefined
   );
 
-  // Fetch templates when the page loads
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
-
-  const fetchTemplates = async () => {
-    setIsLoading(true);
-    try {
-      const result = await getTemplates();
-      if (result.success && result.data) {
-        setTemplates(result.data);
-      } else {
-        toast.error(result.error || "Failed to load templates");
-      }
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      toast.error("An error occurred while loading templates");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Show error toast if query fails
+  if (error) {
+    toast.error("Failed to load templates");
+  }
 
   const handleOpenTemplateForm = () => {
     setEditTemplate(undefined); // Reset edit template
@@ -72,7 +61,7 @@ export default function TemplatesPage() {
           <Button
             variant="outline"
             className="gap-2"
-            onClick={fetchTemplates}
+            onClick={() => fetchTemplates()}
             disabled={isLoading}
           >
             <RefreshCwIcon

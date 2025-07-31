@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { EmailTemplate } from "@/lib/validations/email-template";
-import { getTemplatesByTone } from "@/actions/templates";
+import { api } from "@/lib/trpc";
 import { toast } from "sonner";
 import { PlusIcon, RefreshCwIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -29,38 +29,29 @@ export function TemplateSelector({
   onCreateNew,
 }: TemplateSelectorProps) {
   const router = useRouter();
-  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // tRPC query for templates by tone
+  const {
+    data: templates = [],
+    isLoading,
+    refetch: fetchTemplates,
+    error,
+  } = api.templates.getByTone.useQuery({ tone });
 
-  // Fetch templates with the specified tone
-  const fetchTemplates = async () => {
-    setIsLoading(true);
-    try {
-      const result = await getTemplatesByTone(tone);
-      if (result.success && result.data) {
-        setTemplates(result.data);
+  // Show error toast if query fails
+  if (error) {
+    toast.error("Failed to load templates");
+  }
 
-        // If we have a default template and no value is selected, use the default
-        const defaultTemplate = result.data.find((t) => t.isDefault);
-        if (defaultTemplate && !value && defaultTemplate.id) {
-          onChange(defaultTemplate.id);
-        }
-      } else {
-        console.error("Error fetching templates:", result.error);
-        toast.error("Failed to load templates");
-      }
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      toast.error("An error occurred while loading templates");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load templates when the component mounts or tone changes
+  // Auto-select default template when templates load
   useEffect(() => {
-    fetchTemplates();
-  }, [tone]);
+    if (templates.length > 0 && !value) {
+      const defaultTemplate = templates.find((t) => t.isDefault);
+      if (defaultTemplate?.id) {
+        onChange(defaultTemplate.id);
+      }
+    }
+  }, [templates, value, onChange]);
 
   const handleGoToEditTemplate = () => {
     if (value) {
@@ -108,7 +99,7 @@ export function TemplateSelector({
             type="button"
             variant="outline"
             size="sm"
-            onClick={fetchTemplates}
+            onClick={() => fetchTemplates()}
             disabled={isLoading}
             title="Refresh templates"
           >

@@ -261,14 +261,16 @@ export const templatesRouter = createTRPCRouter({
         defaultTemplates: templates.filter((t) => t.isDefault).length,
         byCategory: templates.reduce(
           (acc, template) => {
-            acc[template.category] = (acc[template.category] || 0) + 1;
+            const category = template.category || 'other';
+            acc[category] = (acc[category] || 0) + 1;
             return acc;
           },
           {} as Record<string, number>
         ),
         byTone: templates.reduce(
           (acc, template) => {
-            acc[template.tone] = (acc[template.tone] || 0) + 1;
+            const tone = template.tone || 'neutral';
+            acc[tone] = (acc[tone] || 0) + 1;
             return acc;
           },
           {} as Record<string, number>

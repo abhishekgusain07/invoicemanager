@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useUser } from "@/hooks/useUser";
-import { sendInvoiceReminder } from "@/actions/reminder";
-import { getTemplates, getTemplatesByTone } from "@/actions/templates";
+import { api } from "@/lib/trpc";
 import { toast } from "sonner";
 import { formatDate, getDaysOverdue } from "../utils/invoiceUtils";
 import { EmailTemplate } from "@/lib/validations/email-template";
@@ -12,6 +11,15 @@ import { TemplateRenderer } from "@/lib/services/template-renderer";
 export const useEmailTemplates = () => {
   const { user } = useUser();
 
+  // tRPC queries
+  const {
+    data: customTemplates = [],
+    isLoading: loadingTemplates,
+    refetch: loadCustomTemplates,
+  } = api.templates.getAll.useQuery();
+
+  const sendReminderMutation = api.email.sendReminder.useMutation();
+
   // Template selection and management
   const [selectedTemplateType, setSelectedTemplateType] = useState<
     "polite" | "firm" | "urgent"
@@ -19,8 +27,6 @@ export const useEmailTemplates = () => {
   const [selectedCustomTemplate, setSelectedCustomTemplate] =
     useState<EmailTemplate | null>(null);
   const [useCustomTemplate, setUseCustomTemplate] = useState<boolean>(false);
-  const [customTemplates, setCustomTemplates] = useState<EmailTemplate[]>([]);
-  const [loadingTemplates, setLoadingTemplates] = useState<boolean>(false);
 
   // Content management
   const [isHtmlMode, setIsHtmlMode] = useState<boolean>(true);
@@ -33,26 +39,7 @@ export const useEmailTemplates = () => {
 
   // UI state
   const [previewKey, setPreviewKey] = useState<number>(0);
-  const [isSendingTemplate, setIsSendingTemplate] = useState(false);
-
-  // Load custom templates on component mount
-  useEffect(() => {
-    loadCustomTemplates();
-  }, []);
-
-  const loadCustomTemplates = async () => {
-    setLoadingTemplates(true);
-    try {
-      const result = await getTemplates();
-      if (result.success && result.data) {
-        setCustomTemplates(result.data);
-      }
-    } catch (error) {
-      console.error("Failed to load custom templates:", error);
-    } finally {
-      setLoadingTemplates(false);
-    }
-  };
+  const isSendingTemplate = sendReminderMutation.isPending;
 
   // Enhanced template content generation
   const getEmailContent = useCallback(
@@ -374,8 +361,6 @@ ${user?.name || "Your Company"}`,
         emailSubject = `URGENT: Invoice #${invoice.invoiceNumber} payment required`;
       }
 
-      setIsSendingTemplate(true);
-
       try {
         const loadingToastId = toast.loading("Sending reminder...");
 
@@ -384,7 +369,7 @@ ${user?.name || "Your Company"}`,
           ? customizedEmailContent
           : `<pre style="font-family: sans-serif; white-space: pre-wrap;">${customizedEmailContent}</pre>`;
 
-        const result = await sendInvoiceReminder({
+        const result = await sendReminderMutation.mutateAsync({
           invoiceId,
           emailSubject,
           emailContent,
@@ -399,7 +384,7 @@ ${user?.name || "Your Company"}`,
           onSuccess?.();
           return true;
         } else {
-          toast.error(result.error || "Failed to send reminder");
+          toast.error("Failed to send reminder");
           return false;
         }
       } catch (error) {
@@ -407,11 +392,9 @@ ${user?.name || "Your Company"}`,
         toast.dismiss();
         toast.error("An error occurred while sending the reminder");
         return false;
-      } finally {
-        setIsSendingTemplate(false);
       }
     },
-    [selectedTemplateType, isHtmlMode, customizedEmailContent]
+    [selectedTemplateType, isHtmlMode, customizedEmailContent, sendReminderMutation]
   );
 
   // Enhanced custom template handling
