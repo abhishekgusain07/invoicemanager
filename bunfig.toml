@@ -1,0 +1,8 @@
+[test]
+# Exclude Jest and Playwright format tests from Bun
+ignore = [
+  "src/server/routers/__tests__/*.test.ts",
+  "src/actions/__tests__/*.test.ts", 
+  "tests/e2e/**/*.spec.ts",
+  "src/lib/services/__tests__/*.test.ts"
+]
