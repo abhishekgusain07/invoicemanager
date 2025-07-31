@@ -15,11 +15,7 @@
     "test:watch": "jest --watch", 
     "test:coverage": "jest --coverage",
     "test:bun": "bun test",
-    "test:all": "npm run test && npm run test:bun",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "playwright:install": "playwright install"
+    "test:all": "npm run test && npm run test:bun"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -92,7 +88,6 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@jest/globals": "^30.0.5",
-    "@playwright/test": "^1.54.1",
     "@tailwindcss/postcss": "^4.1.4",
     "@testing-library/jest-dom": "^6.6.4",
     "@testing-library/react": "^16.3.0",
