@@ -13,7 +13,6 @@ const customJestConfig = {
     '<rootDir>/.next/', 
     '<rootDir>/node_modules/',
     '<rootDir>/tests/e2e/', // Exclude Playwright tests
-    '<rootDir>/src/server/routers/__tests__/', // Exclude server router tests temporarily
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',

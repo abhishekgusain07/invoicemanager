@@ -224,14 +224,8 @@ Complete tRPC + TanStack Query Migration Plan
     - Cache invalidation logic verification
     - Error handling and edge cases
     - Business logic validation
-
-    Playwright E2E Tests (Sprint Integration):
-
-    - Performance Tests: Page load times, API call counts
-    - User Workflows: Complete invoice lifecycle
-    - Real-time Features: Multi-user scenarios
-    - Error Recovery: Network failures, server errors
-    - Cross-browser: Chrome, Firefox, Safari compatibility
+    - Integration tests for router procedures
+    - Mock service layer testing
 
     Performance Benchmarks:
 

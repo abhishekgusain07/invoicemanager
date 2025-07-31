@@ -1,207 +1,166 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { BellIcon, UserCogIcon, MailIcon, SaveIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import ReminderSettings from "./components/reminder-settings";
-import AccountSettings from "./components/account-settings";
-import { EmailSettings } from "./components/email-settings";
-import SettingsSkeleton from "./components/settings-skeleton";
-import { getUserSettings, updateAllSettings } from "@/actions/settings";
-import { UserSettingsValues } from "@/lib/validations/settings";
-
-type SettingsTab = "reminder" | "account" | "email";
+import { BellIcon, UserIcon, MailIcon, SaveIcon, Loader2 } from "lucide-react";
+import { api } from "@/lib/trpc";
+import { ReminderSettingsForm } from "./components/reminder-settings-form";
+import { AccountSettingsForm } from "./components/account-settings-form";
+import { EmailSettingsForm } from "./components/email-settings-form";
+import { SettingsError } from "./components/settings-error";
+import { SettingsSkeleton } from "./components/settings-skeleton";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("reminder");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [userSettings, setUserSettings] = useState<UserSettingsValues | null>(
-    null
-  );
+  const [activeTab, setActiveTab] = useState("reminder");
 
-  useEffect(() => {
-    const loadSettings = async () => {
-      setIsLoading(true);
-      try {
-        const result = await getUserSettings();
-        if (result.success && result.data && result.data !== null) {
-          setUserSettings(result.data as UserSettingsValues);
-          console.log("Loaded user settings:", result.data);
-        } else {
-          toast.error(result.error || "Failed to load settings");
-        }
-      } catch (error) {
-        console.error("Error loading settings:", error);
-        toast.error("Failed to load settings");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Queries
+  const reminderQuery = api.settings.getReminderSettings.useQuery();
+  const accountQuery = api.settings.getAccountSettings.useQuery();
+  const emailQuery = api.settings.getEmailSettings.useQuery();
 
-    loadSettings();
-  }, []);
+  // Mutations
+  const updateReminder = api.settings.updateReminderSettings.useMutation({
+    onSuccess: () => {
+      toast.success("Reminder settings saved!");
+      reminderQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-  const handleSaveSettings = async () => {
-    if (!userSettings) return;
+  const updateAccount = api.settings.updateAccountSettings.useMutation({
+    onSuccess: () => {
+      toast.success("Account settings saved!");
+      accountQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-    setIsSaving(true);
-    try {
-      // Create a FormData object to send to the server action
-      const formData = new FormData();
+  const updateEmail = api.settings.updateEmailSettings.useMutation({
+    onSuccess: () => {
+      toast.success("Email settings saved!");
+      emailQuery.refetch();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
-      // Add all settings to the form data
-      Object.entries(userSettings).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          // Convert boolean values to strings for FormData
-          if (typeof value === "boolean") {
-            formData.append(key, value ? "true" : "false");
-          } else {
-            formData.append(key, String(value));
-          }
-        }
-      });
-
-      // Call the server action to update settings
-      const result = await updateAllSettings(formData);
-
-      if (result.success) {
-        toast.success("Settings saved successfully!");
-      } else {
-        toast.error(result.error || "Failed to save settings");
-      }
-    } catch (error) {
-      console.error("Error saving settings:", error);
-      toast.error("Failed to save settings");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // Handle updates to settings
-  const handleSettingsChange = (
-    section: string,
-    updatedValues: Record<string, any>
-  ) => {
-    if (!userSettings) return;
-
-    // Ensure boolean values are properly typed
-    Object.entries(updatedValues).forEach(([key, value]) => {
-      if (typeof value === "string") {
-        if (value === "true") updatedValues[key] = true;
-        else if (value === "false") updatedValues[key] = false;
-      }
-    });
-
-    setUserSettings((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        ...updatedValues,
-      };
-    });
-  };
+  const isLoading = reminderQuery.isLoading || accountQuery.isLoading || emailQuery.isLoading;
+  const hasError = reminderQuery.error || accountQuery.error || emailQuery.error;
+  const isSaving = updateReminder.isPending || updateAccount.isPending || updateEmail.isPending;
 
   if (isLoading) {
     return <SettingsSkeleton />;
   }
 
+  if (hasError) {
+    return (
+      <SettingsError 
+        onRetry={() => {
+          reminderQuery.refetch();
+          accountQuery.refetch();
+          emailQuery.refetch();
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6">
-      {/* Header */}
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
+          <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">
-            Configure your reminder preferences and account details
+            Manage your account preferences and configurations
           </p>
         </div>
-        <Button
-          onClick={handleSaveSettings}
-          className="gap-2"
-          disabled={isSaving}
-        >
-          {isSaving ? (
-            <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+        <div className="flex items-center gap-2">
+          {isSaving && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
               Saving...
-            </>
-          ) : (
-            <>
-              <SaveIcon className="h-4 w-4" />
-              Save Settings
-            </>
+            </div>
           )}
-        </Button>
+        </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex border-b gap-2">
-        <button
-          className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium ${
-            activeTab === "reminder"
-              ? "border-primary text-primary"
-              : "border-transparent hover:border-muted-foreground/20 hover:text-muted-foreground"
-          }`}
-          onClick={() => setActiveTab("reminder")}
-        >
-          <BellIcon className="h-4 w-4" /> Reminder Settings
-        </button>
-        <button
-          className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium ${
-            activeTab === "account"
-              ? "border-primary text-primary"
-              : "border-transparent hover:border-muted-foreground/20 hover:text-muted-foreground"
-          }`}
-          onClick={() => setActiveTab("account")}
-        >
-          <UserCogIcon className="h-4 w-4" /> Account Settings
-        </button>
-        <button
-          className={`flex items-center gap-2 px-4 py-2 border-b-2 font-medium ${
-            activeTab === "email"
-              ? "border-primary text-primary"
-              : "border-transparent hover:border-muted-foreground/20 hover:text-muted-foreground"
-          }`}
-          onClick={() => setActiveTab("email")}
-        >
-          <MailIcon className="h-4 w-4" /> Email Settings
-        </button>
-      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="reminder" className="flex items-center gap-2">
+            <BellIcon className="h-4 w-4" />
+            Reminders
+          </TabsTrigger>
+          <TabsTrigger value="account" className="flex items-center gap-2">
+            <UserIcon className="h-4 w-4" />
+            Account
+          </TabsTrigger>
+          <TabsTrigger value="email" className="flex items-center gap-2">
+            <MailIcon className="h-4 w-4" />
+            Email
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Active Tab Content */}
-      <div className="py-4">
-        {activeTab === "reminder" && (
-          <ReminderSettings
-            settings={userSettings}
-            onChange={(values) => handleSettingsChange("reminder", values)}
-          />
-        )}
-        {activeTab === "account" && (
-          <AccountSettings
-            settings={userSettings}
-            onChange={(values) => handleSettingsChange("account", values)}
-          />
-        )}
-        {activeTab === "email" && (
-          <EmailSettings
-            settings={
-              userSettings ?? {
-                emailSignature: "",
-                previewEmails: false,
-                ccAccountant: false,
-                useBrandedEmails: false,
-                sendCopyToSelf: false,
-                fromName: undefined,
-                defaultCC: undefined,
-                finalNoticeTemplateId: undefined,
-              }
-            }
-            onChange={(values) => handleSettingsChange("email", values)}
-          />
-        )}
-      </div>
+        <TabsContent value="reminder">
+          <Card>
+            <CardHeader>
+              <CardTitle>Reminder Settings</CardTitle>
+              <CardDescription>
+                Configure how and when reminders are sent to your clients
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ReminderSettingsForm
+                data={reminderQuery.data}
+                onSubmit={updateReminder.mutateAsync}
+                isLoading={updateReminder.isPending}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="account">
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Settings</CardTitle>
+              <CardDescription>
+                Update your business information and contact details
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AccountSettingsForm
+                data={accountQuery.data}
+                onSubmit={updateAccount.mutateAsync}
+                isLoading={updateAccount.isPending}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="email">
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Settings</CardTitle>
+              <CardDescription>
+                Customize your email preferences and templates
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EmailSettingsForm
+                data={emailQuery.data}
+                onSubmit={updateEmail.mutateAsync}
+                isLoading={updateEmail.isPending}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

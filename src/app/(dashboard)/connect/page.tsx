@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { GmailConnect } from "@/components/GmailConnect";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,47 +30,60 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";
 import { toast } from "sonner";
-import { checkGmailConnection } from "@/actions/gmail";
-import type { GmailConnectionData } from "@/actions/gmail";
 import { ConnectSkeleton } from "./components/ConnectSkeleton";
 import { GmailConnectSkeleton } from "./components/GmailConnectSkeleton";
 import Image from "next/image";
+import { api } from "@/lib/trpc";
 
 export default function ConnectPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [connectionData, setConnectionData] =
-    useState<GmailConnectionData | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        const { data: session, error } = await authClient.getSession();
-        if (!session || !session.user) {
-          throw new Error(
-            "Unauthorized, sign in before connecting gmail account"
-          );
-        }
+  // Use tRPC to check Gmail connection status
+  const {
+    data: connectionStatus,
+    isLoading: connectionLoading,
+    error: connectionError,
+    refetch: refetchConnection,
+  } = api.connections.checkGmailConnection.useQuery(undefined, {
+    enabled: isInitialized, // Only run query after user is initialized
+    staleTime: 30 * 1000, // 30 seconds
+  });
 
-        const currentUser = session.user;
-        setUser(currentUser);
+  // Handle connection errors
+  React.useEffect(() => {
+    if (connectionError) {
+      console.error("Connection check error:", connectionError);
+      toast.error("Failed to check connection status");
+    }
+  }, [connectionError]);
 
-        const { isConnected: connected, connectionData: data } =
-          await checkGmailConnection(currentUser.id);
-
-        setIsConnected(connected);
-        setConnectionData(data);
-      } catch (error) {
-        console.error("Error:", error);
-        toast.error("Failed to initialize page");
-      } finally {
-        setIsLoading(false);
+  // Initialize user session
+  const initializeUser = async () => {
+    try {
+      const { data: session, error } = await authClient.getSession();
+      if (!session || !session.user) {
+        throw new Error(
+          "Unauthorized, sign in before connecting gmail account"
+        );
       }
-    };
 
-    initialize();
+      setUser(session.user);
+      setIsInitialized(true);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to initialize page");
+    }
+  };
+
+  // Initialize user on component mount
+  React.useEffect(() => {
+    initializeUser();
   }, []);
+
+  const isConnected = connectionStatus?.isConnected ?? false;
+  const connectionData = connectionStatus?.connectionData ?? null;
+  const isLoading = !isInitialized || connectionLoading;
 
   if (isLoading) {
     return <GmailConnectSkeleton />;
@@ -172,9 +185,9 @@ export default function ConnectPage() {
                         <div className="flex items-center text-emerald-700 text-sm mt-1">
                           <Clock className="h-4 w-4 mr-2" />
                           Connected on{" "}
-                          {connectionData?.createdAt
+                          {connectionData?.connectedAt
                             ? new Date(
-                                connectionData.createdAt
+                                connectionData.connectedAt
                               ).toLocaleDateString("en-US", {
                                 year: "numeric",
                                 month: "long",
@@ -325,7 +338,8 @@ export default function ConnectPage() {
                       <GmailConnect
                         userId={user.id}
                         onSuccess={() => {
-                          setIsConnected(true);
+                          // Refetch connection status to update UI
+                          refetchConnection();
                           toast.success(
                             "🎉 Gmail connected successfully! You're ready to automate your invoices."
                           );

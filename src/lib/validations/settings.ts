@@ -65,6 +65,8 @@ export const emailSettingsSchema = z.object({
 export const userSettingsSchema = z.object({
   id: z.string().optional(),
   userId: z.string(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
   ...reminderSettingsSchema.shape,
   ...accountSettingsSchema.shape,
   ...emailSettingsSchema.shape,
@@ -75,3 +77,30 @@ export type ReminderSettingsValues = z.infer<typeof reminderSettingsSchema>;
 export type AccountSettingsValues = z.infer<typeof accountSettingsSchema>;
 export type EmailSettingsValues = z.infer<typeof emailSettingsSchema>;
 export type UserSettingsValues = z.infer<typeof userSettingsSchema>;
+
+// Database return types (with nullable fields)
+export type ReminderSettingsDB = {
+  isAutomatedReminders: boolean | null;
+  firstReminderDays: number | null;
+  followUpFrequency: number | null;
+  maxReminders: number | null;
+  firstReminderTone: "polite" | "friendly" | "neutral" | "firm" | "direct" | "assertive" | "urgent" | "final" | "serious" | null;
+  secondReminderTone: "polite" | "friendly" | "neutral" | "firm" | "direct" | "assertive" | "urgent" | "final" | "serious" | null;
+  thirdReminderTone: "polite" | "friendly" | "neutral" | "firm" | "direct" | "assertive" | "urgent" | "final" | "serious" | null;
+};
+
+export type AccountSettingsDB = {
+  businessName: string | null;
+  phoneNumber: string | null;
+};
+
+export type EmailSettingsDB = {
+  fromName: string | null;
+  emailSignature: string | null;
+  defaultCC: string | null;
+  defaultBCC: string | null;
+  previewEmails: boolean | null;
+  ccAccountant: boolean | null;
+  useBrandedEmails: boolean | null;
+  sendCopyToSelf: boolean | null;
+};

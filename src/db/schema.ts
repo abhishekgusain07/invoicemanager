@@ -163,6 +163,9 @@ export const userSettings = pgTable("user_settings", {
   defaultCC: text("default_cc"),
   defaultBCC: text("default_bcc"),
   previewEmails: boolean("preview_emails").default(true),
+  ccAccountant: boolean("cc_accountant").default(false),
+  useBrandedEmails: boolean("use_branded_emails").default(false),
+  sendCopyToSelf: boolean("send_copy_to_self").default(false),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
