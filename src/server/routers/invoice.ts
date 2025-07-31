@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '../trpc';
 import { clientInvoices, invoiceStatusEnum } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 import { v4 as uuidv4 } from "uuid";
 import { invoiceFormSchema } from '@/lib/validations/invoice';
 import { TRPCError } from '@trpc/server';
@@ -432,6 +432,76 @@ export const invoiceRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to bulk update invoice status',
+        });
+      }
+    }),
+
+  // Check if invoice number exists (for validation)
+  checkInvoiceNumber: protectedProcedure
+    .input(
+      z.object({
+        invoiceNumber: z.string(),
+        excludeId: z.string().optional(), // For editing - exclude current invoice
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const existingInvoice = await ctx.db
+          .select({ id: clientInvoices.id })
+          .from(clientInvoices)
+          .where(
+            and(
+              eq(clientInvoices.userId, ctx.user.id),
+              eq(clientInvoices.invoiceNumber, input.invoiceNumber),
+              input.excludeId ? ne(clientInvoices.id, input.excludeId) : undefined
+            )
+          )
+          .limit(1);
+
+        return {
+          exists: existingInvoice.length > 0,
+          invoiceId: existingInvoice[0]?.id,
+        };
+      } catch (error) {
+        console.error("Error checking invoice number:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to check invoice number',
+        });
+      }
+    }),
+
+  // Get unique clients for suggestions
+  getUniqueClients: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const invoices = await ctx.db
+          .select({
+            clientName: clientInvoices.clientName,
+            clientEmail: clientInvoices.clientEmail,
+          })
+          .from(clientInvoices)
+          .where(eq(clientInvoices.userId, ctx.user.id));
+
+        // Create a map to deduplicate clients by email
+        const clientMap = new Map();
+        
+        invoices.forEach((invoice) => {
+          const key = invoice.clientEmail.toLowerCase();
+          if (!clientMap.has(key)) {
+            clientMap.set(key, {
+              clientName: invoice.clientName,
+              clientEmail: invoice.clientEmail,
+            });
+          }
+        });
+
+        return Array.from(clientMap.values());
+      } catch (error) {
+        console.error("Error fetching unique clients:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch unique clients',
         });
       }
     }),
