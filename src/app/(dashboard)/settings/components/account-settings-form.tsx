@@ -18,8 +18,8 @@ export function AccountSettingsForm({ data, onSubmit, isLoading }: AccountSettin
   const form = useForm<AccountSettingsValues>({
     resolver: zodResolver(accountSettingsSchema),
     defaultValues: {
-      businessName: data?.businessName ?? "",
-      phoneNumber: data?.phoneNumber ?? "",
+      businessName: data?.businessName || "",
+      phoneNumber: data?.phoneNumber || "",
     },
   });
 

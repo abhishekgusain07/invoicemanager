@@ -16,15 +16,13 @@ const toneEnum = z.enum([
 
 // Reminder Settings schema
 export const reminderSettingsSchema = z.object({
-  isAutomatedReminders: z
-    .preprocess((val) => val === "true" || val === true, z.boolean())
-    .default(true),
-  firstReminderDays: z.coerce.number().int().min(1).max(30).default(3),
-  followUpFrequency: z.coerce.number().int().min(1).max(30).default(7),
-  maxReminders: z.coerce.number().int().min(1).max(10).default(3),
-  firstReminderTone: toneEnum.default("polite"),
-  secondReminderTone: toneEnum.default("firm"),
-  thirdReminderTone: toneEnum.default("urgent"),
+  isAutomatedReminders: z.boolean(),
+  firstReminderDays: z.number().int().min(1).max(30),
+  followUpFrequency: z.number().int().min(1).max(30),
+  maxReminders: z.number().int().min(1).max(10),
+  firstReminderTone: toneEnum,
+  secondReminderTone: toneEnum,
+  thirdReminderTone: toneEnum,
 });
 
 // Account Settings schema
@@ -36,24 +34,16 @@ export const accountSettingsSchema = z.object({
 // Email Settings schema
 export const emailSettingsSchema = z.object({
   fromName: z.string().max(100).optional(),
-  emailSignature: z.string().max(500).default("Best regards,"),
+  emailSignature: z.string().max(500),
   defaultCC: z.string().email().optional().or(z.literal("")),
   defaultBCC: z.string().email().optional().or(z.literal("")),
-  previewEmails: z
-    .preprocess((val) => val === "true" || val === true, z.boolean())
-    .default(true),
+  previewEmails: z.boolean(),
+  ccAccountant: z.boolean(),
+  useBrandedEmails: z.boolean(),
+  sendCopyToSelf: z.boolean(),
   reminderTemplate: z.string().optional(),
   followUpTemplate: z.string().optional(),
   finalReminderTemplate: z.string().optional(),
-  ccAccountant: z
-    .preprocess((val) => val === "true" || val === true, z.boolean())
-    .default(false),
-  useBrandedEmails: z
-    .preprocess((val) => val === "true" || val === true, z.boolean())
-    .default(false),
-  sendCopyToSelf: z
-    .preprocess((val) => val === "true" || val === true, z.boolean())
-    .default(false),
   ccEmails: z.string().max(500).optional(),
   senderName: z.string().max(100).optional(),
   firstReminderTemplateId: z.string().optional(),

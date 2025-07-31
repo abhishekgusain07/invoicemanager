@@ -20,10 +20,10 @@ export function EmailSettingsForm({ data, onSubmit, isLoading }: EmailSettingsFo
   const form = useForm<EmailSettingsValues>({
     resolver: zodResolver(emailSettingsSchema),
     defaultValues: {
-      fromName: data?.fromName ?? "",
-      emailSignature: data?.emailSignature ?? "Best regards,",
-      defaultCC: data?.defaultCC ?? "",
-      defaultBCC: data?.defaultBCC ?? "",
+      fromName: data?.fromName || "",
+      emailSignature: data?.emailSignature || "Best regards,",
+      defaultCC: data?.defaultCC || "",
+      defaultBCC: data?.defaultBCC || "",
       previewEmails: data?.previewEmails ?? true,
       ccAccountant: data?.ccAccountant ?? false,
       useBrandedEmails: data?.useBrandedEmails ?? false,
