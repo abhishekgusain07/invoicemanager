@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { isWaitlistMode } from "@/lib/feature-flags";
 
 // Import LucideIcon type and components
 import type { LucideIcon } from "lucide-react";
@@ -87,6 +88,19 @@ const LazyPricing = dynamic(() => import("@/components/pricing"), {
   loading: () => <div className="h-[600px] w-full animate-pulse bg-muted/50" />,
   ssr: false,
 });
+
+const WaitlistHero = dynamic(
+  () =>
+    import("@/components/waitlist/WaitlistHero").then((mod) => ({
+      default: mod.WaitlistHero,
+    })),
+  {
+    loading: () => (
+      <div className="h-[80vh] w-full animate-pulse bg-muted/50" />
+    ),
+    ssr: false,
+  }
+);
 
 export default function Home() {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
@@ -230,263 +244,272 @@ export default function Home() {
 
       <Suspense fallback={<div className="h-16 w-full bg-background" />}>
         <NavbarDemo>
-          {/* Hero Section */}
-          <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-            {/* Clean Background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white via-blue-50/50 to-white -z-10" />
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-transparent to-indigo-600/5 -z-10" />
+          {/* Conditional Hero Section */}
+          {isWaitlistMode() ? (
+            <WaitlistHero />
+          ) : (
+            /* Original Hero Section */
+            <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
+              {/* Clean Background */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white via-blue-50/50 to-white -z-10" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-transparent to-indigo-600/5 -z-10" />
 
-            <div className="container px-4 md:px-6 mx-auto max-w-6xl text-center">
-              {/* Status Badge */}
-              <div className="mb-8">
-                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2 text-sm font-medium">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
-                  1K+ FREELANCERS MANAGE INVOICES WITH US THIS MONTH!
-                </Badge>
-              </div>
-
-              {/* Main Title */}
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-slate-900 mb-8 max-w-5xl mx-auto">
-                Professional Invoice
-                <br />
-                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Management
-                </span>
-                <br />
-                for Freelancers & Agencies
-              </h1>
-
-              {/* Subtitle */}
-              <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed mb-12">
-                Stop chasing payments and focus on what matters. Our intelligent
-                system handles follow-ups, tracks payments, and gets you paid
-                75% faster.
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-                <Button
-                  asChild
-                  size="lg"
-                  className="font-medium text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/25"
-                >
-                  <Link href="/sign-up">Start Free Trial</Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="lg"
-                  className="font-medium text-lg px-8 py-4 text-slate-700 border-2 border-blue-600/30 hover:bg-blue-50 hover:border-blue-600 transition-all duration-300"
-                >
-                  <Link href="#features">View Features</Link>
-                </Button>
-              </div>
-
-              {/* Trust Indicators */}
-              <div className="text-center">
-                <p className="text-slate-500 text-sm uppercase tracking-wide mb-8 font-medium">
-                  TRUSTED BY THE FASTEST-GROWING FREELANCERS:
-                </p>
-
-                {/* Company Logos / Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center max-w-4xl mx-auto">
-                  <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-slate-900 mb-1">
-                      1K+
-                    </div>
-                    <div className="text-sm text-slate-600">Active Users</div>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-slate-900 mb-1">
-                      $2M+
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      Tracked Revenue
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-slate-900 mb-1">
-                      75%
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      Faster Payments
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-slate-900 mb-1">
-                      99%
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      Client Satisfaction
-                    </div>
-                  </div>
+              <div className="container px-4 md:px-6 mx-auto max-w-6xl text-center">
+                {/* Status Badge */}
+                <div className="mb-8">
+                  <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2 text-sm font-medium">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+                    1K+ FREELANCERS MANAGE INVOICES WITH US THIS MONTH!
+                  </Badge>
                 </div>
-              </div>
-            </div>
-          </section>
 
-          {/* Feature Preview Section */}
-          <section className="py-24 bg-white relative">
-            <div className="container px-4 md:px-6 mx-auto max-w-6xl">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 bg-clip-text text-transparent mb-4">
-                  See InvoiceManager in Action
-                </h2>
-                <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-                  Everything you need to manage invoices professionally and get
-                  paid on time
+                {/* Main Title */}
+                <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-slate-900 mb-8 max-w-5xl mx-auto">
+                  Professional Invoice
+                  <br />
+                  <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    Management
+                  </span>
+                  <br />
+                  for Freelancers & Agencies
+                </h1>
+
+                {/* Subtitle */}
+                <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed mb-12">
+                  Stop chasing payments and focus on what matters. Our
+                  intelligent system handles follow-ups, tracks payments, and
+                  gets you paid 75% faster.
                 </p>
-              </div>
 
-              {/* Clean Dashboard Preview */}
-              <div className="relative max-w-4xl mx-auto">
-                <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden shadow-2xl">
-                  {/* Browser Chrome */}
-                  <div className="flex items-center justify-between px-6 py-4 bg-slate-100 border-b border-slate-200">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    </div>
-                    <div className="text-sm text-slate-500 font-medium">
-                      invoicemanager.app/dashboard
-                    </div>
-                    <div className="w-16"></div>
-                  </div>
+                {/* CTA Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="font-medium text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/25"
+                  >
+                    <Link href="/sign-up">Start Free Trial</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="lg"
+                    className="font-medium text-lg px-8 py-4 text-slate-700 border-2 border-blue-600/30 hover:bg-blue-50 hover:border-blue-600 transition-all duration-300"
+                  >
+                    <Link href="#features">View Features</Link>
+                  </Button>
+                </div>
 
-                  {/* Dashboard Content */}
-                  <div className="p-8 bg-gradient-to-br from-white to-blue-50/30">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                      {/* Stats Cards */}
-                      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-slate-600">
-                              Outstanding
-                            </p>
-                            <p className="text-2xl font-bold text-slate-900">
-                              $24,500
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center">
-                            <DollarSign className="w-6 h-6 text-orange-600" />
-                          </div>
-                        </div>
+                {/* Trust Indicators */}
+                <div className="text-center">
+                  <p className="text-slate-500 text-sm uppercase tracking-wide mb-8 font-medium">
+                    TRUSTED BY THE FASTEST-GROWING FREELANCERS:
+                  </p>
+
+                  {/* Company Logos / Stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center max-w-4xl mx-auto">
+                    <div className="flex flex-col items-center">
+                      <div className="text-3xl font-bold text-slate-900 mb-1">
+                        1K+
                       </div>
-
-                      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-slate-600">This Month</p>
-                            <p className="text-2xl font-bold text-slate-900">
-                              $18,200
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center">
-                            <CheckCircle className="w-6 h-6 text-emerald-600" />
-                          </div>
-                        </div>
+                      <div className="text-sm text-slate-600">Active Users</div>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="text-3xl font-bold text-slate-900 mb-1">
+                        $2M+
                       </div>
-
-                      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-slate-600">Overdue</p>
-                            <p className="text-2xl font-bold text-slate-900">
-                              $3,400
-                            </p>
-                          </div>
-                          <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center">
-                            <Clock className="w-6 h-6 text-red-600" />
-                          </div>
-                        </div>
+                      <div className="text-sm text-slate-600">
+                        Tracked Revenue
                       </div>
                     </div>
-
-                    {/* Recent Invoices */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
-                      <h3 className="font-semibold text-slate-900 mb-4">
-                        Recent Invoices
-                      </h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-900">
-                                Acme Corporation
-                              </p>
-                              <p className="text-sm text-slate-500">
-                                Invoice #001234
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-slate-900">
-                              $5,400
-                            </p>
-                            <Badge className="bg-emerald-100 text-emerald-800 text-xs">
-                              Paid
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-purple-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-900">
-                                Design Studio LLC
-                              </p>
-                              <p className="text-sm text-slate-500">
-                                Invoice #001235
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-slate-900">
-                              $3,200
-                            </p>
-                            <Badge className="bg-amber-100 text-amber-800 text-xs">
-                              Pending
-                            </Badge>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between py-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center">
-                              <FileText className="w-5 h-5 text-orange-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-900">
-                                Tech Startup Inc
-                              </p>
-                              <p className="text-sm text-slate-500">
-                                Invoice #001236
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-slate-900">
-                              $7,800
-                            </p>
-                            <Badge className="bg-red-100 text-red-800 text-xs">
-                              Overdue
-                            </Badge>
-                          </div>
-                        </div>
+                    <div className="flex flex-col items-center">
+                      <div className="text-3xl font-bold text-slate-900 mb-1">
+                        75%
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        Faster Payments
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="text-3xl font-bold text-slate-900 mb-1">
+                        99%
+                      </div>
+                      <div className="text-sm text-slate-600">
+                        Client Satisfaction
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
+
+          {/* Feature Preview Section - Hidden in waitlist mode */}
+          {!isWaitlistMode() && (
+            <section className="py-24 bg-white relative">
+              <div className="container px-4 md:px-6 mx-auto max-w-6xl">
+                <div className="text-center mb-16">
+                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 bg-clip-text text-transparent mb-4">
+                    See InvoiceManager in Action
+                  </h2>
+                  <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+                    Everything you need to manage invoices professionally and
+                    get paid on time
+                  </p>
+                </div>
+
+                {/* Clean Dashboard Preview */}
+                <div className="relative max-w-4xl mx-auto">
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden shadow-2xl">
+                    {/* Browser Chrome */}
+                    <div className="flex items-center justify-between px-6 py-4 bg-slate-100 border-b border-slate-200">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      </div>
+                      <div className="text-sm text-slate-500 font-medium">
+                        invoicemanager.app/dashboard
+                      </div>
+                      <div className="w-16"></div>
+                    </div>
+
+                    {/* Dashboard Content */}
+                    <div className="p-8 bg-gradient-to-br from-white to-blue-50/30">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        {/* Stats Cards */}
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-slate-600">
+                                Outstanding
+                              </p>
+                              <p className="text-2xl font-bold text-slate-900">
+                                $24,500
+                              </p>
+                            </div>
+                            <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center">
+                              <DollarSign className="w-6 h-6 text-orange-600" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-slate-600">
+                                This Month
+                              </p>
+                              <p className="text-2xl font-bold text-slate-900">
+                                $18,200
+                              </p>
+                            </div>
+                            <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center">
+                              <CheckCircle className="w-6 h-6 text-emerald-600" />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-slate-600">Overdue</p>
+                              <p className="text-2xl font-bold text-slate-900">
+                                $3,400
+                              </p>
+                            </div>
+                            <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center">
+                              <Clock className="w-6 h-6 text-red-600" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Recent Invoices */}
+                      <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
+                        <h3 className="font-semibold text-slate-900 mb-4">
+                          Recent Invoices
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-slate-900">
+                                  Acme Corporation
+                                </p>
+                                <p className="text-sm text-slate-500">
+                                  Invoice #001234
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-slate-900">
+                                $5,400
+                              </p>
+                              <Badge className="bg-emerald-100 text-emerald-800 text-xs">
+                                Paid
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-purple-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-slate-900">
+                                  Design Studio LLC
+                                </p>
+                                <p className="text-sm text-slate-500">
+                                  Invoice #001235
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-slate-900">
+                                $3,200
+                              </p>
+                              <Badge className="bg-amber-100 text-amber-800 text-xs">
+                                Pending
+                              </Badge>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between py-3">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-orange-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-slate-900">
+                                  Tech Startup Inc
+                                </p>
+                                <p className="text-sm text-slate-500">
+                                  Invoice #001236
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-slate-900">
+                                $7,800
+                              </p>
+                              <Badge className="bg-red-100 text-red-800 text-xs">
+                                Overdue
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Features Section */}
           <section id="features" className="py-24 px-4 md:px-6 relative">
@@ -542,7 +565,11 @@ export default function Home() {
                                 : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
                             }`}
                           >
-                            {feature.status === "live" ? "Live" : "Planned"}
+                            {isWaitlistMode()
+                              ? "Coming Soon"
+                              : feature.status === "live"
+                                ? "Live"
+                                : "Planned"}
                           </Badge>
                         </div>
 
