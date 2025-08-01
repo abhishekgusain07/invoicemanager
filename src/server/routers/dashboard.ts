@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
-import { clientInvoices } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { clientInvoices } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const dashboardRouter = createTRPCRouter({
   // Get invoice statistics
@@ -30,7 +30,10 @@ export const dashboardRouter = createTRPCRouter({
       // Calculate total outstanding amount (all unpaid invoices)
       const outstandingTotal = userInvoices
         .filter((invoice) => invoice.status !== "paid")
-        .reduce((sum, invoice) => sum + parseFloat(invoice.amount as string), 0);
+        .reduce(
+          (sum, invoice) => sum + parseFloat(invoice.amount as string),
+          0
+        );
 
       // Format with currency symbol, assuming USD for now
       const outstandingAmount = `$${outstandingTotal.toFixed(2)}`;
@@ -62,8 +65,18 @@ export const dashboardRouter = createTRPCRouter({
   // Get monthly invoice data for charts
   getMonthlyData: protectedProcedure.query(async ({ ctx }) => {
     const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     try {
@@ -109,8 +122,18 @@ export const dashboardRouter = createTRPCRouter({
   // Combined endpoint for all dashboard data (optimization)
   getAllDashboardData: protectedProcedure.query(async ({ ctx }) => {
     const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     try {
@@ -135,7 +158,10 @@ export const dashboardRouter = createTRPCRouter({
 
       const outstandingTotal = userInvoices
         .filter((invoice) => invoice.status !== "paid")
-        .reduce((sum, invoice) => sum + parseFloat(invoice.amount as string), 0);
+        .reduce(
+          (sum, invoice) => sum + parseFloat(invoice.amount as string),
+          0
+        );
 
       const outstandingAmount = `$${outstandingTotal.toFixed(2)}`;
 
@@ -210,7 +236,7 @@ export const dashboardRouter = createTRPCRouter({
           .slice(0, input.limit)
           .map((invoice) => ({
             id: invoice.id,
-            type: 'invoice_created' as const,
+            type: "invoice_created" as const,
             title: `Invoice #${invoice.invoiceNumber} created`,
             description: `Invoice for ${invoice.clientName} - ${invoice.currency} ${parseFloat(invoice.amount as string).toFixed(2)}`,
             timestamp: invoice.createdAt,

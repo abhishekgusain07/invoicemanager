@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc';
-import { TRPCError } from '@trpc/server';
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
+import { TRPCError } from "@trpc/server";
 
 export const authRouter = createTRPCRouter({
   // Get current session
@@ -24,7 +24,7 @@ export const authRouter = createTRPCRouter({
   // Health check for authentication
   healthCheck: publicProcedure.query(() => {
     return {
-      status: 'ok',
+      status: "ok",
       timestamp: new Date().toISOString(),
     };
   }),

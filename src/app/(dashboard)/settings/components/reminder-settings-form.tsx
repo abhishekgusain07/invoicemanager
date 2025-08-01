@@ -3,12 +3,30 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
-import { reminderSettingsSchema, type ReminderSettingsValues, type ReminderSettingsDB } from "@/lib/validations/settings";
+import {
+  reminderSettingsSchema,
+  type ReminderSettingsValues,
+  type ReminderSettingsDB,
+} from "@/lib/validations/settings";
 
 interface ReminderSettingsFormProps {
   data: ReminderSettingsDB | null | undefined;
@@ -28,7 +46,11 @@ const toneOptions = [
   { value: "serious", label: "Serious" },
 ] as const;
 
-export function ReminderSettingsForm({ data, onSubmit, isLoading }: ReminderSettingsFormProps) {
+export function ReminderSettingsForm({
+  data,
+  onSubmit,
+  isLoading,
+}: ReminderSettingsFormProps) {
   const form = useForm<ReminderSettingsValues>({
     resolver: zodResolver(reminderSettingsSchema),
     defaultValues: {
@@ -87,7 +109,7 @@ export function ReminderSettingsForm({ data, onSubmit, isLoading }: ReminderSett
                     min={1}
                     max={30}
                     {...field}
-                    onChange={e => field.onChange(Number(e.target.value))}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
                 <FormDescription>Days after due date</FormDescription>
@@ -108,7 +130,7 @@ export function ReminderSettingsForm({ data, onSubmit, isLoading }: ReminderSett
                     min={1}
                     max={30}
                     {...field}
-                    onChange={e => field.onChange(Number(e.target.value))}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
                 <FormDescription>Days between reminders</FormDescription>
@@ -129,7 +151,7 @@ export function ReminderSettingsForm({ data, onSubmit, isLoading }: ReminderSett
                     min={1}
                     max={10}
                     {...field}
-                    onChange={e => field.onChange(Number(e.target.value))}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
                 <FormDescription>Total reminder limit</FormDescription>
@@ -141,7 +163,7 @@ export function ReminderSettingsForm({ data, onSubmit, isLoading }: ReminderSett
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Reminder Tones</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}
@@ -149,7 +171,10 @@ export function ReminderSettingsForm({ data, onSubmit, isLoading }: ReminderSett
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>First Reminder Tone</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select tone" />
@@ -174,7 +199,10 @@ export function ReminderSettingsForm({ data, onSubmit, isLoading }: ReminderSett
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Second Reminder Tone</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select tone" />
@@ -199,7 +227,10 @@ export function ReminderSettingsForm({ data, onSubmit, isLoading }: ReminderSett
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Third Reminder Tone</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select tone" />

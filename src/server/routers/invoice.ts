@@ -1,10 +1,10 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
-import { clientInvoices, invoiceStatusEnum } from '@/db/schema';
-import { eq, and, ne } from 'drizzle-orm';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { clientInvoices, invoiceStatusEnum } from "@/db/schema";
+import { eq, and, ne } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
-import { invoiceFormSchema } from '@/lib/validations/invoice';
-import { TRPCError } from '@trpc/server';
+import { invoiceFormSchema } from "@/lib/validations/invoice";
+import { TRPCError } from "@trpc/server";
 
 export const invoiceRouter = createTRPCRouter({
   // Get all invoices for the user
@@ -28,8 +28,8 @@ export const invoiceRouter = createTRPCRouter({
       } catch (error) {
         console.error("Error fetching invoices:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch invoices',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch invoices",
         });
       }
     }),
@@ -68,7 +68,7 @@ export const invoiceRouter = createTRPCRouter({
       } catch (error) {
         console.error(`Error fetching ${input.status} invoices:`, error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
+          code: "INTERNAL_SERVER_ERROR",
           message: `Failed to fetch ${input.status} invoices`,
         });
       }
@@ -92,8 +92,9 @@ export const invoiceRouter = createTRPCRouter({
 
         if (invoice.length === 0) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Invoice not found or you do not have permission to access it',
+            code: "NOT_FOUND",
+            message:
+              "Invoice not found or you do not have permission to access it",
           });
         }
 
@@ -102,8 +103,8 @@ export const invoiceRouter = createTRPCRouter({
         if (error instanceof TRPCError) throw error;
         console.error("Error fetching invoice:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch invoice',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch invoice",
         });
       }
     }),
@@ -145,8 +146,8 @@ export const invoiceRouter = createTRPCRouter({
       } catch (error) {
         console.error("Error creating invoice:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create invoice',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create invoice",
         });
       }
     }),
@@ -174,8 +175,9 @@ export const invoiceRouter = createTRPCRouter({
 
         if (existingInvoice.length === 0) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Invoice not found or you do not have permission to update it',
+            code: "NOT_FOUND",
+            message:
+              "Invoice not found or you do not have permission to update it",
           });
         }
 
@@ -214,8 +216,8 @@ export const invoiceRouter = createTRPCRouter({
         if (error instanceof TRPCError) throw error;
         console.error("Error updating invoice:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update invoice',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update invoice",
         });
       }
     }),
@@ -238,8 +240,9 @@ export const invoiceRouter = createTRPCRouter({
 
         if (invoice.length === 0) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Invoice not found or you do not have permission to delete it',
+            code: "NOT_FOUND",
+            message:
+              "Invoice not found or you do not have permission to delete it",
           });
         }
 
@@ -258,8 +261,8 @@ export const invoiceRouter = createTRPCRouter({
         if (error instanceof TRPCError) throw error;
         console.error("Error deleting invoice:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to delete invoice',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete invoice",
         });
       }
     }),
@@ -287,8 +290,9 @@ export const invoiceRouter = createTRPCRouter({
 
         if (invoice.length === 0) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Invoice not found or you do not have permission to update it',
+            code: "NOT_FOUND",
+            message:
+              "Invoice not found or you do not have permission to update it",
           });
         }
 
@@ -315,8 +319,8 @@ export const invoiceRouter = createTRPCRouter({
         if (error instanceof TRPCError) throw error;
         console.error("Error updating invoice status:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to update invoice status',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update invoice status",
         });
       }
     }),
@@ -339,8 +343,9 @@ export const invoiceRouter = createTRPCRouter({
 
         if (invoice.length === 0) {
           throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Invoice not found or you do not have permission to update it',
+            code: "NOT_FOUND",
+            message:
+              "Invoice not found or you do not have permission to update it",
           });
         }
 
@@ -367,8 +372,8 @@ export const invoiceRouter = createTRPCRouter({
         if (error instanceof TRPCError) throw error;
         console.error("Error marking invoice as paid:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to mark invoice as paid',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to mark invoice as paid",
         });
       }
     }),
@@ -389,13 +394,13 @@ export const invoiceRouter = createTRPCRouter({
           .from(clientInvoices)
           .where(eq(clientInvoices.userId, ctx.user.id));
 
-        const userInvoiceIds = new Set(invoices.map(inv => inv.id));
-        const invalidIds = input.ids.filter(id => !userInvoiceIds.has(id));
+        const userInvoiceIds = new Set(invoices.map((inv) => inv.id));
+        const invalidIds = input.ids.filter((id) => !userInvoiceIds.has(id));
 
         if (invalidIds.length > 0) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: `You do not have permission to update invoices: ${invalidIds.join(', ')}`,
+            code: "FORBIDDEN",
+            message: `You do not have permission to update invoices: ${invalidIds.join(", ")}`,
           });
         }
 
@@ -415,7 +420,7 @@ export const invoiceRouter = createTRPCRouter({
               )
             )
             .returning();
-          
+
           if (updated.length > 0) {
             updatedInvoices.push(updated[0]);
           }
@@ -430,8 +435,8 @@ export const invoiceRouter = createTRPCRouter({
         if (error instanceof TRPCError) throw error;
         console.error("Error bulk updating invoice status:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to bulk update invoice status',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to bulk update invoice status",
         });
       }
     }),
@@ -453,7 +458,9 @@ export const invoiceRouter = createTRPCRouter({
             and(
               eq(clientInvoices.userId, ctx.user.id),
               eq(clientInvoices.invoiceNumber, input.invoiceNumber),
-              input.excludeId ? ne(clientInvoices.id, input.excludeId) : undefined
+              input.excludeId
+                ? ne(clientInvoices.id, input.excludeId)
+                : undefined
             )
           )
           .limit(1);
@@ -465,46 +472,45 @@ export const invoiceRouter = createTRPCRouter({
       } catch (error) {
         console.error("Error checking invoice number:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to check invoice number',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to check invoice number",
         });
       }
     }),
 
   // Get unique clients for suggestions
-  getUniqueClients: protectedProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const invoices = await ctx.db
-          .select({
-            clientName: clientInvoices.clientName,
-            clientEmail: clientInvoices.clientEmail,
-          })
-          .from(clientInvoices)
-          .where(eq(clientInvoices.userId, ctx.user.id));
+  getUniqueClients: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const invoices = await ctx.db
+        .select({
+          clientName: clientInvoices.clientName,
+          clientEmail: clientInvoices.clientEmail,
+        })
+        .from(clientInvoices)
+        .where(eq(clientInvoices.userId, ctx.user.id));
 
-        // Create a map to deduplicate clients by email
-        const clientMap = new Map();
-        
-        invoices.forEach((invoice) => {
-          const key = invoice.clientEmail.toLowerCase();
-          if (!clientMap.has(key)) {
-            clientMap.set(key, {
-              clientName: invoice.clientName,
-              clientEmail: invoice.clientEmail,
-            });
-          }
-        });
+      // Create a map to deduplicate clients by email
+      const clientMap = new Map();
 
-        return Array.from(clientMap.values());
-      } catch (error) {
-        console.error("Error fetching unique clients:", error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch unique clients',
-        });
-      }
-    }),
+      invoices.forEach((invoice) => {
+        const key = invoice.clientEmail.toLowerCase();
+        if (!clientMap.has(key)) {
+          clientMap.set(key, {
+            clientName: invoice.clientName,
+            clientEmail: invoice.clientEmail,
+          });
+        }
+      });
+
+      return Array.from(clientMap.values());
+    } catch (error) {
+      console.error("Error fetching unique clients:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch unique clients",
+      });
+    }
+  }),
 
   // Bulk delete
   bulkDelete: protectedProcedure
@@ -517,13 +523,13 @@ export const invoiceRouter = createTRPCRouter({
           .from(clientInvoices)
           .where(eq(clientInvoices.userId, ctx.user.id));
 
-        const userInvoiceIds = new Set(invoices.map(inv => inv.id));
-        const invalidIds = input.ids.filter(id => !userInvoiceIds.has(id));
+        const userInvoiceIds = new Set(invoices.map((inv) => inv.id));
+        const invalidIds = input.ids.filter((id) => !userInvoiceIds.has(id));
 
         if (invalidIds.length > 0) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: `You do not have permission to delete invoices: ${invalidIds.join(', ')}`,
+            code: "FORBIDDEN",
+            message: `You do not have permission to delete invoices: ${invalidIds.join(", ")}`,
           });
         }
 
@@ -538,7 +544,7 @@ export const invoiceRouter = createTRPCRouter({
                 eq(clientInvoices.userId, ctx.user.id)
               )
             );
-          
+
           deletedCount++;
         }
 
@@ -550,8 +556,8 @@ export const invoiceRouter = createTRPCRouter({
         if (error instanceof TRPCError) throw error;
         console.error("Error bulk deleting invoices:", error);
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to bulk delete invoices',
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to bulk delete invoices",
         });
       }
     }),

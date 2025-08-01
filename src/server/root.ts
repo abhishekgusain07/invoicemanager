@@ -1,12 +1,12 @@
-import { createTRPCRouter } from './trpc';
-import { authRouter } from './routers/auth';
-import { userRouter } from './routers/user';
-import { dashboardRouter } from './routers/dashboard';
-import { invoiceRouter } from './routers/invoice';
-import { connectionsRouter } from './routers/connections';
-import { templatesRouter } from './routers/templates';
-import { emailRouter } from './routers/email';
-import { settingsRouter } from './routers/settings';
+import { createTRPCRouter } from "./trpc";
+import { authRouter } from "./routers/auth";
+import { userRouter } from "./routers/user";
+import { dashboardRouter } from "./routers/dashboard";
+import { invoiceRouter } from "./routers/invoice";
+import { connectionsRouter } from "./routers/connections";
+import { templatesRouter } from "./routers/templates";
+import { emailRouter } from "./routers/email";
+import { settingsRouter } from "./routers/settings";
 
 /**
  * This is the primary router for your server.

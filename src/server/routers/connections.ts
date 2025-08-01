@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
-import { gmailConnection, user } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { gmailConnection, user } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const connectionsRouter = createTRPCRouter({
   // Check Gmail connection status
@@ -26,11 +26,13 @@ export const connectionsRouter = createTRPCRouter({
 
       return {
         isConnected: hasConnection && isConnectedFlag,
-        connectionData: hasConnection ? {
-          email: connection[0].email,
-          name: connection[0].name,
-          connectedAt: connection[0].createdAt,
-        } : null,
+        connectionData: hasConnection
+          ? {
+              email: connection[0].email,
+              name: connection[0].name,
+              connectedAt: connection[0].createdAt,
+            }
+          : null,
       };
     } catch (error) {
       console.error("Error checking Gmail connection:", error);
@@ -80,7 +82,7 @@ export const connectionsRouter = createTRPCRouter({
       // Update user's gmailConnected flag
       await ctx.db
         .update(user)
-        .set({ 
+        .set({
           gmailConnected: false,
           updatedAt: new Date(),
         })
@@ -116,7 +118,7 @@ export const connectionsRouter = createTRPCRouter({
       if (hasConnection !== isConnectedFlag) {
         await ctx.db
           .update(user)
-          .set({ 
+          .set({
             gmailConnected: hasConnection,
             updatedAt: new Date(),
           })
@@ -126,11 +128,13 @@ export const connectionsRouter = createTRPCRouter({
       return {
         isConnected: hasConnection,
         wasUpdated: hasConnection !== isConnectedFlag,
-        connectionData: hasConnection ? {
-          email: connection[0].email,
-          name: connection[0].name,
-          connectedAt: connection[0].createdAt,
-        } : null,
+        connectionData: hasConnection
+          ? {
+              email: connection[0].email,
+              name: connection[0].name,
+              connectedAt: connection[0].createdAt,
+            }
+          : null,
       };
     } catch (error) {
       console.error("Error refreshing connection status:", error);

@@ -3,10 +3,22 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { accountSettingsSchema, type AccountSettingsValues, type AccountSettingsDB } from "@/lib/validations/settings";
+import {
+  accountSettingsSchema,
+  type AccountSettingsValues,
+  type AccountSettingsDB,
+} from "@/lib/validations/settings";
 
 interface AccountSettingsFormProps {
   data: AccountSettingsDB | null | undefined;
@@ -14,7 +26,11 @@ interface AccountSettingsFormProps {
   isLoading: boolean;
 }
 
-export function AccountSettingsForm({ data, onSubmit, isLoading }: AccountSettingsFormProps) {
+export function AccountSettingsForm({
+  data,
+  onSubmit,
+  isLoading,
+}: AccountSettingsFormProps) {
   const form = useForm<AccountSettingsValues>({
     resolver: zodResolver(accountSettingsSchema),
     defaultValues: {
@@ -41,9 +57,9 @@ export function AccountSettingsForm({ data, onSubmit, isLoading }: AccountSettin
             <FormItem>
               <FormLabel>Business Name</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="Your Business Name" 
-                  {...field} 
+                <Input
+                  placeholder="Your Business Name"
+                  {...field}
                   value={field.value ?? ""}
                 />
               </FormControl>
@@ -62,15 +78,13 @@ export function AccountSettingsForm({ data, onSubmit, isLoading }: AccountSettin
             <FormItem>
               <FormLabel>Phone Number</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="+1 (555) 123-4567" 
-                  {...field} 
+                <Input
+                  placeholder="+1 (555) 123-4567"
+                  {...field}
                   value={field.value ?? ""}
                 />
               </FormControl>
-              <FormDescription>
-                Your business contact number
-              </FormDescription>
+              <FormDescription>Your business contact number</FormDescription>
               <FormMessage />
             </FormItem>
           )}

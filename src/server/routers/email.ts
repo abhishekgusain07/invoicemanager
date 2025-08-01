@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
-import { sendInvoiceReminder } from '@/actions/reminder';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { sendInvoiceReminder } from "@/actions/reminder";
 
 export const emailRouter = createTRPCRouter({
   // Send reminder email
@@ -10,7 +10,7 @@ export const emailRouter = createTRPCRouter({
         invoiceId: z.string(),
         emailSubject: z.string(),
         emailContent: z.string(),
-        tone: z.enum(['polite', 'firm', 'urgent']),
+        tone: z.enum(["polite", "firm", "urgent"]),
         isHtml: z.boolean().default(true),
       })
     )
@@ -25,7 +25,7 @@ export const emailRouter = createTRPCRouter({
         });
 
         if (!result.success) {
-          throw new Error(result.error || 'Failed to send reminder');
+          throw new Error(result.error || "Failed to send reminder");
         }
 
         return {
@@ -33,8 +33,8 @@ export const emailRouter = createTRPCRouter({
           reminderNumber: result.reminderNumber,
         };
       } catch (error) {
-        console.error('Error sending reminder:', error);
-        throw new Error('Failed to send reminder email');
+        console.error("Error sending reminder:", error);
+        throw new Error("Failed to send reminder email");
       }
     }),
 
@@ -47,8 +47,8 @@ export const emailRouter = createTRPCRouter({
         // For now, return empty array as placeholder
         return [];
       } catch (error) {
-        console.error('Error getting reminder history:', error);
-        throw new Error('Failed to get reminder history');
+        console.error("Error getting reminder history:", error);
+        throw new Error("Failed to get reminder history");
       }
     }),
 
@@ -62,8 +62,8 @@ export const emailRouter = createTRPCRouter({
         email: null,
       };
     } catch (error) {
-      console.error('Error checking Gmail connection:', error);
-      throw new Error('Failed to check Gmail connection');
+      console.error("Error checking Gmail connection:", error);
+      throw new Error("Failed to check Gmail connection");
     }
   }),
 
@@ -76,8 +76,8 @@ export const emailRouter = createTRPCRouter({
         success: true,
       };
     } catch (error) {
-      console.error('Error refreshing tokens:', error);
-      throw new Error('Failed to refresh Gmail tokens');
+      console.error("Error refreshing tokens:", error);
+      throw new Error("Failed to refresh Gmail tokens");
     }
   }),
 
@@ -90,7 +90,7 @@ export const emailRouter = createTRPCRouter({
             invoiceId: z.string(),
             emailSubject: z.string(),
             emailContent: z.string(),
-            tone: z.enum(['polite', 'firm', 'urgent']),
+            tone: z.enum(["polite", "firm", "urgent"]),
             isHtml: z.boolean().default(true),
           })
         ),
@@ -99,7 +99,7 @@ export const emailRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       try {
         const results = [];
-        
+
         for (const reminder of input.reminders) {
           try {
             const result = await sendInvoiceReminder({
@@ -109,7 +109,7 @@ export const emailRouter = createTRPCRouter({
               tone: reminder.tone,
               isHtml: reminder.isHtml,
             });
-            
+
             results.push({
               invoiceId: reminder.invoiceId,
               success: result.success,
@@ -120,12 +120,12 @@ export const emailRouter = createTRPCRouter({
             results.push({
               invoiceId: reminder.invoiceId,
               success: false,
-              error: error instanceof Error ? error.message : 'Unknown error',
+              error: error instanceof Error ? error.message : "Unknown error",
             });
           }
         }
 
-        const successCount = results.filter(r => r.success).length;
+        const successCount = results.filter((r) => r.success).length;
         const totalCount = results.length;
 
         return {
@@ -138,8 +138,8 @@ export const emailRouter = createTRPCRouter({
           },
         };
       } catch (error) {
-        console.error('Error bulk sending reminders:', error);
-        throw new Error('Failed to bulk send reminders');
+        console.error("Error bulk sending reminders:", error);
+        throw new Error("Failed to bulk send reminders");
       }
     }),
 });

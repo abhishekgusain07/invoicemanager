@@ -74,9 +74,39 @@ export type ReminderSettingsDB = {
   firstReminderDays: number | null;
   followUpFrequency: number | null;
   maxReminders: number | null;
-  firstReminderTone: "polite" | "friendly" | "neutral" | "firm" | "direct" | "assertive" | "urgent" | "final" | "serious" | null;
-  secondReminderTone: "polite" | "friendly" | "neutral" | "firm" | "direct" | "assertive" | "urgent" | "final" | "serious" | null;
-  thirdReminderTone: "polite" | "friendly" | "neutral" | "firm" | "direct" | "assertive" | "urgent" | "final" | "serious" | null;
+  firstReminderTone:
+    | "polite"
+    | "friendly"
+    | "neutral"
+    | "firm"
+    | "direct"
+    | "assertive"
+    | "urgent"
+    | "final"
+    | "serious"
+    | null;
+  secondReminderTone:
+    | "polite"
+    | "friendly"
+    | "neutral"
+    | "firm"
+    | "direct"
+    | "assertive"
+    | "urgent"
+    | "final"
+    | "serious"
+    | null;
+  thirdReminderTone:
+    | "polite"
+    | "friendly"
+    | "neutral"
+    | "firm"
+    | "direct"
+    | "assertive"
+    | "urgent"
+    | "final"
+    | "serious"
+    | null;
 };
 
 export type AccountSettingsDB = {

@@ -29,7 +29,7 @@ export function TemplateSelector({
   onCreateNew,
 }: TemplateSelectorProps) {
   const router = useRouter();
-  
+
   // tRPC query for templates by tone
   const {
     data: templates = [],

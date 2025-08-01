@@ -4,9 +4,9 @@ Complete tRPC + TanStack Query Migration Plan
 
     PROJECT OVERVIEW
 
-    Your invoice management app currently uses sequential server action 
-    patterns in multiple components, causing performance issues like slow 
-    loading, cache misses, duplicate API calls, and poor UX. This plan 
+    Your invoice management app currently uses sequential server action
+    patterns in multiple components, causing performance issues like slow
+    loading, cache misses, duplicate API calls, and poor UX. This plan
     addresses all components using this anti-pattern.
 
     IDENTIFIED PROBLEM AREAS
@@ -14,9 +14,9 @@ Complete tRPC + TanStack Query Migration Plan
     High Impact Components (Critical for UX):
 
     - Dashboard (dashboard/page.tsx) - Two sequential API calls on every visit
-    - Invoice Data Hook (invoices/hooks/useInvoiceData.ts) - Multiple 
-    useEffect cascades  
-    - Email Templates Hook (invoices/hooks/useEmailTemplates.ts) - Sequential 
+    - Invoice Data Hook (invoices/hooks/useInvoiceData.ts) - Multiple
+    useEffect cascades
+    - Email Templates Hook (invoices/hooks/useEmailTemplates.ts) - Sequential
     template loading
     - Connect Page (connect/page.tsx) - Auth + connection status chain
     - Settings Page (settings/page.tsx) - Settings loading pattern
@@ -31,7 +31,7 @@ Complete tRPC + TanStack Query Migration Plan
     ---
     SPRINT 1: Foundation & Infrastructure (2-3 days)
 
-    User Story: As a developer, I need robust tRPC infrastructure to support 
+    User Story: As a developer, I need robust tRPC infrastructure to support
     all app data fetching.
 
     Tasks:
@@ -57,7 +57,7 @@ Complete tRPC + TanStack Query Migration Plan
     ---
     SPRINT 2: Dashboard Performance Revolution (3-4 days)
 
-    User Story: As a user, I want the dashboard to load instantly with no 
+    User Story: As a user, I want the dashboard to load instantly with no
     loading flickers.
 
     Tasks:
@@ -65,11 +65,11 @@ Complete tRPC + TanStack Query Migration Plan
     1. Create Dashboard Router
       - src/server/routers/dashboard.ts:
           - getStats (replaces getInvoiceStats)
-        - getMonthlyData (replaces getMonthlyInvoiceData) 
+        - getMonthlyData (replaces getMonthlyInvoiceData)
         - getAllDashboardData (single call combining both)
         - getRecentActivity (for future features)
     2. Convert Dashboard Component
-      - Replace dual Promise.all calls with single 
+      - Replace dual Promise.all calls with single
     api.dashboard.getAllDashboardData.useQuery()
       - Remove manual loading states
       - Implement background refetching
@@ -86,7 +86,7 @@ Complete tRPC + TanStack Query Migration Plan
     ---
     SPRINT 3: Invoice Management Overhaul (4-5 days)
 
-    User Story: As a user, I want all invoice operations to be instant and 
+    User Story: As a user, I want all invoice operations to be instant and
     reliable.
 
     Tasks:
@@ -114,7 +114,7 @@ Complete tRPC + TanStack Query Migration Plan
     ---
     SPRINT 4: Templates & Email System Migration (3-4 days)
 
-    User Story: As a user, I want template management and email sending to be 
+    User Story: As a user, I want template management and email sending to be
     seamless.
 
     Tasks:
@@ -141,7 +141,7 @@ Complete tRPC + TanStack Query Migration Plan
     ---
     SPRINT 5: Settings & Connection Management (2-3 days)
 
-    User Story: As a user, I want settings and integrations to load and save 
+    User Story: As a user, I want settings and integrations to load and save
     instantly.
 
     Tasks:
@@ -167,7 +167,7 @@ Complete tRPC + TanStack Query Migration Plan
     ---
     SPRINT 6: Form Management & Optimization (2-3 days)
 
-    User Story: As a user, I want forms to be responsive with instant 
+    User Story: As a user, I want forms to be responsive with instant
     validation.
 
     Tasks:
@@ -192,7 +192,7 @@ Complete tRPC + TanStack Query Migration Plan
     ---
     SPRINT 7: Performance & Polish (2-3 days)
 
-    User Story: As a user, I want the app to feel native with instant 
+    User Story: As a user, I want the app to feel native with instant
     responses.
 
     Tasks:
@@ -240,7 +240,7 @@ Complete tRPC + TanStack Query Migration Plan
     Performance Targets:
 
     ✅ 90% reduction in API calls (multi-call → single call patterns)
-    ✅ Dashboard loads < 200ms on repeat visits✅ Zero loading flickers on 
+    ✅ Dashboard loads < 200ms on repeat visits✅ Zero loading flickers on
     navigation
     ✅ < 100ms perceived response time for all operations
     ✅ Offline capability for 80% of features
@@ -287,7 +287,7 @@ Complete tRPC + TanStack Query Migration Plan
     - User session continuity preserved
 
     ---
-    This comprehensive plan will transform your entire app from sluggish 
-    sequential patterns to a modern, cached, type-safe, and lightning-fast 
-    user experience. Every component will benefit from intelligent caching, 
+    This comprehensive plan will transform your entire app from sluggish
+    sequential patterns to a modern, cached, type-safe, and lightning-fast
+    user experience. Every component will benefit from intelligent caching,
     optimistic updates, and real-time synchronization.

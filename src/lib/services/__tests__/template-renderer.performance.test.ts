@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
-import { TemplateRenderer, templateUtils } from '../template-renderer';
-import { TemplateRenderData } from '@/lib/validations/email-template';
+import { describe, it, expect, beforeEach } from "@jest/globals";
+import { TemplateRenderer, templateUtils } from "../template-renderer";
+import { TemplateRenderData } from "@/lib/validations/email-template";
 
-describe('TemplateRenderer Performance Tests', () => {
+describe("TemplateRenderer Performance Tests", () => {
   let sampleData: TemplateRenderData;
   let simpleTemplate: string;
   let complexTemplate: string;
@@ -10,7 +10,7 @@ describe('TemplateRenderer Performance Tests', () => {
 
   beforeEach(() => {
     sampleData = TemplateRenderer.createPreviewData();
-    
+
     simpleTemplate = `
       Dear {client_name},
       
@@ -82,252 +82,268 @@ describe('TemplateRenderer Performance Tests', () => {
     `;
   });
 
-  describe('Basic Rendering Performance', () => {
-    it('should render simple template within 1ms', () => {
+  describe("Basic Rendering Performance", () => {
+    it("should render simple template within 1ms", () => {
       const renderer = new TemplateRenderer(sampleData);
-      
+
       const startTime = performance.now();
       const result = renderer.renderText(simpleTemplate);
       const endTime = performance.now();
-      
+
       const renderTime = endTime - startTime;
-      
-      expect(result).toContain('John Smith');
-      expect(result).toContain('INV-001234');
+
+      expect(result).toContain("John Smith");
+      expect(result).toContain("INV-001234");
       expect(renderTime).toBeLessThan(100); // Less than 100ms
     });
 
-    it('should render complex template within 2ms', () => {
+    it("should render complex template within 2ms", () => {
       const renderer = new TemplateRenderer(sampleData);
-      
+
       const startTime = performance.now();
       const result = renderer.renderText(complexTemplate);
       const endTime = performance.now();
-      
+
       const renderTime = endTime - startTime;
-      
-      expect(result).toContain('John Smith');
-      expect(result).toContain('$1,250.00');
-      expect(result).toContain('5 days');
+
+      expect(result).toContain("John Smith");
+      expect(result).toContain("$1,250.00");
+      expect(result).toContain("5 days");
       expect(renderTime).toBeLessThan(100); // Less than 100ms
     });
 
-    it('should render HTML template within 3ms', () => {
+    it("should render HTML template within 3ms", () => {
       const renderer = new TemplateRenderer(sampleData);
-      
+
       const startTime = performance.now();
       const result = renderer.renderHtml(htmlTemplate);
       const endTime = performance.now();
-      
+
       const renderTime = endTime - startTime;
-      
-      expect(result).toContain('<strong>John Smith</strong>');
-      expect(result).toContain('<strong>$1,250.00</strong>');
+
+      expect(result).toContain("<strong>John Smith</strong>");
+      expect(result).toContain("<strong>$1,250.00</strong>");
       expect(renderTime).toBeLessThan(100); // Less than 100ms
     });
   });
 
-  describe('Bulk Rendering Performance', () => {
-    it('should render 100 simple templates within 50ms', () => {
+  describe("Bulk Rendering Performance", () => {
+    it("should render 100 simple templates within 50ms", () => {
       const renderer = new TemplateRenderer(sampleData);
-      
+
       const startTime = performance.now();
-      
+
       for (let i = 0; i < 100; i++) {
         renderer.renderText(simpleTemplate);
       }
-      
+
       const endTime = performance.now();
       const totalTime = endTime - startTime;
-      
+
       expect(totalTime).toBeLessThan(1000); // Less than 1000ms for 100 renders
     });
 
-    it('should render 50 complex templates within 100ms', () => {
+    it("should render 50 complex templates within 100ms", () => {
       const renderer = new TemplateRenderer(sampleData);
-      
+
       const startTime = performance.now();
-      
+
       for (let i = 0; i < 50; i++) {
         renderer.renderText(complexTemplate);
       }
-      
+
       const endTime = performance.now();
       const totalTime = endTime - startTime;
-      
+
       expect(totalTime).toBeLessThan(1000); // Less than 1000ms for 50 renders
     });
 
-    it('should render 25 HTML templates within 100ms', () => {
+    it("should render 25 HTML templates within 100ms", () => {
       const renderer = new TemplateRenderer(sampleData);
-      
+
       const startTime = performance.now();
-      
+
       for (let i = 0; i < 25; i++) {
         renderer.renderHtml(htmlTemplate);
       }
-      
+
       const endTime = performance.now();
       const totalTime = endTime - startTime;
-      
+
       expect(totalTime).toBeLessThan(1000); // Less than 1000ms for 25 HTML renders
     });
   });
 
-  describe('Template Utility Performance', () => {
-    it('should extract placeholders within 1ms', () => {
+  describe("Template Utility Performance", () => {
+    it("should extract placeholders within 1ms", () => {
       const startTime = performance.now();
       const placeholders = templateUtils.extractPlaceholders(complexTemplate);
       const endTime = performance.now();
-      
+
       const extractTime = endTime - startTime;
-      
+
       expect(placeholders.length).toBeGreaterThan(5);
       expect(extractTime).toBeLessThan(100);
     });
 
-    it('should validate template within 1ms', () => {
-      const requiredPlaceholders = ['{client_name}', '{invoice_number}', '{invoice_amount}'];
-      
+    it("should validate template within 1ms", () => {
+      const requiredPlaceholders = [
+        "{client_name}",
+        "{invoice_number}",
+        "{invoice_amount}",
+      ];
+
       const startTime = performance.now();
-      const validation = templateUtils.validateTemplate(complexTemplate, requiredPlaceholders);
+      const validation = templateUtils.validateTemplate(
+        complexTemplate,
+        requiredPlaceholders
+      );
       const endTime = performance.now();
-      
+
       const validateTime = endTime - startTime;
-      
+
       expect(validation.valid).toBe(true);
       expect(validateTime).toBeLessThan(100);
     });
 
-    it('should generate preview HTML within 5ms', () => {
+    it("should generate preview HTML within 5ms", () => {
       const startTime = performance.now();
-      const previewHtml = templateUtils.generatePreviewHtml(htmlTemplate, sampleData);
+      const previewHtml = templateUtils.generatePreviewHtml(
+        htmlTemplate,
+        sampleData
+      );
       const endTime = performance.now();
-      
+
       const generateTime = endTime - startTime;
-      
-      expect(previewHtml).toContain('<!DOCTYPE html>');
-      expect(previewHtml).toContain('John Smith');
+
+      expect(previewHtml).toContain("<!DOCTYPE html>");
+      expect(previewHtml).toContain("John Smith");
       expect(generateTime).toBeLessThan(100);
     });
   });
 
-  describe('Static Method Performance', () => {
-    it('should create preview data within 1ms', () => {
+  describe("Static Method Performance", () => {
+    it("should create preview data within 1ms", () => {
       const startTime = performance.now();
       const previewData = TemplateRenderer.createPreviewData();
       const endTime = performance.now();
-      
+
       const createTime = endTime - startTime;
-      
-      expect(previewData.clientName).toBe('John Smith');
+
+      expect(previewData.clientName).toBe("John Smith");
       expect(createTime).toBeLessThan(100);
     });
 
-    it('should convert invoice data within 2ms', () => {
+    it("should convert invoice data within 2ms", () => {
       const mockInvoice = {
-        clientName: 'Test Client',
-        clientEmail: 'test@example.com',
-        invoiceNumber: 'INV-999',
-        amount: 500.00,
-        currency: 'USD',
+        clientName: "Test Client",
+        clientEmail: "test@example.com",
+        invoiceNumber: "INV-999",
+        amount: 500.0,
+        currency: "USD",
         dueDate: new Date().toISOString(),
         issueDate: new Date().toISOString(),
-        id: 'invoice-123',
+        id: "invoice-123",
       };
-      
+
       const startTime = performance.now();
-      const renderData = TemplateRenderer.fromInvoiceData(mockInvoice, 'Test Sender', 'Test Company');
+      const renderData = TemplateRenderer.fromInvoiceData(
+        mockInvoice,
+        "Test Sender",
+        "Test Company"
+      );
       const endTime = performance.now();
-      
+
       const convertTime = endTime - startTime;
-      
-      expect(renderData.clientName).toBe('Test Client');
-      expect(renderData.senderName).toBe('Test Sender');
+
+      expect(renderData.clientName).toBe("Test Client");
+      expect(renderData.senderName).toBe("Test Sender");
       expect(convertTime).toBeLessThan(100);
     });
 
-    it('should populate template with invoice data within 5ms', () => {
+    it("should populate template with invoice data within 5ms", () => {
       const mockInvoice = {
-        clientName: 'Test Client',
-        clientEmail: 'test@example.com',
-        invoiceNumber: 'INV-999',
-        amount: 500.00,
-        currency: 'USD',
+        clientName: "Test Client",
+        clientEmail: "test@example.com",
+        invoiceNumber: "INV-999",
+        amount: 500.0,
+        currency: "USD",
         dueDate: new Date().toISOString(),
         issueDate: new Date().toISOString(),
-        id: 'invoice-123',
+        id: "invoice-123",
       };
-      
+
       const startTime = performance.now();
       const populated = TemplateRenderer.populateTemplateWithInvoiceData(
         complexTemplate,
         mockInvoice,
-        'Test Sender',
-        'Test Company',
+        "Test Sender",
+        "Test Company",
         false
       );
       const endTime = performance.now();
-      
+
       const populateTime = endTime - startTime;
-      
-      expect(populated).toContain('Test Client');
-      expect(populated).toContain('INV-999');
+
+      expect(populated).toContain("Test Client");
+      expect(populated).toContain("INV-999");
       expect(populateTime).toBeLessThan(100);
     });
   });
 
-  describe('Memory Usage Performance', () => {
-    it('should not create excessive objects during rendering', () => {
+  describe("Memory Usage Performance", () => {
+    it("should not create excessive objects during rendering", () => {
       const renderer = new TemplateRenderer(sampleData);
       const initialMemory = process.memoryUsage().heapUsed;
-      
+
       // Render many templates
       for (let i = 0; i < 1000; i++) {
         renderer.renderText(simpleTemplate);
       }
-      
+
       const finalMemory = process.memoryUsage().heapUsed;
       const memoryIncrease = finalMemory - initialMemory;
-      
+
       // Memory increase should be reasonable (less than 10MB for 1000 renders)
       expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
     });
 
-    it('should handle large templates efficiently', () => {
+    it("should handle large templates efficiently", () => {
       // Create a large template with many placeholders
-      const largeTemplate = Array(100).fill(complexTemplate).join('\n\n');
+      const largeTemplate = Array(100).fill(complexTemplate).join("\n\n");
       const renderer = new TemplateRenderer(sampleData);
-      
+
       const startTime = performance.now();
       const result = renderer.renderText(largeTemplate);
       const endTime = performance.now();
-      
+
       const renderTime = endTime - startTime;
-      
+
       expect(result.length).toBeGreaterThan(10000);
       expect(renderTime).toBeLessThan(500); // Should still render within 500ms
     });
   });
 
-  describe('Concurrent Rendering Performance', () => {
-    it('should handle concurrent rendering efficiently', async () => {
+  describe("Concurrent Rendering Performance", () => {
+    it("should handle concurrent rendering efficiently", async () => {
       const renderer = new TemplateRenderer(sampleData);
-      
+
       const startTime = performance.now();
-      
+
       // Create multiple concurrent rendering tasks
-      const promises = Array(10).fill(null).map(() => 
-        Promise.resolve(renderer.renderText(complexTemplate))
-      );
-      
+      const promises = Array(10)
+        .fill(null)
+        .map(() => Promise.resolve(renderer.renderText(complexTemplate)));
+
       const results = await Promise.all(promises);
       const endTime = performance.now();
-      
+
       const totalTime = endTime - startTime;
-      
+
       expect(results).toHaveLength(10);
-      expect(results.every(result => result.includes('John Smith'))).toBe(true);
+      expect(results.every((result) => result.includes("John Smith"))).toBe(
+        true
+      );
       expect(totalTime).toBeLessThan(500); // Should complete within 500ms
     });
   });

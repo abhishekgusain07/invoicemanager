@@ -1,0 +1,8 @@
+npm run format:check
+if [ $? -ne 0 ]; then
+  echo "❌ Code formatting issues found. Running auto-format..."
+  npm run format
+  echo "✅ Code has been formatted. Please review and commit again."
+  exit 1
+fi
+echo "✅ Code formatting is good!"

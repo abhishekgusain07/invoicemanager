@@ -3,12 +3,24 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
-import { emailSettingsSchema, type EmailSettingsValues, type EmailSettingsDB } from "@/lib/validations/settings";
+import {
+  emailSettingsSchema,
+  type EmailSettingsValues,
+  type EmailSettingsDB,
+} from "@/lib/validations/settings";
 
 interface EmailSettingsFormProps {
   data: EmailSettingsDB | null | undefined;
@@ -16,7 +28,11 @@ interface EmailSettingsFormProps {
   isLoading: boolean;
 }
 
-export function EmailSettingsForm({ data, onSubmit, isLoading }: EmailSettingsFormProps) {
+export function EmailSettingsForm({
+  data,
+  onSubmit,
+  isLoading,
+}: EmailSettingsFormProps) {
   const form = useForm<EmailSettingsValues>({
     resolver: zodResolver(emailSettingsSchema),
     defaultValues: {
@@ -49,9 +65,9 @@ export function EmailSettingsForm({ data, onSubmit, isLoading }: EmailSettingsFo
             <FormItem>
               <FormLabel>From Name</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="Your Name or Business Name" 
-                  {...field} 
+                <Input
+                  placeholder="Your Name or Business Name"
+                  {...field}
                   value={field.value ?? ""}
                 />
               </FormControl>
@@ -70,7 +86,7 @@ export function EmailSettingsForm({ data, onSubmit, isLoading }: EmailSettingsFo
             <FormItem>
               <FormLabel>Email Signature</FormLabel>
               <FormControl>
-                <Textarea 
+                <Textarea
                   placeholder="Best regards,&#10;Your Name"
                   className="min-h-[80px]"
                   {...field}
@@ -92,16 +108,14 @@ export function EmailSettingsForm({ data, onSubmit, isLoading }: EmailSettingsFo
               <FormItem>
                 <FormLabel>Default CC</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     type="email"
-                    placeholder="cc@example.com" 
-                    {...field} 
+                    placeholder="cc@example.com"
+                    {...field}
                     value={field.value ?? ""}
                   />
                 </FormControl>
-                <FormDescription>
-                  Always CC this email address
-                </FormDescription>
+                <FormDescription>Always CC this email address</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -114,16 +128,14 @@ export function EmailSettingsForm({ data, onSubmit, isLoading }: EmailSettingsFo
               <FormItem>
                 <FormLabel>Default BCC</FormLabel>
                 <FormControl>
-                  <Input 
+                  <Input
                     type="email"
-                    placeholder="bcc@example.com" 
-                    {...field} 
+                    placeholder="bcc@example.com"
+                    {...field}
                     value={field.value ?? ""}
                   />
                 </FormControl>
-                <FormDescription>
-                  Always BCC this email address
-                </FormDescription>
+                <FormDescription>Always BCC this email address</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -132,7 +144,7 @@ export function EmailSettingsForm({ data, onSubmit, isLoading }: EmailSettingsFo
 
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Email Preferences</h3>
-          
+
           <FormField
             control={form.control}
             name="previewEmails"
@@ -181,7 +193,9 @@ export function EmailSettingsForm({ data, onSubmit, isLoading }: EmailSettingsFo
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Use Branded Emails</FormLabel>
+                  <FormLabel className="text-base">
+                    Use Branded Emails
+                  </FormLabel>
                   <FormDescription>
                     Include your business branding in emails
                   </FormDescription>

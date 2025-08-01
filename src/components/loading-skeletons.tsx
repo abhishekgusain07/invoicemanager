@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 // Base skeleton component
 interface SkeletonProps {
@@ -9,9 +9,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className }: SkeletonProps) {
-  return (
-    <div className={cn('animate-pulse rounded-md bg-muted', className)} />
-  );
+  return <div className={cn("animate-pulse rounded-md bg-muted", className)} />;
 }
 
 // Dashboard skeletons
@@ -59,7 +57,10 @@ export function DashboardChartSkeleton() {
         <div className="h-full w-full flex items-end justify-between gap-2 pb-4 pt-8">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center">
-              <Skeleton className={`w-10 rounded-t-md`} style={{ height: `${Math.random() * 150 + 50}px` }} />
+              <Skeleton
+                className={`w-10 rounded-t-md`}
+                style={{ height: `${Math.random() * 150 + 50}px` }}
+              />
               <Skeleton className="h-3 w-6 mt-2" />
             </div>
           ))}
@@ -84,21 +85,33 @@ export function DashboardTableSkeleton() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  {['Client', 'Invoice', 'Amount', 'Due Date', 'Status'].map((header, i) => (
-                    <th key={i} className="p-2 text-left">
-                      <Skeleton className="h-4 w-16" />
-                    </th>
-                  ))}
+                  {["Client", "Invoice", "Amount", "Due Date", "Status"].map(
+                    (header, i) => (
+                      <th key={i} className="p-2 text-left">
+                        <Skeleton className="h-4 w-16" />
+                      </th>
+                    )
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b">
-                    <td className="p-2"><Skeleton className="h-4 w-24" /></td>
-                    <td className="p-2"><Skeleton className="h-4 w-20" /></td>
-                    <td className="p-2"><Skeleton className="h-4 w-16" /></td>
-                    <td className="p-2"><Skeleton className="h-4 w-20" /></td>
-                    <td className="p-2"><Skeleton className="h-6 w-16 rounded-full" /></td>
+                    <td className="p-2">
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+                    <td className="p-2">
+                      <Skeleton className="h-4 w-20" />
+                    </td>
+                    <td className="p-2">
+                      <Skeleton className="h-4 w-16" />
+                    </td>
+                    <td className="p-2">
+                      <Skeleton className="h-4 w-20" />
+                    </td>
+                    <td className="p-2">
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -142,7 +155,7 @@ export function SettingsSkeleton() {
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-4 w-64" />
       </div>
-      
+
       <div className="grid gap-6">
         {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i} className="border shadow-sm">
@@ -181,7 +194,7 @@ export function TemplatesSkeleton() {
         </div>
         <Skeleton className="h-10 w-32" />
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i} className="border shadow-sm">
@@ -222,7 +235,7 @@ export function FormSkeleton() {
           <Skeleton className="h-10 w-full" />
         </div>
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Skeleton className="h-4 w-28" />
@@ -239,12 +252,12 @@ export function FormSkeleton() {
           </div>
         </div>
       </div>
-      
+
       <div className="space-y-2">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-24 w-full" />
       </div>
-      
+
       <div className="flex justify-end gap-2">
         <Skeleton className="h-10 w-20" />
         <Skeleton className="h-10 w-24" />
@@ -264,7 +277,7 @@ export function PageSkeleton() {
         </div>
         <Skeleton className="h-10 w-32" />
       </div>
-      
+
       <div className="space-y-6">
         <DashboardStatsSkeleton />
         <div className="grid gap-6 md:grid-cols-7">
@@ -294,11 +307,11 @@ interface ProgressiveLoadingProps {
   delay?: number;
 }
 
-export function ProgressiveLoading({ 
-  isLoading, 
-  skeleton, 
-  children, 
-  delay = 200 
+export function ProgressiveLoading({
+  isLoading,
+  skeleton,
+  children,
+  delay = 200,
 }: ProgressiveLoadingProps) {
   const [showSkeleton, setShowSkeleton] = React.useState(false);
 

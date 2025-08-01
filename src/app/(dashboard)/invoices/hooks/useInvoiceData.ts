@@ -21,11 +21,11 @@ export const useInvoiceData = () => {
   const [refreshReminders, setRefreshReminders] = useState(0);
 
   // Use tRPC queries for data fetching
-  const { 
-    data: invoices = [], 
-    isLoading: isLoadingInvoices, 
+  const {
+    data: invoices = [],
+    isLoading: isLoadingInvoices,
     error: invoicesError,
-    refetch: refetchInvoices 
+    refetch: refetchInvoices,
   } = api.invoice.getByStatus.useQuery(
     { status: statusFilter as "pending" | "paid" | "overdue" | "all" },
     {
@@ -36,24 +36,19 @@ export const useInvoiceData = () => {
   );
 
   // Use tRPC query for Gmail connection status
-  const { 
-    data: gmailConnectionData, 
-    isLoading: checkingGmailConnection 
-  } = api.connections.checkGmailConnection.useQuery(
-    undefined,
-    {
+  const { data: gmailConnectionData, isLoading: checkingGmailConnection } =
+    api.connections.checkGmailConnection.useQuery(undefined, {
       enabled: !isUserLoading && !!user,
       staleTime: 5 * 60 * 1000, // 5 minutes for connection status
       refetchOnWindowFocus: false,
-    }
-  );
+    });
 
   const isGmailConnected = gmailConnectionData?.isConnected ?? false;
 
   // Client-side filtering and sorting with useMemo for performance
   const filteredInvoices = useMemo(() => {
     if (!invoices.length) return [];
-    
+
     const filtered = filterInvoices(invoices, searchQuery);
     return sortInvoices(filtered, sortConfig);
   }, [invoices, searchQuery, sortConfig]);
@@ -81,7 +76,9 @@ export const useInvoiceData = () => {
 
   const updateInvoiceStatusMutation = api.invoice.updateStatus.useMutation({
     onSuccess: (data, variables) => {
-      toast.success(`Invoice status updated to ${variables.status} successfully`);
+      toast.success(
+        `Invoice status updated to ${variables.status} successfully`
+      );
       // Invalidate and refetch invoices
       refetchInvoices();
     },

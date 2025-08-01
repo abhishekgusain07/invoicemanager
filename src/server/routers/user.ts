@@ -1,7 +1,7 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
-import { user } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { user } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const userRouter = createTRPCRouter({
   // Get user profile

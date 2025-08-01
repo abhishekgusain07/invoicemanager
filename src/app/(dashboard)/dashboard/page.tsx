@@ -44,13 +44,13 @@ export default function DashboardPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("all");
-  
+
   // Use tRPC query for dashboard data
-  const { 
-    data: dashboardData, 
-    isLoading, 
-    error, 
-    refetch: refetchDashboardData 
+  const {
+    data: dashboardData,
+    isLoading,
+    error,
+    refetch: refetchDashboardData,
   } = api.dashboard.getAllDashboardData.useQuery(
     undefined, // no input needed
     {

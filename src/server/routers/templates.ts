@@ -1,13 +1,13 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
-import { emailTemplates } from '@/db/schema';
-import { eq, and, not } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { emailTemplates } from "@/db/schema";
+import { eq, and, not } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 import {
   createTemplateSchema,
   updateTemplateSchema,
   type EmailTemplate,
-} from '@/lib/validations/email-template';
+} from "@/lib/validations/email-template";
 
 export const templatesRouter = createTRPCRouter({
   // Get all templates for the authenticated user
@@ -21,8 +21,8 @@ export const templatesRouter = createTRPCRouter({
 
       return templates as EmailTemplate[];
     } catch (error) {
-      console.error('Error getting templates:', error);
-      throw new Error('Failed to get templates');
+      console.error("Error getting templates:", error);
+      throw new Error("Failed to get templates");
     }
   }),
 
@@ -42,13 +42,13 @@ export const templatesRouter = createTRPCRouter({
           );
 
         if (!template || template.length === 0) {
-          throw new Error('Template not found');
+          throw new Error("Template not found");
         }
 
         return template[0] as EmailTemplate;
       } catch (error) {
-        console.error('Error getting template by ID:', error);
-        throw new Error('Failed to get template');
+        console.error("Error getting template by ID:", error);
+        throw new Error("Failed to get template");
       }
     }),
 
@@ -70,8 +70,8 @@ export const templatesRouter = createTRPCRouter({
 
         return templates as EmailTemplate[];
       } catch (error) {
-        console.error('Error getting templates by tone:', error);
-        throw new Error('Failed to get templates by tone');
+        console.error("Error getting templates by tone:", error);
+        throw new Error("Failed to get templates by tone");
       }
     }),
 
@@ -105,8 +105,8 @@ export const templatesRouter = createTRPCRouter({
 
         return newTemplate[0] as EmailTemplate;
       } catch (error) {
-        console.error('Error creating template:', error);
-        throw new Error('Failed to create template');
+        console.error("Error creating template:", error);
+        throw new Error("Failed to create template");
       }
     }),
 
@@ -132,7 +132,7 @@ export const templatesRouter = createTRPCRouter({
           );
 
         if (!existingTemplate || existingTemplate.length === 0) {
-          throw new Error('Template not found');
+          throw new Error("Template not found");
         }
 
         // If this is a default template, unset other defaults with the same tone
@@ -168,8 +168,8 @@ export const templatesRouter = createTRPCRouter({
 
         return updatedTemplate[0] as EmailTemplate;
       } catch (error) {
-        console.error('Error updating template:', error);
-        throw new Error('Failed to update template');
+        console.error("Error updating template:", error);
+        throw new Error("Failed to update template");
       }
     }),
 
@@ -190,7 +190,7 @@ export const templatesRouter = createTRPCRouter({
           );
 
         if (!existingTemplate || existingTemplate.length === 0) {
-          throw new Error('Template not found');
+          throw new Error("Template not found");
         }
 
         // Delete the template
@@ -205,8 +205,8 @@ export const templatesRouter = createTRPCRouter({
 
         return { success: true };
       } catch (error) {
-        console.error('Error deleting template:', error);
-        throw new Error('Failed to delete template');
+        console.error("Error deleting template:", error);
+        throw new Error("Failed to delete template");
       }
     }),
 
@@ -235,13 +235,13 @@ export const templatesRouter = createTRPCRouter({
           .returning();
 
         if (!updatedTemplate || updatedTemplate.length === 0) {
-          throw new Error('Template not found');
+          throw new Error("Template not found");
         }
 
         return updatedTemplate[0] as EmailTemplate;
       } catch (error) {
-        console.error('Error toggling template status:', error);
-        throw new Error('Failed to update template status');
+        console.error("Error toggling template status:", error);
+        throw new Error("Failed to update template status");
       }
     }),
 
@@ -261,7 +261,7 @@ export const templatesRouter = createTRPCRouter({
         defaultTemplates: templates.filter((t) => t.isDefault).length,
         byCategory: templates.reduce(
           (acc, template) => {
-            const category = template.category || 'other';
+            const category = template.category || "other";
             acc[category] = (acc[category] || 0) + 1;
             return acc;
           },
@@ -269,7 +269,7 @@ export const templatesRouter = createTRPCRouter({
         ),
         byTone: templates.reduce(
           (acc, template) => {
-            const tone = template.tone || 'neutral';
+            const tone = template.tone || "neutral";
             acc[tone] = (acc[tone] || 0) + 1;
             return acc;
           },
@@ -282,8 +282,8 @@ export const templatesRouter = createTRPCRouter({
         stats,
       };
     } catch (error) {
-      console.error('Error getting templates with stats:', error);
-      throw new Error('Failed to get templates with statistics');
+      console.error("Error getting templates with stats:", error);
+      throw new Error("Failed to get templates with statistics");
     }
   }),
 });

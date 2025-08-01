@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import { BellIcon, UserIcon, MailIcon, SaveIcon, Loader2 } from "lucide-react";
 import { api } from "@/lib/trpc";
@@ -52,9 +58,14 @@ export default function SettingsPage() {
     },
   });
 
-  const isLoading = reminderQuery.isLoading || accountQuery.isLoading || emailQuery.isLoading;
-  const hasError = reminderQuery.error || accountQuery.error || emailQuery.error;
-  const isSaving = updateReminder.isPending || updateAccount.isPending || updateEmail.isPending;
+  const isLoading =
+    reminderQuery.isLoading || accountQuery.isLoading || emailQuery.isLoading;
+  const hasError =
+    reminderQuery.error || accountQuery.error || emailQuery.error;
+  const isSaving =
+    updateReminder.isPending ||
+    updateAccount.isPending ||
+    updateEmail.isPending;
 
   if (isLoading) {
     return <SettingsSkeleton />;
@@ -62,7 +73,7 @@ export default function SettingsPage() {
 
   if (hasError) {
     return (
-      <SettingsError 
+      <SettingsError
         onRetry={() => {
           reminderQuery.refetch();
           accountQuery.refetch();
@@ -91,7 +102,11 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+      >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="reminder" className="flex items-center gap-2">
             <BellIcon className="h-4 w-4" />

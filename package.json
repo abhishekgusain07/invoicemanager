@@ -12,10 +12,11 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "test": "jest",
-    "test:watch": "jest --watch", 
+    "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:bun": "bun test",
-    "test:all": "npm run test && npm run test:bun"
+    "test:all": "npm run test && npm run test:bun",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -97,8 +98,9 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "drizzle-kit": "^0.30.6",
-    "eslint": "^9",
+    "eslint": "^8.57.1",
     "eslint-config-next": "15.2.5",
+    "husky": "^9.1.7",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
     "prettier": "^3.6.2",

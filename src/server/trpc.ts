@@ -1,10 +1,10 @@
-import { initTRPC, TRPCError } from '@trpc/server';
-import { type FetchCreateContextFnOptions } from '@trpc/server/adapters/fetch';
-import superjson from 'superjson';
-import { ZodError } from 'zod';
-import { auth } from '@/lib/auth';
-import { db } from '@/db/drizzle';
-import { headers } from 'next/headers';
+import { initTRPC, TRPCError } from "@trpc/server";
+import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
+import superjson from "superjson";
+import { ZodError } from "zod";
+import { auth } from "@/lib/auth";
+import { db } from "@/db/drizzle";
+import { headers } from "next/headers";
 
 // Create context for tRPC requests
 export const createTRPCContext = async (opts: FetchCreateContextFnOptions) => {
@@ -45,7 +45,7 @@ export const publicProcedure = t.procedure;
 // Middleware for authenticated users
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
@@ -70,9 +70,9 @@ const rateLimitMiddleware = t.middleware(async ({ ctx, next, path }) => {
 // Admin middleware (if you have admin users)
 const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  
+
   // You can add admin role checking here if needed
   // For now, just ensure user is authenticated
   return next({

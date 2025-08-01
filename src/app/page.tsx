@@ -214,7 +214,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <main className="flex min-h-screen flex-col items-center justify-between bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <Suspense fallback={null}>
         {/* {showAnnouncement && (
           <Announcement
@@ -233,23 +233,23 @@ export default function Home() {
           {/* Hero Section */}
           <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
             {/* Clean Background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 -z-10" />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 -z-10" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white via-blue-50/50 to-white -z-10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-transparent to-indigo-600/5 -z-10" />
 
             <div className="container px-4 md:px-6 mx-auto max-w-6xl text-center">
               {/* Status Badge */}
               <div className="mb-8">
-                <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2 text-sm font-medium">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2 text-sm font-medium">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
                   1K+ FREELANCERS MANAGE INVOICES WITH US THIS MONTH!
                 </Badge>
               </div>
 
               {/* Main Title */}
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-white mb-8 max-w-5xl mx-auto">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.9] text-slate-900 mb-8 max-w-5xl mx-auto">
                 Professional Invoice
                 <br />
-                <span className="bg-gradient-to-r from-primary via-primary/80 to-secondary bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                   Management
                 </span>
                 <br />
@@ -257,7 +257,7 @@ export default function Home() {
               </h1>
 
               {/* Subtitle */}
-              <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-12">
+              <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed mb-12">
                 Stop chasing payments and focus on what matters. Our intelligent
                 system handles follow-ups, tracks payments, and gets you paid
                 75% faster.
@@ -268,7 +268,7 @@ export default function Home() {
                 <Button
                   asChild
                   size="lg"
-                  className="font-medium text-lg px-8 py-4 bg-white text-slate-900 hover:bg-slate-100 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="font-medium text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/25"
                 >
                   <Link href="/sign-up">Start Free Trial</Link>
                 </Button>
@@ -276,7 +276,7 @@ export default function Home() {
                   asChild
                   variant="ghost"
                   size="lg"
-                  className="font-medium text-lg px-8 py-4 text-white border-white/20 hover:bg-white/10 transition-all duration-300"
+                  className="font-medium text-lg px-8 py-4 text-slate-700 border-2 border-blue-600/30 hover:bg-blue-50 hover:border-blue-600 transition-all duration-300"
                 >
                   <Link href="#features">View Features</Link>
                 </Button>
@@ -284,39 +284,39 @@ export default function Home() {
 
               {/* Trust Indicators */}
               <div className="text-center">
-                <p className="text-slate-400 text-sm uppercase tracking-wide mb-8 font-medium">
+                <p className="text-slate-500 text-sm uppercase tracking-wide mb-8 font-medium">
                   TRUSTED BY THE FASTEST-GROWING FREELANCERS:
                 </p>
 
                 {/* Company Logos / Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center max-w-4xl mx-auto opacity-60">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center max-w-4xl mx-auto">
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-white mb-1">
+                    <div className="text-3xl font-bold text-slate-900 mb-1">
                       1K+
                     </div>
-                    <div className="text-sm text-slate-400">Active Users</div>
+                    <div className="text-sm text-slate-600">Active Users</div>
                   </div>
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-white mb-1">
+                    <div className="text-3xl font-bold text-slate-900 mb-1">
                       $2M+
                     </div>
-                    <div className="text-sm text-slate-400">
+                    <div className="text-sm text-slate-600">
                       Tracked Revenue
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-white mb-1">
+                    <div className="text-3xl font-bold text-slate-900 mb-1">
                       75%
                     </div>
-                    <div className="text-sm text-slate-400">
+                    <div className="text-sm text-slate-600">
                       Faster Payments
                     </div>
                   </div>
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-white mb-1">
+                    <div className="text-3xl font-bold text-slate-900 mb-1">
                       99%
                     </div>
-                    <div className="text-sm text-slate-400">
+                    <div className="text-sm text-slate-600">
                       Client Satisfaction
                     </div>
                   </div>
@@ -329,7 +329,7 @@ export default function Home() {
           <section className="py-24 bg-white relative">
             <div className="container px-4 md:px-6 mx-auto max-w-6xl">
               <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 bg-clip-text text-transparent mb-4">
                   See InvoiceManager in Action
                 </h2>
                 <p className="text-xl text-slate-600 max-w-2xl mx-auto">
@@ -355,7 +355,7 @@ export default function Home() {
                   </div>
 
                   {/* Dashboard Content */}
-                  <div className="p-8 bg-gradient-to-br from-white to-slate-50">
+                  <div className="p-8 bg-gradient-to-br from-white to-blue-50/30">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                       {/* Stats Cards */}
                       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100">
@@ -368,7 +368,7 @@ export default function Home() {
                               $24,500
                             </p>
                           </div>
-                          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                          <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center">
                             <DollarSign className="w-6 h-6 text-orange-600" />
                           </div>
                         </div>
@@ -382,8 +382,8 @@ export default function Home() {
                               $18,200
                             </p>
                           </div>
-                          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
+                          <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center">
+                            <CheckCircle className="w-6 h-6 text-emerald-600" />
                           </div>
                         </div>
                       </div>
@@ -396,7 +396,7 @@ export default function Home() {
                               $3,400
                             </p>
                           </div>
-                          <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                          <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 rounded-xl flex items-center justify-center">
                             <Clock className="w-6 h-6 text-red-600" />
                           </div>
                         </div>
@@ -411,7 +411,7 @@ export default function Home() {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
                               <FileText className="w-5 h-5 text-blue-600" />
                             </div>
                             <div>
@@ -427,7 +427,7 @@ export default function Home() {
                             <p className="font-semibold text-slate-900">
                               $5,400
                             </p>
-                            <Badge className="bg-green-100 text-green-800 text-xs">
+                            <Badge className="bg-emerald-100 text-emerald-800 text-xs">
                               Paid
                             </Badge>
                           </div>
@@ -435,7 +435,7 @@ export default function Home() {
 
                         <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-b-0">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center">
                               <FileText className="w-5 h-5 text-purple-600" />
                             </div>
                             <div>
@@ -451,7 +451,7 @@ export default function Home() {
                             <p className="font-semibold text-slate-900">
                               $3,200
                             </p>
-                            <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+                            <Badge className="bg-amber-100 text-amber-800 text-xs">
                               Pending
                             </Badge>
                           </div>
@@ -459,7 +459,7 @@ export default function Home() {
 
                         <div className="flex items-center justify-between py-3">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-orange-200 rounded-lg flex items-center justify-center">
                               <FileText className="w-5 h-5 text-orange-600" />
                             </div>
                             <div>
@@ -490,15 +490,15 @@ export default function Home() {
 
           {/* Features Section */}
           <section id="features" className="py-24 px-4 md:px-6 relative">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-50/50 to-transparent dark:via-slate-900/50 -z-10" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/30 to-transparent dark:via-slate-900/50 -z-10" />
 
             <div className="container mx-auto max-w-7xl">
               <div className="text-center mb-20 max-w-4xl mx-auto">
-                <Badge className="mb-6 bg-secondary/20 text-secondary-foreground hover:bg-secondary/30 transition-colors border-0">
+                <Badge className="mb-6 bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors border-0">
                   <Zap className="w-4 h-4 mr-2" />
                   Features
                 </Badge>
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-100 dark:via-slate-200 dark:to-slate-100">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 dark:from-blue-100 dark:via-indigo-200 dark:to-purple-100">
                   Everything you need to manage invoices like a pro
                 </h2>
                 <p className="text-xl text-muted-foreground leading-relaxed">
@@ -513,7 +513,7 @@ export default function Home() {
                   return (
                     <div
                       key={index}
-                      className="group relative p-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-border/50 rounded-2xl hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1"
+                      className="group relative p-8 bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm border border-blue-100/50 rounded-2xl hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 hover:-translate-y-1"
                     >
                       <div
                         className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-300`}
@@ -521,7 +521,7 @@ export default function Home() {
 
                       <div className="relative">
                         <div
-                          className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}
+                          className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg group-hover:shadow-xl`}
                         >
                           <Icon className="w-7 h-7 text-white" />
                         </div>
@@ -538,8 +538,8 @@ export default function Home() {
                             }
                             className={`text-xs ${
                               feature.status === "live"
-                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                : "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                : "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
                             }`}
                           >
                             {feature.status === "live" ? "Live" : "Planned"}
@@ -558,10 +558,10 @@ export default function Home() {
           </section>
 
           {/* Benefits Section */}
-          <section className="py-24 px-4 md:px-6 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5">
+          <section className="py-24 px-4 md:px-6 bg-gradient-to-br from-blue-50/50 via-transparent to-indigo-50/50">
             <div className="container mx-auto max-w-7xl">
               <div className="text-center mb-20 max-w-4xl mx-auto">
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-100 dark:via-slate-200 dark:to-slate-100">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 dark:from-blue-100 dark:via-indigo-200 dark:to-purple-100">
                   Why freelancers choose us
                 </h2>
                 <p className="text-xl text-muted-foreground leading-relaxed">
@@ -575,7 +575,7 @@ export default function Home() {
                   const Icon = benefit.icon;
                   return (
                     <div key={index} className="text-center group">
-                      <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg hover:shadow-blue-500/30">
                         <Icon className="w-8 h-8 text-white" />
                       </div>
                       <h3 className="text-lg font-semibold mb-3 text-slate-900 dark:text-slate-100">
@@ -595,9 +595,9 @@ export default function Home() {
           <section className="py-24 px-4 md:px-6">
             <div className="container mx-auto max-w-4xl text-center">
               <div className="relative">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-3xl blur-2xl opacity-20"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-3xl blur-2xl opacity-20"></div>
                 <div className="relative bg-gradient-to-br from-white/90 to-slate-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-sm border border-border/50 rounded-2xl p-12">
-                  <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 dark:from-slate-100 dark:via-slate-200 dark:to-slate-100">
+                  <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 dark:from-blue-100 dark:via-indigo-200 dark:to-purple-100 py-2">
                     Ready to get paid faster?
                   </h2>
                   <p className="text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl mx-auto">
@@ -608,7 +608,7 @@ export default function Home() {
                     <Button
                       asChild
                       size="lg"
-                      className="font-medium text-lg shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/35 transition-all duration-300 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary group"
+                      className="font-medium text-lg shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/35 transition-all duration-300 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 group"
                     >
                       <Link href="/sign-up">
                         Start Your Free Trial

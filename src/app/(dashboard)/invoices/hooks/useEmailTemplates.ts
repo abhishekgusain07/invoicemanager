@@ -394,7 +394,12 @@ ${user?.name || "Your Company"}`,
         return false;
       }
     },
-    [selectedTemplateType, isHtmlMode, customizedEmailContent, sendReminderMutation]
+    [
+      selectedTemplateType,
+      isHtmlMode,
+      customizedEmailContent,
+      sendReminderMutation,
+    ]
   );
 
   // Enhanced custom template handling

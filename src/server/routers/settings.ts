@@ -1,9 +1,14 @@
-import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
-import { userSettings } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { userSettingsSchema, reminderSettingsSchema, accountSettingsSchema, emailSettingsSchema } from '@/lib/validations/settings';
-import { nanoid } from 'nanoid';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { userSettings } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import {
+  userSettingsSchema,
+  reminderSettingsSchema,
+  accountSettingsSchema,
+  emailSettingsSchema,
+} from "@/lib/validations/settings";
+import { nanoid } from "nanoid";
 
 export const settingsRouter = createTRPCRouter({
   // Get all user settings
@@ -247,10 +252,10 @@ export const settingsRouter = createTRPCRouter({
       firstReminderDays: 3,
       followUpFrequency: 7,
       maxReminders: 3,
-      firstReminderTone: 'polite' as const,
-      secondReminderTone: 'firm' as const,
-      thirdReminderTone: 'urgent' as const,
-      emailSignature: 'Best regards,',
+      firstReminderTone: "polite" as const,
+      secondReminderTone: "firm" as const,
+      thirdReminderTone: "urgent" as const,
+      emailSignature: "Best regards,",
       previewEmails: true,
       ccAccountant: false,
       useBrandedEmails: false,
