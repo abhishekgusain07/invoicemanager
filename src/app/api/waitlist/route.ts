@@ -3,6 +3,11 @@ import { z } from "zod";
 import { db } from "@/db/drizzle";
 import { waitlist } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { trackWaitlistSignupServer } from "@/lib/analytics/waitlist-server";
+import { render } from "@react-email/render";
+import { Resend } from "resend";
+import { env } from "@/env";
+import WaitlistWelcomeEmail from "@/email/waitlist-welcome";
 
 // Validation schema for waitlist signup
 const waitlistSchema = z.object({
@@ -70,6 +75,43 @@ export async function POST(request: NextRequest) {
         email: validatedData.email,
       })
       .returning();
+
+    // Track analytics
+    const userAgent = request.headers.get("user-agent") || "unknown";
+    const referer = request.headers.get("referer") || "";
+    
+    try {
+      await trackWaitlistSignupServer({
+        email: validatedData.email,
+        source: body.source,
+        medium: body.medium,
+        campaign: body.campaign,
+        referrer: referer,
+        userAgent: userAgent,
+      });
+    } catch (analyticsError) {
+      console.error("Analytics tracking error:", analyticsError);
+      // Don't fail the request if analytics fail
+    }
+
+    // Send welcome email
+    if (env.RESEND_API_KEY) {
+      try {
+        const resend = new Resend(env.RESEND_API_KEY);
+        
+        await resend.emails.send({
+          from: "InvoiceManager <waitlist@yourdomain.com>",
+          to: [validatedData.email],
+          subject: "Welcome to the InvoiceManager Waitlist! 🚀",
+          html: await render(WaitlistWelcomeEmail({ 
+            userEmail: validatedData.email 
+          })),
+        });
+      } catch (emailError) {
+        console.error("Email sending error:", emailError);
+        // Don't fail the request if email fails
+      }
+    }
 
     return NextResponse.json(
       {

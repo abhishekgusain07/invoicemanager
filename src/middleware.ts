@@ -16,12 +16,12 @@ export async function middleware(request: NextRequest) {
     if (pathname === "/sign-in" || pathname === "/sign-up") {
       return NextResponse.redirect(new URL("/", request.url));
     }
-    
+
     // Block dashboard and protected routes in waitlist mode
     if (pathname.startsWith("/dashboard") || pathname.startsWith("/app")) {
       return NextResponse.redirect(new URL("/", request.url));
     }
-    
+
     // Allow public pages in waitlist mode
     return NextResponse.next();
   }
@@ -46,5 +46,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/sign-up", "/sign-in", "/login", "/dashboard/:path*", "/app/:path*"],
+  matcher: [
+    "/sign-up",
+    "/sign-in",
+    "/login",
+    "/dashboard/:path*",
+    "/app/:path*",
+  ],
 };

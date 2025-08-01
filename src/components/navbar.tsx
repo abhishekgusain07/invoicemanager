@@ -16,6 +16,7 @@ import { useUser } from "@/hooks/useUser";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { isWaitlistMode } from "@/lib/feature-flags";
+import { useWaitlistAnalytics } from "@/lib/analytics/waitlist";
 
 export function NavbarDemo({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
@@ -24,6 +25,7 @@ export function NavbarDemo({ children }: { children: React.ReactNode }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { trackWaitlistCTAClick } = useWaitlistAnalytics();
 
   const navItems = [
     {
@@ -82,6 +84,7 @@ export function NavbarDemo({ children }: { children: React.ReactNode }) {
   const handleLogin = () => {
     // In waitlist mode, scroll to waitlist form instead of redirecting to sign-in
     if (isWaitlistMode()) {
+      trackWaitlistCTAClick("navbar");
       const waitlistSection = document.getElementById("waitlist");
       if (waitlistSection) {
         waitlistSection.scrollIntoView({ behavior: "smooth" });
@@ -170,6 +173,7 @@ export function NavbarDemo({ children }: { children: React.ReactNode }) {
       return (
         <NavbarButton
           onClick={() => {
+            trackWaitlistCTAClick("mobile-nav");
             handleLogin();
             setIsMobileMenuOpen(false);
           }}
