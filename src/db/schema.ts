@@ -7,6 +7,7 @@ import {
   decimal,
   pgEnum,
   unique,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -359,4 +360,11 @@ export const invoiceReminders = pgTable("invoice_reminders", {
   responseReceivedAt: timestamp("response_received_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Waitlist schema for early access signups
+export const waitlist = pgTable("waitlist", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });

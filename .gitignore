@@ -49,3 +49,8 @@ next-env.d.ts
 
 
 gmailExample.html
+
+# markdown files
+*.md
+!README.md
+
