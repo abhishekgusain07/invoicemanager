@@ -49,19 +49,6 @@ export class ErrorBoundary extends React.Component<
     console.error("Error Boundary caught an error:", error, errorInfo);
 
     // Send error to monitoring service (e.g., Sentry)
-    if (typeof window !== "undefined" && window.Sentry) {
-      window.Sentry.captureException(error, {
-        contexts: {
-          react: {
-            componentStack: errorInfo.componentStack,
-          },
-        },
-        tags: {
-          errorBoundary: true,
-          errorId: this.state.errorId,
-        },
-      });
-    }
   }
 
   handleReset = () => {
@@ -243,35 +230,47 @@ interface QueryErrorBoundaryProps {
   onError?: (error: Error) => void;
 }
 
+function QueryErrorFallback({
+  error,
+  reset,
+  onError,
+}: {
+  error: Error;
+  reset: () => void;
+  onError?: (error: Error) => void;
+}) {
+  React.useEffect(() => {
+    onError?.(error);
+  }, [error, onError]);
+
+  return (
+    <div className="p-4 border border-red-200 bg-red-50 rounded-md">
+      <div className="flex items-center gap-2 text-red-800 mb-2">
+        <AlertTriangleIcon className="h-4 w-4" />
+        <span className="font-medium">Failed to load data</span>
+      </div>
+      <p className="text-sm text-red-700 mb-3">
+        {error instanceof TRPCClientError
+          ? error.message
+          : "An error occurred while loading data."}
+      </p>
+      <Button size="sm" variant="outline" onClick={reset}>
+        <RefreshCwIcon className="mr-2 h-4 w-4" />
+        Retry
+      </Button>
+    </div>
+  );
+}
+
 export function QueryErrorBoundary({
   children,
   onError,
 }: QueryErrorBoundaryProps) {
   return (
     <ErrorBoundary
-      fallback={({ error, reset }) => {
-        React.useEffect(() => {
-          onError?.(error);
-        }, [error]);
-
-        return (
-          <div className="p-4 border border-red-200 bg-red-50 rounded-md">
-            <div className="flex items-center gap-2 text-red-800 mb-2">
-              <AlertTriangleIcon className="h-4 w-4" />
-              <span className="font-medium">Failed to load data</span>
-            </div>
-            <p className="text-sm text-red-700 mb-3">
-              {error instanceof TRPCClientError
-                ? error.message
-                : "An error occurred while loading data."}
-            </p>
-            <Button size="sm" variant="outline" onClick={reset}>
-              <RefreshCwIcon className="mr-2 h-4 w-4" />
-              Retry
-            </Button>
-          </div>
-        );
-      }}
+      fallback={({ error, reset }) => (
+        <QueryErrorFallback error={error} reset={reset} onError={onError} />
+      )}
     >
       {children}
     </ErrorBoundary>
