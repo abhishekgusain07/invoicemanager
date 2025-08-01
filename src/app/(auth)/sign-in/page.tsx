@@ -5,7 +5,6 @@ import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import Image from "next/image";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({
@@ -31,7 +30,7 @@ export default function SignIn() {
     setError(null);
 
     try {
-      const { data, error } = await authClient.signIn.email(
+      await authClient.signIn.email(
         {
           email: formData.email,
           password: formData.password,
@@ -76,7 +75,7 @@ export default function SignIn() {
           <div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Sign in</h2>
             <p className="text-gray-600 mb-8">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/sign-up"
                 className="text-primary hover:text-primary/80 font-medium"
@@ -353,7 +352,7 @@ export default function SignIn() {
               get paid faster.
             </p>
             <p className="text-gray-400 mb-12">
-              More than 1k+ freelancers joined us, it's your turn
+              More than 1k+ freelancers joined us, it&apos;s your turn
             </p>
 
             {/* Feature Card */}

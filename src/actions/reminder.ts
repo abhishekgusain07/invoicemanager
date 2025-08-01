@@ -3,12 +3,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
-import {
-  invoiceReminders,
-  userSettings,
-  clientInvoices,
-  emailDeliveryStatusEnum,
-} from "@/db/schema";
+import { invoiceReminders, clientInvoices } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, desc, and } from "drizzle-orm";
@@ -248,7 +243,7 @@ export async function updateReminderStatus(
   status: "delivered" | "opened" | "clicked" | "replied" | "bounced"
 ) {
   try {
-    const statusData: Record<string, any> = {
+    const statusData: Record<string, string | Date | boolean | undefined> = {
       status,
     };
 

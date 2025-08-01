@@ -3,15 +3,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
-import { userSettings, reminderToneEnum } from "@/db/schema";
+import { userSettings } from "@/db/schema";
 import {
   userSettingsSchema,
   reminderSettingsSchema,
   accountSettingsSchema,
   emailSettingsSchema,
-  type ReminderSettingsValues,
-  type AccountSettingsValues,
-  type EmailSettingsValues,
   UserSettingsValues,
 } from "@/lib/validations/settings";
 import { eq } from "drizzle-orm";
@@ -322,7 +319,7 @@ export async function updateAllSettings(formData: FormData) {
     const rawData = Object.fromEntries(formData.entries());
 
     // Create a processed data object with proper types
-    const processedData: Record<string, any> = { ...rawData };
+    const processedData: Record<string, unknown> = { ...rawData };
 
     // Process the reminder tone values to ensure they are valid enum values
     if (processedData.firstReminderTone) {
@@ -364,7 +361,8 @@ export async function updateAllSettings(formData: FormData) {
     ) {
       try {
         processedData.createdAt = new Date(processedData.createdAt);
-      } catch (e) {
+      } catch (error) {
+        console.error("Error parsing createdAt:", error);
         delete processedData.createdAt;
       }
     }
@@ -375,7 +373,8 @@ export async function updateAllSettings(formData: FormData) {
     ) {
       try {
         processedData.updatedAt = new Date(processedData.updatedAt);
-      } catch (e) {
+      } catch (error) {
+        console.error("Error parsing updatedAt:", error);
         delete processedData.updatedAt;
       }
     }
@@ -407,7 +406,8 @@ export async function updateAllSettings(formData: FormData) {
 
     if (!userSettingsData || userSettingsData.length === 0) {
       // Create new settings if they don't exist
-      const result = await db
+
+      await db
         .insert(userSettings)
         .values({
           id: uuidv4(),
@@ -416,7 +416,7 @@ export async function updateAllSettings(formData: FormData) {
         .returning();
     } else {
       // Update existing settings
-      const result = await db
+      await db
         .update(userSettings)
         .set({
           ...validData,

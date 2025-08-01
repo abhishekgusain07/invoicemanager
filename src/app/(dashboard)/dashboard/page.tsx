@@ -6,10 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   PlusIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
   ChevronUpIcon,
-  ChevronDownIcon,
   ClockIcon,
   AlertTriangleIcon,
   CheckCircleIcon,
@@ -20,6 +17,7 @@ import { useUser } from "@/hooks/useUser";
 import { CreateInvoiceForm } from "@/components/create-invoice-form";
 import { api } from "@/lib/trpc";
 import { toast } from "sonner";
+import { ClientInvoices } from "@/db/schema";
 
 // Default chart data structure
 const defaultChartData = [
@@ -37,7 +35,7 @@ const defaultStats = {
   overdueInvoices: 0,
   paidInvoices: 0,
   outstandingAmount: "$0.00",
-  recentInvoices: [] as Array<any>,
+  recentInvoices: [] as Array<ClientInvoices>,
 };
 
 export default function DashboardPage() {
@@ -396,25 +394,27 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {invoiceStats.recentInvoices.map((invoice: any) => (
-                      <tr
-                        key={invoice.id}
-                        className="border-b hover:bg-gray-50"
-                      >
-                        <td className="p-2">{invoice.clientName}</td>
-                        <td className="p-2 font-mono text-sm">
-                          {invoice.invoiceNumber}
-                        </td>
-                        <td className="p-2">
-                          {invoice.currency}{" "}
-                          {parseFloat(invoice.amount).toFixed(2)}
-                        </td>
-                        <td className="p-2">{formatDate(invoice.dueDate)}</td>
-                        <td className="p-2">
-                          {getStatusBadge(invoice.status)}
-                        </td>
-                      </tr>
-                    ))}
+                    {invoiceStats.recentInvoices.map(
+                      (invoice: ClientInvoices) => (
+                        <tr
+                          key={invoice.id}
+                          className="border-b hover:bg-gray-50"
+                        >
+                          <td className="p-2">{invoice.clientName}</td>
+                          <td className="p-2 font-mono text-sm">
+                            {invoice.invoiceNumber}
+                          </td>
+                          <td className="p-2">
+                            {invoice.currency}{" "}
+                            {parseFloat(invoice.amount).toFixed(2)}
+                          </td>
+                          <td className="p-2">{formatDate(invoice.dueDate)}</td>
+                          <td className="p-2">
+                            {getStatusBadge(invoice.status)}
+                          </td>
+                        </tr>
+                      )
+                    )}
                   </tbody>
                 </table>
               </div>

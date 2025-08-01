@@ -8,13 +8,6 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   CheckCircleIcon,
   AlertTriangleIcon,
   Clock8Icon,
@@ -25,7 +18,6 @@ import {
   Palette,
   Sparkles,
   Star,
-  Plus,
   Mail,
   Type,
   Code,

@@ -1,3 +1,4 @@
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -368,3 +369,16 @@ export const waitlist = pgTable("waitlist", {
   email: text("email").notNull().unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export type ClientInvoices = InferSelectModel<typeof clientInvoices>;
+export type InvoiceReminder = InferSelectModel<typeof invoiceReminders>;
+export type User = InferSelectModel<typeof user>;
+export type UserSettings = InferSelectModel<typeof userSettings>;
+export type EmailTemplate = InferSelectModel<typeof emailTemplates>;
+export type Subscription = InferSelectModel<typeof subscriptions>;
+export type SubscriptionPlan = InferSelectModel<typeof subscriptionPlans>;
+export type Invoice = InferSelectModel<typeof invoices>;
+export type Feedback = InferSelectModel<typeof feedback>;
+export type GeneratedInvoice = InferSelectModel<typeof generatedInvoices>;
+
+export type InvoiceGenerationData = InferInsertModel<typeof generatedInvoices>;

@@ -2,8 +2,13 @@
 
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/db/drizzle";
-import { clientInvoices, invoiceReminders, userSettings } from "@/db/schema";
-import { and, eq, lt, desc } from "drizzle-orm";
+import {
+  ClientInvoices,
+  clientInvoices,
+  invoiceReminders,
+  userSettings,
+} from "@/db/schema";
+import { and, eq, desc } from "drizzle-orm";
 import { serverDebug } from "@/utils/debug";
 
 // Define interfaces for strong typing
@@ -146,7 +151,7 @@ async function processUserReminders(user: UserReminderSettings) {
  * Check if an invoice needs a reminder
  */
 async function checkIfInvoiceNeedsReminder(
-  invoice: any,
+  invoice: ClientInvoices,
   userSettings: UserReminderSettings
 ): Promise<ReminderCheckResult> {
   // Get previous reminders for this invoice
@@ -238,7 +243,7 @@ async function checkIfInvoiceNeedsReminder(
  * Log a reminder in the database
  */
 async function logReminderInDatabase(
-  invoice: any,
+  invoice: ClientInvoices,
   user: UserReminderSettings,
   reminderCheck: ReminderCheckResult
 ) {
@@ -289,7 +294,7 @@ async function logReminderInDatabase(
  * Generate email content based on reminder tone and invoice details
  */
 function generateEmailContent(
-  invoice: any,
+  invoice: ClientInvoices,
   user: UserReminderSettings,
   reminderCheck: ReminderCheckResult
 ): string {

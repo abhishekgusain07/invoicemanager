@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
 import { clientInvoices, invoiceStatusEnum } from "@/db/schema";
-import { authClient } from "@/lib/auth-client";
 import { v4 as uuidv4 } from "uuid";
 import { invoiceFormSchema } from "@/lib/validations/invoice";
 import { eq, and } from "drizzle-orm";
@@ -278,7 +277,7 @@ export async function deleteInvoice(invoiceId: string) {
     }
 
     // Delete the invoice
-    const deleteResult = await db
+    await db
       .delete(clientInvoices)
       .where(
         and(

@@ -72,8 +72,8 @@ const WaitlistWelcomeEmail = ({ userEmail }: WaitlistWelcomeEmailProps) => (
         </Text>
 
         <Text style={paragraph}>
-          Have questions or want to share feedback? We'd love to hear from you!
-          Simply reply to this email and we'll get back to you personally.
+          Have questions or want to share feedback? We&apos;d love to hear from
+          you! Simply reply to this email and we'll get back to you personally.
         </Text>
 
         <Text style={paragraph}>Stay updated on our progress:</Text>

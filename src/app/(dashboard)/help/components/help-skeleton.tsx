@@ -98,7 +98,7 @@ function TabSkeleton({
   active = false,
 }: {
   icon: React.ReactNode;
-  text: string;
+  text?: string;
   active?: boolean;
 }) {
   return (

@@ -38,7 +38,16 @@ export async function logInvoiceReminder({
       emailContent,
       emailSubject,
       reminderNumber: 1, // Assuming this is the first reminder if not specified
-      tone: reminderType as any, // Cast the string to the enum type
+      tone: reminderType as
+        | "polite"
+        | "friendly"
+        | "neutral"
+        | "firm"
+        | "direct"
+        | "assertive"
+        | "urgent"
+        | "final"
+        | "serious",
       status: "sent", // Default email delivery status
       sentAt: new Date(),
       createdAt: new Date(),
@@ -53,7 +62,7 @@ export async function logInvoiceReminder({
       success: true,
     };
   } catch (error) {
-    serverDebug("Error logging invoice reminder:", "");
+    serverDebug("Error logging invoice reminder:", error as string);
     return {
       error: "Failed to log invoice reminder",
       success: false,
@@ -86,7 +95,7 @@ export async function getInvoiceReminderHistory(invoiceId: string) {
 
     return reminderHistory;
   } catch (error) {
-    serverDebug("Error fetching invoice reminder history:", "");
+    serverDebug("Error fetching invoice reminder history:", error as string);
     return [];
   }
 }
@@ -118,7 +127,7 @@ export async function getLastInvoiceReminder(invoiceId: string) {
 
     return lastReminder;
   } catch (error) {
-    serverDebug("Error fetching last invoice reminder:", "");
+    serverDebug("Error fetching last invoice reminder:", error as string);
     return null;
   }
 }

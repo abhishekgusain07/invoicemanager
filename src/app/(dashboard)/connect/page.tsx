@@ -10,27 +10,21 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
-  CircleCheck,
   Mail,
   AlertCircle,
-  Loader2,
   Clock,
   Zap,
   Shield,
   Sparkles,
-  ArrowRight,
   CheckCircle2,
   Star,
-  Globe,
   Workflow,
   TrendingUp,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";
 import { toast } from "sonner";
-import { ConnectSkeleton } from "./components/ConnectSkeleton";
 import { GmailConnectSkeleton } from "./components/GmailConnectSkeleton";
 import Image from "next/image";
 import { api } from "@/lib/trpc";
@@ -61,7 +55,7 @@ export default function ConnectPage() {
   // Initialize user session
   const initializeUser = async () => {
     try {
-      const { data: session, error } = await authClient.getSession();
+      const { data: session } = await authClient.getSession();
       if (!session || !session.user) {
         throw new Error(
           "Unauthorized, sign in before connecting gmail account"
@@ -200,8 +194,8 @@ export default function ConnectPage() {
                     <p className="text-emerald-800 leading-relaxed">
                       🎉 Perfect! Your Gmail account is successfully connected
                       and ready to send professional invoice reminders
-                      automatically. You're all set to streamline your payment
-                      collection process.
+                      automatically. You&apos;re all set to streamline your
+                      payment collection process.
                     </p>
                   </div>
 
@@ -341,7 +335,7 @@ export default function ConnectPage() {
                           // Refetch connection status to update UI
                           refetchConnection();
                           toast.success(
-                            "🎉 Gmail connected successfully! You're ready to automate your invoices."
+                            "🎉 Gmail connected successfully! You are nowready to automate your invoices."
                           );
                         }}
                       />

@@ -1,17 +1,8 @@
-import {
-  Mail,
-  CircleCheck,
-  AlertCircle,
-  Clock,
-  Sparkles,
-  Shield,
-} from "lucide-react";
+import { Mail, Clock, Sparkles, Shield } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Card,
   CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
   CardFooter,
 } from "@/components/ui/card";

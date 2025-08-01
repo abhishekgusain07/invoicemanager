@@ -7,7 +7,6 @@ import { emailTemplates } from "@/db/schema";
 import {
   createTemplateSchema,
   updateTemplateSchema,
-  emailTemplateSchema,
   type EmailTemplate,
 } from "@/lib/validations/email-template";
 import { eq, and, not } from "drizzle-orm";
@@ -156,7 +155,19 @@ export async function createTemplate(formData: FormData) {
         .where(
           and(
             eq(emailTemplates.userId, userId),
-            eq(emailTemplates.tone, validData.tone as any)
+            eq(
+              emailTemplates.tone,
+              validData.tone as
+                | "polite"
+                | "friendly"
+                | "neutral"
+                | "firm"
+                | "direct"
+                | "assertive"
+                | "urgent"
+                | "final"
+                | "serious"
+            )
           )
         );
     }
@@ -230,7 +241,7 @@ export async function updateTemplate(id: string, formData: FormData) {
 
     // Remove undefined values
     const cleanUpdateData = Object.fromEntries(
-      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+      Object.entries(updateData).filter(([value]) => value !== undefined)
     );
 
     // Parse and validate with update schema
@@ -281,7 +292,19 @@ export async function updateTemplate(id: string, formData: FormData) {
         .where(
           and(
             eq(emailTemplates.userId, userId),
-            eq(emailTemplates.tone, validData.tone as any),
+            eq(
+              emailTemplates.tone,
+              validData.tone as
+                | "polite"
+                | "friendly"
+                | "neutral"
+                | "firm"
+                | "direct"
+                | "assertive"
+                | "urgent"
+                | "final"
+                | "serious"
+            ),
             not(eq(emailTemplates.id, id))
           )
         );
@@ -302,8 +325,26 @@ export async function updateTemplate(id: string, formData: FormData) {
       updateFields.textContent = validData.textContent;
     if (validData.description !== undefined)
       updateFields.description = validData.description;
-    if (validData.tone) updateFields.tone = validData.tone as any;
-    if (validData.category) updateFields.category = validData.category as any;
+    if (validData.tone)
+      updateFields.tone = validData.tone as
+        | "polite"
+        | "friendly"
+        | "neutral"
+        | "firm"
+        | "direct"
+        | "assertive"
+        | "urgent"
+        | "final"
+        | "serious";
+    if (validData.category)
+      updateFields.category = validData.category as
+        | "custom"
+        | "reminder"
+        | "thank_you"
+        | "follow_up"
+        | "notice"
+        | "welcome"
+        | undefined;
     if (validData.isDefault !== undefined)
       updateFields.isDefault = validData.isDefault;
 
@@ -385,7 +426,19 @@ export async function getTemplatesByTone(tone: string): Promise<{
       .where(
         and(
           eq(emailTemplates.userId, userId),
-          eq(emailTemplates.tone, tone as any)
+          eq(
+            emailTemplates.tone,
+            tone as
+              | "polite"
+              | "friendly"
+              | "neutral"
+              | "firm"
+              | "direct"
+              | "assertive"
+              | "urgent"
+              | "final"
+              | "serious"
+          )
         )
       )
       .orderBy(emailTemplates.name);

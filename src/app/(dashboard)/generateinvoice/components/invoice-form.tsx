@@ -2,8 +2,6 @@
 
 import {
   invoiceGenerationSchema,
-  invoiceGenerationItemSchema,
-  PDF_DATA_LOCAL_STORAGE_KEY,
   type InvoiceGenerationData,
   type InvoiceGenerationItemData,
   SUPPORTED_LANGUAGES,
@@ -20,14 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ReadOnlyMoneyInput } from "@/components/ui/money-input";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -38,14 +30,9 @@ import {
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import dayjs from "dayjs";
-import React, { memo, useCallback, useEffect, useState } from "react";
-import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
-import { useDebouncedCallback } from "use-debounce";
-import { z } from "zod";
+import React, { memo, useCallback, useEffect } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 
-import { DEBOUNCE_TIMEOUT } from "../constants";
-import type { Prettify, NonReadonly } from "@/types/invoice-generation";
 import { SellerBuyerManagement } from "./seller-buyer-management";
 
 interface InvoiceFormProps {
@@ -59,7 +46,6 @@ interface InvoiceFormProps {
 export const InvoiceForm = memo(function InvoiceForm({
   invoiceData,
   onInvoiceDataChange,
-  setCanShareInvoice,
   onFormReset,
   onFormDataGetter,
 }: InvoiceFormProps) {
@@ -732,7 +718,7 @@ export const InvoiceForm = memo(function InvoiceForm({
   );
 });
 
-const calculateItemTotals = (item: InvoiceGenerationItemData | null) => {
+export const calculateItemTotals = (item: InvoiceGenerationItemData | null) => {
   if (!item) return null;
 
   const amount = Number(item.amount) || 0;

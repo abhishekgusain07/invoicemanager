@@ -95,7 +95,7 @@ export function PDFPreview({ invoiceData }: PDFPreviewProps) {
         URL.revokeObjectURL(pdfUrl);
       }
     };
-  }, [invoiceData, debouncedGeneratePDF]);
+  }, [invoiceData, debouncedGeneratePDF, pdfUrl]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);

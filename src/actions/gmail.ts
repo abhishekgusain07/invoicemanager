@@ -14,7 +14,7 @@ export type GmailConnectionData = {
   accessToken: string;
   refreshToken: string | null;
   expiresAt: Date;
-  [key: string]: any;
+  [key: string]: string | number | Date | null;
 };
 
 export async function checkGmailConnection(userId: string): Promise<{

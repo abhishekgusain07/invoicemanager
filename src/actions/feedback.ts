@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db/drizzle";
-import { feedback, featureRequests, featurePriorityEnum } from "@/db/schema";
+import { feedback, featureRequests } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
@@ -70,8 +70,8 @@ export async function submitFeatureRequest(input: FeatureRequestInput) {
       id: nanoid(),
       title: validatedInput.title,
       description: validatedInput.description,
-      priority: validatedInput.priority as any, // Using the enum from the schema
-      userId: validatedInput.userId || "anonymous", // Handle missing userId
+      priority: validatedInput.priority as "low" | "medium" | "high",
+      userId: validatedInput.userId || "anonymous",
       createdTime: new Date(),
       updatedTime: new Date(),
       status: "new", // Default status for new feature requests

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HelpCircleIcon,
@@ -44,7 +44,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { submitFeedback, submitFeatureRequest } from "@/actions/feedback";
-import { auth } from "@/lib/auth";
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";
 import { HelpSkeleton } from "./components/help-skeleton";
@@ -880,7 +879,8 @@ const Help = () => {
                           Request a Feature
                         </CardTitle>
                         <CardDescription>
-                          Suggest new features or improvements you'd like to see
+                          Suggest new features or improvements you&apos;d like
+                          to see
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
