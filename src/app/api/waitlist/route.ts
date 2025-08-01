@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Track analytics
     const userAgent = request.headers.get("user-agent") || "unknown";
     const referer = request.headers.get("referer") || "";
-    
+
     try {
       await trackWaitlistSignupServer({
         email: validatedData.email,
@@ -98,14 +98,16 @@ export async function POST(request: NextRequest) {
     if (env.RESEND_API_KEY) {
       try {
         const resend = new Resend(env.RESEND_API_KEY);
-        
+
         await resend.emails.send({
-          from: "InvoiceManager <waitlist@yourdomain.com>",
+          from: "InvoiceManager <waitlist@abhishekgusain.com>",
           to: [validatedData.email],
           subject: "Welcome to the InvoiceManager Waitlist! 🚀",
-          html: await render(WaitlistWelcomeEmail({ 
-            userEmail: validatedData.email 
-          })),
+          html: await render(
+            WaitlistWelcomeEmail({
+              userEmail: validatedData.email,
+            })
+          ),
         });
       } catch (emailError) {
         console.error("Email sending error:", emailError);

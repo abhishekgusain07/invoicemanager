@@ -30,7 +30,10 @@ export function useWaitlistAnalytics() {
   const posthog = usePostHog();
   const searchParams = useSearchParams();
 
-  const trackWaitlistEvent = (eventName: string, params: WaitlistAnalyticsParams) => {
+  const trackWaitlistEvent = (
+    eventName: string,
+    params: WaitlistAnalyticsParams
+  ) => {
     // Only track if PostHog is enabled and we're in waitlist mode
     if (!config.analytics.posthog.enabled || !isWaitlistMode()) {
       return;
@@ -111,4 +114,3 @@ export function useWaitlistAnalytics() {
     trackWaitlistCTAClick,
   };
 }
-

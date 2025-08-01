@@ -22,7 +22,9 @@ export interface WaitlistEventProperties {
 }
 
 // Server-side analytics function
-export async function trackWaitlistSignupServer(params: WaitlistAnalyticsParams) {
+export async function trackWaitlistSignupServer(
+  params: WaitlistAnalyticsParams
+) {
   // Import PostHog client dynamically to avoid client-side issues
   const PostHogClient = (await import("@/lib/posthog")).default;
   const posthog = PostHogClient();

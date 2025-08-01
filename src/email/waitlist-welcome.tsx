@@ -25,48 +25,59 @@ const WaitlistWelcomeEmail = ({ userEmail }: WaitlistWelcomeEmailProps) => (
         <Section style={logoSection}>
           <Text style={logoText}>📋 InvoiceManager</Text>
         </Section>
-        
+
         <Text style={greeting}>Hello there!</Text>
-        
+
         <Text style={paragraph}>
-          Thank you for joining the <strong>InvoiceManager waitlist</strong>! We're thrilled to have you as part of our community of early adopters.
+          Thank you for joining the <strong>InvoiceManager waitlist</strong>!
+          We're thrilled to have you as part of our community of early adopters.
         </Text>
-        
+
         <Text style={paragraph}>
-          We're building the most intuitive invoice management platform to help freelancers and small businesses get paid faster and stay organized. You'll be among the first to experience:
+          We're building the most intuitive invoice management platform to help
+          freelancers and small businesses get paid faster and stay organized.
+          You'll be among the first to experience:
         </Text>
-        
+
         <Text style={featureList}>
-          ✨ Lightning-fast invoice creation<br />
-          💰 Automated payment reminders<br />
-          📊 Real-time financial insights<br />
-          🔄 Seamless client management<br />
+          ✨ Lightning-fast invoice creation
+          <br />
+          💰 Automated payment reminders
+          <br />
+          📊 Real-time financial insights
+          <br />
+          🔄 Seamless client management
+          <br />
           📱 Mobile-first design
         </Text>
-        
+
         <Text style={paragraph}>
           <strong>What happens next?</strong>
         </Text>
-        
+
         <Text style={paragraph}>
-          We're putting the finishing touches on the platform and expect to launch in <strong>Q2 2025</strong>. As a waitlist member, you'll receive:
+          We're putting the finishing touches on the platform and expect to
+          launch in <strong>Q2 2025</strong>. As a waitlist member, you'll
+          receive:
         </Text>
-        
+
         <Text style={benefitsList}>
-          🎯 Exclusive early access<br />
-          💎 Special launch pricing<br />
-          📢 Priority support<br />
+          🎯 Exclusive early access
+          <br />
+          💎 Special launch pricing
+          <br />
+          📢 Priority support
+          <br />
           🎁 Bonus features
         </Text>
-        
+
         <Text style={paragraph}>
-          Have questions or want to share feedback? We'd love to hear from you! Simply reply to this email and we'll get back to you personally.
+          Have questions or want to share feedback? We'd love to hear from you!
+          Simply reply to this email and we'll get back to you personally.
         </Text>
-        
-        <Text style={paragraph}>
-          Stay updated on our progress:
-        </Text>
-        
+
+        <Text style={paragraph}>Stay updated on our progress:</Text>
+
         <Text style={socialLinks}>
           <Link href="https://twitter.com/invoicemanager" style={link}>
             Follow us on Twitter
@@ -76,9 +87,9 @@ const WaitlistWelcomeEmail = ({ userEmail }: WaitlistWelcomeEmailProps) => (
             Connect on LinkedIn
           </Link>
         </Text>
-        
+
         <Hr style={hr} />
-        
+
         <Text style={signOff}>
           Thanks for your patience and support!
           <br />
@@ -87,13 +98,21 @@ const WaitlistWelcomeEmail = ({ userEmail }: WaitlistWelcomeEmailProps) => (
           <br />
           <span style={title}>Building the future of invoicing</span>
         </Text>
-        
+
         <Hr style={hr} />
-        
+
         <Text style={footer}>
-          You're receiving this because you signed up for our waitlist with {userEmail}. 
+          You're receiving this because you signed up for our waitlist with{" "}
+          {userEmail}.
           <br />
-          Not interested anymore? <Link href="mailto:support@invoicemanager.com?subject=Unsubscribe" style={link}>Unsubscribe here</Link>.
+          Not interested anymore?{" "}
+          <Link
+            href="mailto:support@invoicemanager.com?subject=Unsubscribe"
+            style={link}
+          >
+            Unsubscribe here
+          </Link>
+          .
         </Text>
       </Container>
     </Body>
@@ -108,7 +127,8 @@ WaitlistWelcomeEmail.PreviewProps = {
 
 const main = {
   backgroundColor: "#f6f9fc",
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
+  fontFamily:
+    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif',
   padding: "40px 0",
 };
 

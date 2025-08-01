@@ -7,21 +7,18 @@ import { sql } from "drizzle-orm";
 function isAuthorized(request: NextRequest): boolean {
   const authHeader = request.headers.get("authorization");
   const adminKey = process.env.ADMIN_API_KEY;
-  
+
   if (!adminKey) {
     return false;
   }
-  
+
   return authHeader === `Bearer ${adminKey}`;
 }
 
 export async function GET(request: NextRequest) {
   // Check authorization
   if (!isAuthorized(request)) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -66,19 +63,26 @@ export async function GET(request: NextRequest) {
     // Calculate growth metrics
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const lastWeekCount = await db
-      .$count(waitlist, sql`${waitlist.createdAt} >= ${sevenDaysAgo}`);
-    
+
+    const lastWeekCount = await db.$count(
+      waitlist,
+      sql`${waitlist.createdAt} >= ${sevenDaysAgo}`
+    );
+
     const prevWeekStart = new Date();
     prevWeekStart.setDate(prevWeekStart.getDate() - 14);
-    
-    const prevWeekCount = await db
-      .$count(waitlist, sql`${waitlist.createdAt} >= ${prevWeekStart} AND ${waitlist.createdAt} < ${sevenDaysAgo}`);
 
-    const weeklyGrowthRate = prevWeekCount > 0 
-      ? ((lastWeekCount - prevWeekCount) / prevWeekCount) * 100 
-      : lastWeekCount > 0 ? 100 : 0;
+    const prevWeekCount = await db.$count(
+      waitlist,
+      sql`${waitlist.createdAt} >= ${prevWeekStart} AND ${waitlist.createdAt} < ${sevenDaysAgo}`
+    );
+
+    const weeklyGrowthRate =
+      prevWeekCount > 0
+        ? ((lastWeekCount - prevWeekCount) / prevWeekCount) * 100
+        : lastWeekCount > 0
+          ? 100
+          : 0;
 
     return NextResponse.json({
       success: true,
@@ -90,8 +94,8 @@ export async function GET(request: NextRequest) {
         },
         signupsByDay,
         emailDomains,
-        recentSignups: recentSignups.map(signup => ({
-          email: signup.email.replace(/(.{2}).*(@.*)/, '$1***$2'), // Mask email for privacy
+        recentSignups: recentSignups.map((signup) => ({
+          email: signup.email.replace(/(.{2}).*(@.*)/, "$1***$2"), // Mask email for privacy
           createdAt: signup.createdAt,
         })),
       },

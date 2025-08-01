@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface AdminStats {
   overview: {
@@ -37,7 +43,11 @@ export default function AdminDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error(response.status === 401 ? "Invalid admin key" : "Failed to fetch stats");
+        throw new Error(
+          response.status === 401
+            ? "Invalid admin key"
+            : "Failed to fetch stats"
+        );
       }
 
       const result = await response.json();
@@ -62,15 +72,21 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Waitlist Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Monitor your waitlist performance and growth</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Waitlist Admin Dashboard
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Monitor your waitlist performance and growth
+          </p>
         </div>
 
         {/* Admin Key Input */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Authentication</CardTitle>
-            <CardDescription>Enter your admin API key to view statistics</CardDescription>
+            <CardDescription>
+              Enter your admin API key to view statistics
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex gap-4">
@@ -124,7 +140,9 @@ export default function AdminDashboard() {
                   <CardTitle>Weekly Growth</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className={`text-3xl font-bold ${stats.overview.weeklyGrowthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div
+                    className={`text-3xl font-bold ${stats.overview.weeklyGrowthRate >= 0 ? "text-green-600" : "text-red-600"}`}
+                  >
                     {formatGrowthRate(stats.overview.weeklyGrowthRate)}
                   </div>
                 </CardContent>
@@ -140,8 +158,13 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {stats.signupsByDay.map((day) => (
-                      <div key={day.date} className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">{formatDate(day.date)}</span>
+                      <div
+                        key={day.date}
+                        className="flex justify-between items-center py-2 border-b"
+                      >
+                        <span className="text-gray-600">
+                          {formatDate(day.date)}
+                        </span>
                         <span className="font-semibold">{day.count}</span>
                       </div>
                     ))}
@@ -157,7 +180,10 @@ export default function AdminDashboard() {
                 <CardContent>
                   <div className="space-y-2">
                     {stats.emailDomains.map((domain) => (
-                      <div key={domain.domain} className="flex justify-between items-center py-2 border-b">
+                      <div
+                        key={domain.domain}
+                        className="flex justify-between items-center py-2 border-b"
+                      >
                         <span className="text-gray-600">{domain.domain}</span>
                         <span className="font-semibold">{domain.count}</span>
                       </div>
@@ -170,13 +196,20 @@ export default function AdminDashboard() {
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Recent Signups</CardTitle>
-                  <CardDescription>Last 20 signups (emails masked for privacy)</CardDescription>
+                  <CardDescription>
+                    Last 20 signups (emails masked for privacy)
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {stats.recentSignups.map((signup, index) => (
-                      <div key={index} className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600 font-mono">{signup.email}</span>
+                      <div
+                        key={index}
+                        className="flex justify-between items-center py-2 border-b"
+                      >
+                        <span className="text-gray-600 font-mono">
+                          {signup.email}
+                        </span>
                         <span className="text-sm text-gray-500">
                           {formatDate(signup.createdAt)}
                         </span>

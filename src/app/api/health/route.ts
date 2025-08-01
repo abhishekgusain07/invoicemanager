@@ -25,7 +25,7 @@ export async function GET() {
     const start = Date.now();
     await db.$count(waitlist);
     const latency = Date.now() - start;
-    
+
     checks.checks.database = {
       status: "healthy",
       latency,
