@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/hooks/useUser";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { isWaitlistMode } from "@/lib/feature-flags";
 
 export function NavbarDemo({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
@@ -79,8 +80,16 @@ export function NavbarDemo({ children }: { children: React.ReactNode }) {
   };
 
   const handleLogin = () => {
-    // Using window.location for immediate navigation
-    window.location.href = "/sign-in";
+    // In waitlist mode, scroll to waitlist form instead of redirecting to sign-in
+    if (isWaitlistMode()) {
+      const waitlistSection = document.getElementById("waitlist");
+      if (waitlistSection) {
+        waitlistSection.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      // Using window.location for immediate navigation
+      window.location.href = "/sign-in";
+    }
   };
 
   // Render avatar skeleton during loading
@@ -90,6 +99,15 @@ export function NavbarDemo({ children }: { children: React.ReactNode }) {
         <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
           <div className="h-5 w-5 rounded-full bg-gray-300"></div>
         </div>
+      );
+    }
+
+    // In waitlist mode, show Join Waitlist button instead of auth
+    if (isWaitlistMode()) {
+      return (
+        <NavbarButton variant="primary" onClick={handleLogin}>
+          Join Waitlist
+        </NavbarButton>
       );
     }
 
@@ -144,6 +162,22 @@ export function NavbarDemo({ children }: { children: React.ReactNode }) {
     if (isLoading) {
       return (
         <div className="w-full h-10 bg-gray-200 rounded-md animate-pulse"></div>
+      );
+    }
+
+    // In waitlist mode, show Join Waitlist button
+    if (isWaitlistMode()) {
+      return (
+        <NavbarButton
+          onClick={() => {
+            handleLogin();
+            setIsMobileMenuOpen(false);
+          }}
+          variant="primary"
+          className="w-full"
+        >
+          Join Waitlist
+        </NavbarButton>
       );
     }
 
@@ -229,16 +263,18 @@ export function NavbarDemo({ children }: { children: React.ReactNode }) {
             ))}
             <div className="flex w-full flex-col gap-4">
               {renderMobileAuthUI()}
-              <NavbarButton
-                onClick={() => {
-                  router.push("/book-a-call");
-                  setIsMobileMenuOpen(false);
-                }}
-                variant="primary"
-                className="w-full"
-              >
-                Book a call
-              </NavbarButton>
+              {!isWaitlistMode() && (
+                <NavbarButton
+                  onClick={() => {
+                    router.push("/book-a-call");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  variant="primary"
+                  className="w-full"
+                >
+                  Book a call
+                </NavbarButton>
+              )}
             </div>
           </MobileNavMenu>
         </MobileNav>
