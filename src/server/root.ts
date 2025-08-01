@@ -8,6 +8,8 @@ import { templatesRouter } from "./routers/templates";
 import { emailRouter } from "./routers/email";
 import { settingsRouter } from "./routers/settings";
 import { waitlistRouter } from "./routers/waitlist";
+import { reminderRouter } from "./routers/reminder";
+import { feedbackRouter } from "./routers/feedback";
 
 /**
  * This is the primary router for your server.
@@ -24,6 +26,8 @@ export const appRouter = createTRPCRouter({
   email: emailRouter,
   settings: settingsRouter,
   waitlist: waitlistRouter,
+  reminder: reminderRouter,
+  feedback: feedbackRouter,
 });
 
 // Export type definition of API

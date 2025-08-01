@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   EditIcon,
@@ -16,10 +16,7 @@ import {
   getStatusBadgeClasses,
   SortConfig,
 } from "../utils/invoiceUtils";
-import {
-  getInvoiceReminderHistory,
-  getLastReminderSent,
-} from "@/actions/reminder";
+import { api } from "@/lib/trpc";
 
 interface InvoiceTableProps {
   filteredInvoices: any[];
@@ -34,7 +31,7 @@ interface InvoiceTableProps {
   onCreateInvoice: () => void;
 }
 
-// Create the enhanced LastReminderCell component
+// ✅ NEW: Enhanced LastReminderCell using tRPC
 const EnhancedLastReminderCell = ({
   invoice,
   refreshReminders,
@@ -42,33 +39,30 @@ const EnhancedLastReminderCell = ({
   invoice: any;
   refreshReminders: number;
 }) => {
-  const [lastReminder, setLastReminder] = useState<any>(null);
-  const [reminderCount, setReminderCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchReminderData = async () => {
-      setIsLoading(true);
-      try {
-        const [historyResult, lastReminderResult] = await Promise.all([
-          getInvoiceReminderHistory(invoice.id),
-          getLastReminderSent(invoice.id),
-        ]);
-
-        if (historyResult.success) {
-          setReminderCount(historyResult.data.length);
-        }
-
-        setLastReminder(lastReminderResult);
-      } catch (error) {
-        console.error("Error fetching reminder data:", error);
-      } finally {
-        setIsLoading(false);
+  // ✅ Using tRPC queries instead of useEffect + server actions
+  const { data: historyResult, isLoading: historyLoading } =
+    api.reminder.getInvoiceReminderHistory.useQuery(
+      { invoiceId: invoice.id },
+      {
+        enabled: !!invoice.id,
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+        refetchOnWindowFocus: false,
       }
-    };
+    );
 
-    fetchReminderData();
-  }, [invoice.id, refreshReminders]);
+  const { data: lastReminderResult, isLoading: lastReminderLoading } =
+    api.reminder.getLastReminderSent.useQuery(
+      { invoiceId: invoice.id },
+      {
+        enabled: !!invoice.id,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+      }
+    );
+
+  const isLoading = historyLoading || lastReminderLoading;
+  const reminderCount = historyResult?.data?.length || 0;
+  const lastReminder = lastReminderResult;
 
   if (isLoading) {
     return (

@@ -13,7 +13,7 @@ export const useEmailTemplates = () => {
 
   // tRPC queries
   const {
-    data: customTemplates = [],
+    data: customTemplates,
     isLoading: loadingTemplates,
     refetch: loadCustomTemplates,
   } = api.templates.getAll.useQuery();
@@ -461,9 +461,11 @@ ${user?.name || "Your Company"}`,
       },
     ];
 
-    const customReminders = customTemplates.filter(
-      (t) => t.category === "reminder" && t.isActive !== false
-    );
+    const customReminders = Array.isArray(customTemplates?.data)
+      ? customTemplates.data.filter(
+          (t) => t.category === "reminder" && t.isActive !== false
+        )
+      : [];
 
     return { builtIn: builtInTemplates, custom: customReminders };
   }, [customTemplates]);

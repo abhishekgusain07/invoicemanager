@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { TemplateForm } from "../../components/template-form";
-import { getTemplateById } from "@/actions/templates";
+import { api } from "@/lib/trpc";
 import { EmailTemplate } from "@/lib/validations/email-template";
 import { toast } from "sonner";
 import { ArrowLeftIcon } from "lucide-react";
@@ -12,37 +12,25 @@ import { ArrowLeftIcon } from "lucide-react";
 export default function EditTemplatePage() {
   const params = useParams();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [template, setTemplate] = useState<EmailTemplate | null>(null);
+  const templateId = params.id as string;
 
-  useEffect(() => {
-    const fetchTemplate = async () => {
-      setIsLoading(true);
-
-      try {
-        if (!params.id || typeof params.id !== "string") {
-          throw new Error("Invalid template ID");
-        }
-
-        const result = await getTemplateById(params.id);
-
-        if (result.success && result.data) {
-          setTemplate(result.data);
-        } else {
-          toast.error(result.error || "Failed to load template");
-          router.push("/templates");
-        }
-      } catch (error) {
-        console.error("Error fetching template:", error);
-        toast.error("An error occurred while loading the template");
+  // ✅ NEW: Using tRPC query to load template
+  const {
+    data: result,
+    isLoading,
+    error,
+  } = api.templates.getById.useQuery(
+    { id: templateId },
+    {
+      enabled: !!templateId,
+      onError: (error) => {
+        toast.error(error.message || "Failed to load template");
         router.push("/templates");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      },
+    }
+  );
 
-    fetchTemplate();
-  }, [params.id, router]);
+  const template = result?.data || null;
 
   const handleCancel = () => {
     router.push("/templates");
@@ -72,6 +60,13 @@ export default function EditTemplatePage() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mb-4"></div>
           <p className="text-muted-foreground">Loading template...</p>
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <p className="text-muted-foreground mb-4">
+            {error.message || "Failed to load template"}
+          </p>
+          <Button onClick={handleCancel}>Return to Templates</Button>
         </div>
       ) : template ? (
         <TemplateForm template={template} onCancel={handleCancel} />

@@ -8,9 +8,10 @@ import {
   updateTemplateSchema,
   type EmailTemplate,
 } from "@/lib/validations/email-template";
+import { TRPCError } from "@trpc/server";
 
 export const templatesRouter = createTRPCRouter({
-  // Get all templates for the authenticated user
+  // Get all templates for the authenticated user (migrated from server action)
   getAll: protectedProcedure.query(async ({ ctx }) => {
     try {
       const templates = await ctx.db
@@ -19,14 +20,21 @@ export const templatesRouter = createTRPCRouter({
         .where(eq(emailTemplates.userId, ctx.user.id))
         .orderBy(emailTemplates.name);
 
-      return templates as EmailTemplate[];
+      return {
+        success: true,
+        data: templates as EmailTemplate[],
+        error: null,
+      };
     } catch (error) {
       console.error("Error getting templates:", error);
-      throw new Error("Failed to get templates");
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to get templates",
+      });
     }
   }),
 
-  // Get template by ID
+  // Get template by ID (migrated from server action)
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -42,19 +50,44 @@ export const templatesRouter = createTRPCRouter({
           );
 
         if (!template || template.length === 0) {
-          throw new Error("Template not found");
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Template not found",
+          });
         }
 
-        return template[0] as EmailTemplate;
+        return {
+          success: true,
+          data: template[0] as EmailTemplate,
+          error: null,
+        };
       } catch (error) {
+        if (error instanceof TRPCError) throw error;
         console.error("Error getting template by ID:", error);
-        throw new Error("Failed to get template");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get template",
+        });
       }
     }),
 
-  // Get templates by tone
+  // Get templates by tone (migrated from server action)
   getByTone: protectedProcedure
-    .input(z.object({ tone: z.string() }))
+    .input(
+      z.object({
+        tone: z.enum([
+          "polite",
+          "friendly",
+          "neutral",
+          "firm",
+          "direct",
+          "assertive",
+          "urgent",
+          "final",
+          "serious",
+        ]),
+      })
+    )
     .query(async ({ ctx, input }) => {
       try {
         const templates = await ctx.db
@@ -63,21 +96,28 @@ export const templatesRouter = createTRPCRouter({
           .where(
             and(
               eq(emailTemplates.userId, ctx.user.id),
-              eq(emailTemplates.tone, input.tone as any)
+              eq(emailTemplates.tone, input.tone)
             )
           )
           .orderBy(emailTemplates.name);
 
-        return templates as EmailTemplate[];
+        return {
+          success: true,
+          data: templates as EmailTemplate[],
+          error: null,
+        };
       } catch (error) {
         console.error("Error getting templates by tone:", error);
-        throw new Error("Failed to get templates by tone");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to get templates by tone",
+        });
       }
     }),
 
-  // Create new template
+  // Create new template (migrated from server action)
   create: protectedProcedure
-    .input(createTemplateSchema)
+    .input(createTemplateSchema.omit({ userId: true }))
     .mutation(async ({ ctx, input }) => {
       try {
         // If this is a default template, unset other defaults with the same tone
@@ -100,22 +140,30 @@ export const templatesRouter = createTRPCRouter({
             id: uuidv4(),
             ...input,
             userId: ctx.user.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           })
           .returning();
 
-        return newTemplate[0] as EmailTemplate;
+        return {
+          success: true,
+          data: newTemplate[0] as EmailTemplate,
+        };
       } catch (error) {
         console.error("Error creating template:", error);
-        throw new Error("Failed to create template");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create template",
+        });
       }
     }),
 
-  // Update existing template
+  // Update existing template (migrated from server action)
   update: protectedProcedure
     .input(
       z.object({
         id: z.string(),
-        data: updateTemplateSchema,
+        data: updateTemplateSchema.omit({ id: true, userId: true }),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -132,7 +180,10 @@ export const templatesRouter = createTRPCRouter({
           );
 
         if (!existingTemplate || existingTemplate.length === 0) {
-          throw new Error("Template not found");
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Template not found",
+          });
         }
 
         // If this is a default template, unset other defaults with the same tone
@@ -149,11 +200,25 @@ export const templatesRouter = createTRPCRouter({
             );
         }
 
-        // Update the template
+        // Update the template with all provided fields
         const updateFields: any = {
-          ...input.data,
           updatedAt: new Date(),
         };
+
+        // Only update fields that are provided
+        if (input.data.name) updateFields.name = input.data.name;
+        if (input.data.subject) updateFields.subject = input.data.subject;
+        if (input.data.content) updateFields.content = input.data.content;
+        if (input.data.htmlContent !== undefined)
+          updateFields.htmlContent = input.data.htmlContent;
+        if (input.data.textContent !== undefined)
+          updateFields.textContent = input.data.textContent;
+        if (input.data.description !== undefined)
+          updateFields.description = input.data.description;
+        if (input.data.tone) updateFields.tone = input.data.tone;
+        if (input.data.category) updateFields.category = input.data.category;
+        if (input.data.isDefault !== undefined)
+          updateFields.isDefault = input.data.isDefault;
 
         const updatedTemplate = await ctx.db
           .update(emailTemplates)
@@ -166,14 +231,21 @@ export const templatesRouter = createTRPCRouter({
           )
           .returning();
 
-        return updatedTemplate[0] as EmailTemplate;
+        return {
+          success: true,
+          data: updatedTemplate[0] as EmailTemplate,
+        };
       } catch (error) {
+        if (error instanceof TRPCError) throw error;
         console.error("Error updating template:", error);
-        throw new Error("Failed to update template");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update template",
+        });
       }
     }),
 
-  // Delete template
+  // Delete template (migrated from server action)
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -190,7 +262,10 @@ export const templatesRouter = createTRPCRouter({
           );
 
         if (!existingTemplate || existingTemplate.length === 0) {
-          throw new Error("Template not found");
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Template not found",
+          });
         }
 
         // Delete the template
@@ -205,8 +280,12 @@ export const templatesRouter = createTRPCRouter({
 
         return { success: true };
       } catch (error) {
+        if (error instanceof TRPCError) throw error;
         console.error("Error deleting template:", error);
-        throw new Error("Failed to delete template");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to delete template",
+        });
       }
     }),
 

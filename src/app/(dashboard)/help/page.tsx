@@ -43,11 +43,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { submitFeedback, submitFeatureRequest } from "@/actions/feedback";
+import { api } from "@/lib/trpc";
 import { authClient } from "@/lib/auth-client";
 import { User } from "better-auth";
+import { toast } from "sonner";
 import { HelpSkeleton } from "./components/help-skeleton";
-import { getInvoiceStats } from "@/actions/invoice";
 
 const tabVariants = {
   hidden: { opacity: 0, y: 10 },
@@ -71,21 +71,38 @@ const Help = () => {
   const [featureTitle, setFeatureTitle] = useState("");
   const [featureDescription, setFeatureDescription] = useState("");
   const [featurePriority, setFeaturePriority] = useState("medium");
-  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
-  const [isSubmittingFeature, setIsSubmittingFeature] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
-  const [featureRequestMessage, setFeatureRequestMessage] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  // ✅ NEW: tRPC mutations with built-in loading states and error handling
+  const feedbackMutation = api.feedback.submitFeedback.useMutation({
+    onSuccess: () => {
+      setFeedbackText("");
+      setFeedbackRating(0);
+      toast.success("Thank you for your feedback!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to submit feedback");
+    },
+  });
+
+  const featureRequestMutation = api.feedback.submitFeatureRequest.useMutation({
+    onSuccess: () => {
+      setFeatureTitle("");
+      setFeatureDescription("");
+      setFeaturePriority("medium");
+      toast.success("Feature request submitted successfully!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to submit feature request");
+    },
+  });
   const [user, setUser] = useState<User | null>(null);
   const [loadingUser, setloadingUser] = useState(true);
   const [recentFeatures, setRecentFeatures] = useState<any[]>([]);
-  const [statsData, setStatsData] = useState<any>(null);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  // ✅ NEW: Using tRPC query for invoice stats
+  const { data: statsData, isLoading: isLoadingData } =
+    api.invoice.getStats.useQuery(undefined, {
+      enabled: !loadingUser,
+      staleTime: 5 * 60 * 1000,
+    });
 
   useEffect(() => {
     const getSession = async () => {
@@ -106,55 +123,35 @@ const Help = () => {
     getSession();
   }, []);
 
+  // Set recent features when stats data is available
   useEffect(() => {
-    const fetchData = async () => {
-      if (loadingUser) return;
-
-      setIsLoadingData(true);
-      try {
-        // Fetch real data for stats and recently implemented features
-        const [stats] = await Promise.all([
-          getInvoiceStats(),
-          // Fetch recent features if you have that endpoint
-          // Otherwise we'll use static data for now
-        ]);
-
-        setStatsData(stats);
-
-        // For now, we'll use this data but ideally you'd get it from the backend
-        setRecentFeatures([
-          {
-            title: "Bulk Invoice Actions",
-            description:
-              "Select multiple invoices to perform actions like mark as paid, send reminders, or delete.",
-            addedDate: "2023-05-15",
-            usageCount: stats.paidInvoices || 0,
-          },
-          {
-            title: "Custom Email Templates",
-            description:
-              "Create and save your own email templates for different reminder scenarios.",
-            addedDate: "2023-04-02",
-            usageCount:
-              (stats.pendingInvoices || 0) + (stats.overdueInvoices || 0),
-          },
-          {
-            title: "Advanced Analytics Dashboard",
-            description:
-              "View detailed payment trends, overdue invoice statistics, and revenue projections.",
-            addedDate: "2023-03-10",
-            usageCount: stats.recentInvoices?.length || 0,
-          },
-        ]);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoadingData(false);
-      }
-    };
-
-    fetchData();
-  }, [loadingUser]);
+    if (statsData) {
+      setRecentFeatures([
+        {
+          title: "Bulk Invoice Actions",
+          description:
+            "Select multiple invoices to perform actions like mark as paid, send reminders, or delete.",
+          addedDate: "2023-05-15",
+          usageCount: statsData.paidInvoices || 0,
+        },
+        {
+          title: "Custom Email Templates",
+          description:
+            "Create and save your own email templates for different reminder scenarios.",
+          addedDate: "2023-04-02",
+          usageCount:
+            (statsData.pendingInvoices || 0) + (statsData.overdueInvoices || 0),
+        },
+        {
+          title: "Advanced Analytics Dashboard",
+          description:
+            "View detailed payment trends, overdue invoice statistics, and revenue projections.",
+          addedDate: "2023-03-10",
+          usageCount: statsData.recentInvoices?.length || 0,
+        },
+      ]);
+    }
+  }, [statsData]);
 
   if (loadingUser) {
     return <HelpSkeleton />;
@@ -168,119 +165,59 @@ const Help = () => {
     setFeedbackRating(rating);
   };
 
-  const handleSubmitFeedback = async (e: React.FormEvent) => {
+  const handleSubmitFeedback = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!user?.id) {
-      setFeedbackMessage({
-        type: "error",
-        message: "You must be logged in to submit feedback.",
-      });
+      toast.error("You must be logged in to submit feedback.");
       return;
     }
 
     if (feedbackText.length < 5) {
-      setFeedbackMessage({
-        type: "error",
-        message:
-          "Please provide more detailed feedback (at least 5 characters).",
-      });
+      toast.error(
+        "Please provide more detailed feedback (at least 5 characters)."
+      );
       return;
     }
 
     if (feedbackRating === 0) {
-      setFeedbackMessage({
-        type: "error",
-        message: "Please select a rating before submitting.",
-      });
+      toast.error("Please select a rating before submitting.");
       return;
     }
 
-    try {
-      setIsSubmittingFeedback(true);
-
-      await submitFeedback({
-        feedbackContent: feedbackText,
-        stars: feedbackRating,
-        userId: user.id,
-      });
-
-      setFeedbackText("");
-      setFeedbackRating(0);
-
-      setFeedbackMessage({
-        type: "success",
-        message: "Thank you for your feedback!",
-      });
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      setFeedbackMessage({
-        type: "error",
-        message:
-          "There was an error submitting your feedback. Please try again.",
-      });
-    } finally {
-      setIsSubmittingFeedback(false);
-    }
+    feedbackMutation.mutate({
+      feedbackContent: feedbackText,
+      stars: feedbackRating,
+    });
   };
 
-  const handleSubmitFeatureRequest = async (e: React.FormEvent) => {
+  const handleSubmitFeatureRequest = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!user?.id) {
-      setFeatureRequestMessage({
-        type: "error",
-        message: "You must be logged in to submit feature requests.",
-      });
+      toast.error("You must be logged in to submit feature requests.");
       return;
     }
 
     if (featureTitle.length < 3) {
-      setFeatureRequestMessage({
-        type: "error",
-        message:
-          "Please provide a more descriptive title (at least 3 characters).",
-      });
+      toast.error(
+        "Please provide a more descriptive title (at least 3 characters)."
+      );
       return;
     }
 
     if (featureDescription.length < 10) {
-      setFeatureRequestMessage({
-        type: "error",
-        message:
-          "Please provide a more detailed description (at least 10 characters).",
-      });
+      toast.error(
+        "Please provide a more detailed description (at least 10 characters)."
+      );
       return;
     }
 
-    try {
-      setIsSubmittingFeature(true);
-
-      await submitFeatureRequest({
-        title: featureTitle,
-        description: featureDescription,
-        priority: featurePriority as "low" | "medium" | "high",
-        userId: user.id,
-      });
-
-      setFeatureTitle("");
-      setFeatureDescription("");
-      setFeaturePriority("medium");
-
-      setFeatureRequestMessage({
-        type: "success",
-        message: "Thank you for your suggestion! We'll review it shortly.",
-      });
-    } catch (error) {
-      console.error("Error submitting feature request:", error);
-      setFeatureRequestMessage({
-        type: "error",
-        message:
-          "There was an error submitting your feature request. Please try again.",
-      });
-    } finally {
-      setIsSubmittingFeature(false);
-    }
+    featureRequestMutation.mutate({
+      title: featureTitle,
+      description: featureDescription,
+      priority: featurePriority as "low" | "medium" | "high",
+    });
   };
 
   // Format date for display
@@ -816,6 +753,7 @@ const Help = () => {
                                   type="button"
                                   className="p-1"
                                   onClick={() => handleStarClick(star)}
+                                  disabled={feedbackMutation.isPending}
                                 >
                                   <StarIcon
                                     className={`h-6 w-6 ${
@@ -842,28 +780,21 @@ const Help = () => {
                               className="min-h-[120px] resize-none"
                               value={feedbackText}
                               onChange={(e) => setFeedbackText(e.target.value)}
+                              disabled={feedbackMutation.isPending}
                               required
                             />
                           </div>
 
-                          {feedbackMessage && (
-                            <div
-                              className={`text-sm p-2 rounded-md ${
-                                feedbackMessage.type === "success"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                              }`}
-                            >
-                              {feedbackMessage.message}
-                            </div>
-                          )}
-
                           <Button
                             type="submit"
                             className="w-full mt-4"
-                            disabled={isSubmittingFeedback}
+                            disabled={
+                              feedbackMutation.isPending ||
+                              !feedbackText.trim() ||
+                              feedbackRating === 0
+                            }
                           >
-                            {isSubmittingFeedback
+                            {feedbackMutation.isPending
                               ? "Submitting..."
                               : "Submit Feedback"}
                           </Button>
@@ -900,6 +831,7 @@ const Help = () => {
                               placeholder="E.g., Recurring Invoices"
                               value={featureTitle}
                               onChange={(e) => setFeatureTitle(e.target.value)}
+                              disabled={featureRequestMutation.isPending}
                               required
                             />
                           </div>
@@ -919,6 +851,7 @@ const Help = () => {
                               onChange={(e) =>
                                 setFeatureDescription(e.target.value)
                               }
+                              disabled={featureRequestMutation.isPending}
                               required
                             />
                           </div>
@@ -933,6 +866,7 @@ const Help = () => {
                             <Select
                               value={featurePriority}
                               onValueChange={setFeaturePriority}
+                              disabled={featureRequestMutation.isPending}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select priority" />
@@ -951,24 +885,16 @@ const Help = () => {
                             </Select>
                           </div>
 
-                          {featureRequestMessage && (
-                            <div
-                              className={`text-sm p-2 rounded-md ${
-                                featureRequestMessage.type === "success"
-                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                              }`}
-                            >
-                              {featureRequestMessage.message}
-                            </div>
-                          )}
-
                           <Button
                             type="submit"
                             className="w-full mt-4"
-                            disabled={isSubmittingFeature}
+                            disabled={
+                              featureRequestMutation.isPending ||
+                              !featureTitle.trim() ||
+                              !featureDescription.trim()
+                            }
                           >
-                            {isSubmittingFeature
+                            {featureRequestMutation.isPending
                               ? "Submitting..."
                               : "Submit Request"}
                           </Button>

@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { EmailTemplate } from "@/lib/validations/email-template";
-import { deleteTemplate } from "@/actions/templates";
+import { api } from "@/lib/trpc";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -49,22 +49,22 @@ export function TemplateList({
     return matchesTone && matchesSearch;
   });
 
-  const handleDeleteTemplate = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this template?")) return;
+  // ✅ NEW: Using tRPC mutation for deleting templates
+  const utils = api.useUtils();
+  const deleteTemplateMutation = api.templates.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Template deleted successfully");
+      // Invalidate and refetch templates
+      utils.templates.getAll.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to delete template");
+    },
+  });
 
-    try {
-      const result = await deleteTemplate(id);
-      if (result.success) {
-        toast.success("Template deleted successfully");
-        // Refresh the UI
-        router.refresh();
-      } else {
-        toast.error(result.error || "Failed to delete template");
-      }
-    } catch (error) {
-      console.error("Error deleting template:", error);
-      toast.error("An error occurred while deleting the template");
-    }
+  const handleDeleteTemplate = (id: string) => {
+    if (!confirm("Are you sure you want to delete this template?")) return;
+    deleteTemplateMutation.mutate({ id });
   };
 
   const getToneColor = (tone: string) => {

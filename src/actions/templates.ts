@@ -241,7 +241,7 @@ export async function updateTemplate(id: string, formData: FormData) {
 
     // Remove undefined values
     const cleanUpdateData = Object.fromEntries(
-      Object.entries(updateData).filter(([value]) => value !== undefined)
+      Object.entries(updateData).filter(([, value]) => value !== undefined)
     );
 
     // Parse and validate with update schema

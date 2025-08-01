@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate } from "../utils/invoiceUtils";
 import { useEmailTemplates } from "../hooks/useEmailTemplates";
-import { getInvoiceReminderHistory } from "@/actions/reminder";
+import { api } from "@/lib/trpc";
 
 interface EmailTemplateModalProps {
   isOpen: boolean;
@@ -96,28 +96,19 @@ export const EmailTemplateModal = ({
     }
   };
 
-  // Create a detailed reminder history component
+  // ✅ NEW: Detailed reminder history component using tRPC
   const LastReminderCellDetailed = ({ invoiceId }: { invoiceId: string }) => {
-    const [reminders, setReminders] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-      const fetchReminders = async () => {
-        setIsLoading(true);
-        try {
-          const result = await getInvoiceReminderHistory(invoiceId);
-          if (result.success) {
-            setReminders(result.data);
-          }
-        } catch (error) {
-          console.error("Error fetching reminder history:", error);
-        } finally {
-          setIsLoading(false);
+    const { data: result, isLoading } =
+      api.reminder.getInvoiceReminderHistory.useQuery(
+        { invoiceId },
+        {
+          enabled: !!invoiceId,
+          staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+          refetchOnWindowFocus: false,
         }
-      };
+      );
 
-      fetchReminders();
-    }, [invoiceId, refreshReminders]);
+    const reminders = result?.data || [];
 
     if (isLoading) {
       return (

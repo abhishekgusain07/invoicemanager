@@ -5,10 +5,7 @@ import { type InvoiceGenerationData } from "@/lib/validations/invoice-generation
 import { Save, Loader2, Check } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  saveGeneratedInvoice,
-  updateGeneratedInvoice,
-} from "@/actions/generated-invoices";
+import { api } from "@/lib/trpc";
 
 interface SaveInvoiceButtonProps {
   invoiceData: InvoiceGenerationData;
@@ -23,10 +20,64 @@ export function SaveInvoiceButton({
   disabled = false,
   onSaved,
 }: SaveInvoiceButtonProps) {
-  const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const utils = api.useUtils();
 
-  const handleSave = async () => {
+  // ✅ NEW: Using tRPC mutations for saving/updating invoices
+  const saveInvoiceMutation = api.invoice.saveGenerated.useMutation({
+    onSuccess: (result) => {
+      setIsSaved(true);
+      toast.success("Invoice saved successfully!", {
+        description: "You can now access this invoice anytime",
+      });
+
+      if (result.invoiceId && onSaved) {
+        onSaved(result.invoiceId);
+      }
+
+      utils.invoice.getGenerated.invalidate();
+
+      // Reset the saved state after 3 seconds
+      setTimeout(() => {
+        setIsSaved(false);
+      }, 3000);
+    },
+    onError: (error) => {
+      toast.error("Failed to save invoice", {
+        description: error.message || "Please try again",
+      });
+    },
+  });
+
+  const updateInvoiceMutation = api.invoice.updateGenerated.useMutation({
+    onSuccess: () => {
+      setIsSaved(true);
+      toast.success("Invoice updated successfully!", {
+        description: "Your changes have been saved",
+      });
+
+      if (existingInvoiceId && onSaved) {
+        onSaved(existingInvoiceId);
+      }
+
+      utils.invoice.getGenerated.invalidate();
+
+      // Reset the saved state after 3 seconds
+      setTimeout(() => {
+        setIsSaved(false);
+      }, 3000);
+    },
+    onError: (error) => {
+      toast.error("Failed to update invoice", {
+        description: error.message || "Please try again",
+      });
+    },
+  });
+
+  const isSaving =
+    saveInvoiceMutation.isPending || updateInvoiceMutation.isPending;
+
+  const handleSave = () => {
     if (disabled || isSaving) return;
 
     // Basic validation
@@ -41,65 +92,15 @@ export function SaveInvoiceButton({
       return;
     }
 
-    setIsSaving(true);
-
-    try {
-      let result;
-
-      if (existingInvoiceId) {
-        // Update existing invoice
-        result = await updateGeneratedInvoice(existingInvoiceId, invoiceData);
-      } else {
-        // Save new invoice
-        result = await saveGeneratedInvoice(invoiceData);
-      }
-
-      if (result.success) {
-        setIsSaved(true);
-        toast.success(
-          existingInvoiceId
-            ? "Invoice updated successfully!"
-            : "Invoice saved successfully!",
-          {
-            description: existingInvoiceId
-              ? "Your changes have been saved"
-              : "You can now access this invoice anytime",
-          }
-        );
-
-        if (
-          !existingInvoiceId &&
-          "invoiceId" in result &&
-          typeof result.invoiceId === "string" &&
-          onSaved
-        ) {
-          onSaved(result.invoiceId);
-        } else if (existingInvoiceId && onSaved) {
-          onSaved(existingInvoiceId);
-        }
-
-        // Reset the saved state after 3 seconds
-        setTimeout(() => {
-          setIsSaved(false);
-        }, 3000);
-      } else {
-        toast.error(
-          existingInvoiceId
-            ? "Failed to update invoice"
-            : "Failed to save invoice",
-          {
-            description: result.error || "Please try again",
-          }
-        );
-      }
-    } catch (error) {
-      console.error("Failed to save invoice:", error);
-      toast.error("Failed to save invoice", {
-        description:
-          error instanceof Error ? error.message : "Unknown error occurred",
+    if (existingInvoiceId) {
+      // Update existing invoice
+      updateInvoiceMutation.mutate({
+        id: existingInvoiceId,
+        data: invoiceData,
       });
-    } finally {
-      setIsSaving(false);
+    } else {
+      // Save new invoice
+      saveInvoiceMutation.mutate(invoiceData);
     }
   };
 

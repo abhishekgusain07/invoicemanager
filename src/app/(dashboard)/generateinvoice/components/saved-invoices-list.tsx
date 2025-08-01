@@ -18,12 +18,9 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import {
-  loadGeneratedInvoices,
-  deleteGeneratedInvoice,
-} from "@/actions/generated-invoices";
+import { api } from "@/lib/trpc";
 import dayjs from "dayjs";
 
 interface SavedInvoice {
@@ -49,35 +46,43 @@ interface SavedInvoicesListProps {
 
 export function SavedInvoicesList({ onLoadInvoice }: SavedInvoicesListProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [savedInvoices, setSavedInvoices] = useState<SavedInvoice[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const utils = api.useUtils();
 
-  // Load saved invoices when dialog opens
-  useEffect(() => {
-    if (isOpen) {
-      loadInvoices();
+  // ✅ NEW: Using tRPC query to load saved invoices
+  const {
+    data: result,
+    isLoading,
+    error,
+    refetch,
+  } = api.invoice.getGenerated.useQuery(
+    { limit: 50, offset: 0 },
+    {
+      enabled: isOpen, // Only fetch when dialog is open
+      staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     }
-  }, [isOpen]);
+  );
 
-  const loadInvoices = async () => {
-    setIsLoading(true);
-    try {
-      const result = await loadGeneratedInvoices();
-      if (result.success) {
-        setSavedInvoices(result.invoices || []);
-      } else {
-        toast.error("Failed to load saved invoices", {
-          description: result.error,
-        });
-      }
-    } catch (error) {
-      console.error("Failed to load invoices:", error);
-      toast.error("Failed to load saved invoices");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Handle query error
+  if (error) {
+    toast.error("Failed to load saved invoices", {
+      description: error.message,
+    });
+  }
+
+  // ✅ NEW: Using tRPC mutation for deleting invoices
+  const deleteInvoiceMutation = api.invoice.deleteGenerated.useMutation({
+    onSuccess: () => {
+      toast.success("Invoice deleted successfully!");
+      utils.invoice.getGenerated.invalidate();
+    },
+    onError: (error) => {
+      toast.error("Failed to delete invoice", {
+        description: error.message,
+      });
+    },
+  });
+
+  const savedInvoices = result?.invoices || [];
 
   const handleLoadInvoice = (invoice: SavedInvoice) => {
     try {
@@ -97,31 +102,12 @@ export function SavedInvoicesList({ onLoadInvoice }: SavedInvoicesListProps) {
     }
   };
 
-  const handleDeleteInvoice = async (
-    invoiceId: string,
-    invoiceNumber: string
-  ) => {
+  const handleDeleteInvoice = (invoiceId: string, invoiceNumber: string) => {
     if (!confirm(`Are you sure you want to delete invoice ${invoiceNumber}?`)) {
       return;
     }
 
-    setIsDeleting(invoiceId);
-    try {
-      const result = await deleteGeneratedInvoice(invoiceId);
-      if (result.success) {
-        setSavedInvoices((prev) => prev.filter((inv) => inv.id !== invoiceId));
-        toast.success("Invoice deleted successfully!");
-      } else {
-        toast.error("Failed to delete invoice", {
-          description: result.error,
-        });
-      }
-    } catch (error) {
-      console.error("Failed to delete invoice:", error);
-      toast.error("Failed to delete invoice");
-    } finally {
-      setIsDeleting(null);
-    }
+    deleteInvoiceMutation.mutate({ id: invoiceId });
   };
 
   const formatCurrency = (amount: string, currency: string) => {
@@ -224,9 +210,9 @@ export function SavedInvoicesList({ onLoadInvoice }: SavedInvoicesListProps) {
                       variant="ghost"
                       size="sm"
                       className="text-red-600 hover:text-red-700"
-                      disabled={isDeleting === invoice.id}
+                      disabled={deleteInvoiceMutation.isPending}
                     >
-                      {isDeleting === invoice.id ? (
+                      {deleteInvoiceMutation.isPending ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <Trash2 className="w-4 h-4" />

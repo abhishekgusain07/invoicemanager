@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EmailTemplate } from "@/lib/validations/email-template";
-import { createTemplate, updateTemplate } from "@/actions/templates";
+import { api } from "@/lib/trpc";
 import { useRouter } from "next/navigation";
 import {
   TemplateRenderer,
@@ -64,7 +64,33 @@ type CategoryType =
 
 export function TemplateForm({ template, onCancel }: TemplateFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const utils = api.useUtils();
+
+  // ✅ NEW: Using tRPC mutations for template operations
+  const createTemplateMutation = api.templates.create.useMutation({
+    onSuccess: () => {
+      toast.success("Template created successfully");
+      utils.templates.getAll.invalidate();
+      onCancel();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to create template");
+    },
+  });
+
+  const updateTemplateMutation = api.templates.update.useMutation({
+    onSuccess: () => {
+      toast.success("Template updated successfully");
+      utils.templates.getAll.invalidate();
+      onCancel();
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update template");
+    },
+  });
+
+  const isSubmitting =
+    createTemplateMutation.isPending || updateTemplateMutation.isPending;
 
   // Basic template fields
   const [name, setName] = useState(template?.name || "");
@@ -124,7 +150,7 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
     setPreviewKey((prev) => prev + 1);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Enhanced validation
@@ -134,51 +160,25 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
       return;
     }
 
-    setIsSubmitting(true);
+    const templateData = {
+      name,
+      subject,
+      content: currentContent,
+      htmlContent: htmlContent || "",
+      textContent: textContent || "",
+      description: description || "",
+      tone,
+      category,
+      isDefault,
+    };
 
-    try {
-      const formData = new FormData();
-      formData.append("name", name);
-      formData.append("subject", subject);
-      formData.append("content", currentContent); // This is required by validation schema
-      formData.append("htmlContent", htmlContent || "");
-      formData.append("textContent", textContent || "");
-      formData.append("description", description || "");
-      formData.append("tone", tone);
-      formData.append("category", category);
-      formData.append("isDefault", isDefault.toString());
-
-      let result;
-
-      if (isEditMode && template.id) {
-        result = await updateTemplate(template.id, formData);
-      } else {
-        result = await createTemplate(formData);
-      }
-
-      if (result.success) {
-        toast.success(
-          isEditMode
-            ? "Template updated successfully"
-            : "Template created successfully"
-        );
-        router.refresh();
-        onCancel(); // Close the form
-      } else {
-        // Show detailed error message
-        const errorMessage = result.error || "Failed to save template";
-        toast.error(errorMessage);
-
-        // Log validation errors for debugging
-        if (result.errors) {
-          console.error("Template validation errors:", result.errors);
-        }
-      }
-    } catch (error) {
-      console.error("Error saving template:", error);
-      toast.error("An error occurred while saving the template");
-    } finally {
-      setIsSubmitting(false);
+    if (isEditMode && template.id) {
+      updateTemplateMutation.mutate({
+        id: template.id,
+        ...templateData,
+      });
+    } else {
+      createTemplateMutation.mutate(templateData);
     }
   };
 
