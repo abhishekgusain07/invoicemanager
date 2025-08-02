@@ -1,103 +1,180 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<p align="center">
+  <picture>
+    <source srcset="public/invoicemanager-logo.png" media="(prefers-color-scheme: dark)">
+    <img src="public/invoicemanager-logo.png" alt="Invoice Manager Logo" width="64" style="background-color: #000; padding: 10px;"/>
+  </picture>
+</p>
+
+# Invoice Manager
+
+An Open-Source Invoice Management App
+
+## What is Invoice Manager?
+
+Invoice Manager is an open-source AI-powered solution that gives users the power to **self-host** their own invoice management app while also integrating external services like Gmail and other email providers. Our goal is to modernize and improve invoice management through AI agents.
+
+## Why Invoice Manager?
+
+Most invoice management services today are either **closed-source**, **data-hungry**, or **too complex to self-host**.
+Invoice Manager is different:
+
+- ✅ **Open-Source** – No hidden agendas, fully transparent.
+- **AI Driven** - Enhance your invoice management with Agents & LLMs.
+- **Data Privacy First** – Your invoices, your data. Invoice Manager does not track, collect, or sell your data in any way. Please note: while we integrate with external services, the data passed through them is not under our control and falls under their respective privacy policies and terms of service.
+- ⚙️ **Self-Hosting Freedom** – Run your own invoice management app with ease.
+- **Unified Inbox** – Connect multiple email providers like Gmail, Outlook, and more to manage invoices.
+- **Customizable UI & Features** – Tailor your invoice management experience the way you want it.
+- **Developer-Friendly** – Built with extensibility and integrations in mind.
+
+## Features
+
+- **Client & Invoice Management**: Easily manage invoices for multiple clients with sleek, professional templates that are ready to send.
+- **Automated Reminders**: Configure automated reminders for your clients. Set up a schedule for when to send reminders, such as 3 days before the due date, on the due date, and after the due date.
+- **Customizable Email Templates**: Create and customize email templates to send to your clients.
+- **Insightful Dashboard**: Get a comprehensive overview of your business with a beautiful dashboard that displays key metrics like total revenue, growth, and more.
+- **Gmail Integration**: Connect your personal Gmail account to send invoices and reminders directly from your own email address. Depending on your pricing tier, you can connect multiple Gmail accounts:
+  - **Freelancer**: 1 Gmail account
+  - **Agency**: 3 Gmail accounts
+  - **Enterprise**: 5 Gmail accounts
+
+## Tech Stack
+
+Invoice Manager is built with modern and reliable technologies:
+
+- **Frontend**: Next.js, React, TypeScript, TailwindCSS, Shadcn UI
+- **Backend**: Node.js, Drizzle ORM
+- **Database**: PostgreSQL
+- **Authentication**: Better Auth, Google OAuth
+- **Testing**: Jest, React Testing Library
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Required Versions:**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- [Node.js](https://nodejs.org/en/download) (v18 or higher)
+- [pnpm](https://pnpm.io) (v10 or higher)
+- [Docker](https://docs.docker.com/engine/install/) (v20 or higher)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Before running the application, you'''ll need to set up services and configure environment variables.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Setup
 
-## Learn More
+1. **Clone and Install**
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   # Clone the repository
+   git clone <your-repo-url>
+   cd invoicemanager
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   # Install dependencies
+   pnpm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   # Start database locally
+   pnpm docker:db:up
+   ```
 
-## Deploy on Vercel
+2. **Set Up Environment**
+   - Create a `.env` file from `.env.example`
+   - Start the database with the provided docker compose setup: `pnpm docker:db:up`
+   - Initialize the database: `pnpm db:push`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Start the App**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   pnpm dev
+   ```
 
-## Analytics and Monitoring Configuration
+4. **Open in Browser**
 
-This template includes built-in support for analytics and error monitoring through PostHog and Sentry. Both services are optional and can be enabled or disabled through environment variables and configuration.
+   Visit [http://localhost:3000](http://localhost:3000)
 
-### Configuration Options
+### Environment Setup
 
-All analytics and monitoring features can be controlled in the `src/config.ts` file:
+1. **Better Auth Setup**
+   - Open the `.env` file and change the BETTER_AUTH_SECRET to a random string. (Use `openssl rand -hex 32` to generate a 32 character string)
 
-```typescript
-const config = {
-  auth: {
-    enabled: true,
-  },
-  payments: {
-    enabled: true,
-  },
-  analytics: {
-    posthog: {
-      enabled: process.env.NEXT_PUBLIC_POSTHOG_KEY ? true : false,
-      apiKey: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-      apiHost:
-        process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
-    },
-  },
-  monitoring: {
-    sentry: {
-      enabled: process.env.NEXT_PUBLIC_SENTRY_DSN ? true : false,
-      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-      tracesSampleRate: 1.0,
-      profilesSampleRate: 1.0,
-    },
-  },
-};
-```
+     ```env
+     BETTER_AUTH_SECRET=your_secret_key
+     ```
 
-### PostHog Analytics
+2. **Google OAuth Setup** (Required for Gmail integration)
+   - Go to [Google Cloud Console](https://console.cloud.google.com)
+   - Create a new project
+   - Add the following APIs in your Google Cloud Project: [People API](https://console.cloud.google.com/apis/library/people.googleapis.com), [Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com)
+     - Use the links above and click '''Enable''' or
+     - Go to '''APIs and Services''' > '''Enable APIs and Services''' > Search for '''Google People API''' and click '''Enable'''
+     - Go to '''APIs and Services''' > '''Enable APIs and Services''' > Search for '''Gmail API''' and click '''Enable'''
+   - Enable the Google OAuth2 API
+   - Create OAuth 2.0 credentials (Web application type)
+   - Add authorized redirect URIs:
+     - Development:
+       - `http://localhost:3000/api/auth/callback/google`
+     - Production:
+       - `https://your-production-url/api/auth/callback/google`
+   - Add to `.env`:
 
-PostHog provides product analytics, session recording, feature flags, and more.
+     ```env
+     GOOGLE_CLIENT_ID=your_client_id
+     GOOGLE_CLIENT_SECRET=your_client_secret
+     ```
 
-To enable PostHog:
+   - Add yourself as a test user:
+     - Go to [`Audience`](https://console.cloud.google.com/auth/audience)
+     - Under '''Test users''' click '''Add Users'''
+     - Add your email and click '''Save'''
 
-1. Create a PostHog account and project at [PostHog.com](https://posthog.com)
-2. Add your API key to the `.env` file: `NEXT_PUBLIC_POSTHOG_KEY=phc_your_api_key`
-3. Optionally set a custom host with `NEXT_PUBLIC_POSTHOG_HOST`
+> [!WARNING]
+> The authorized redirect URIs in Google Cloud Console must match **exactly** what you configure in the `.env`, including the protocol (http/https), domain, and path - these are provided above.
 
-To disable PostHog:
+### Database Setup
 
-- Simply leave the `NEXT_PUBLIC_POSTHOG_KEY` empty in your `.env` file
+Invoice Manager uses PostgreSQL for storing data. Here'''s how to set it up:
 
-### Sentry Error Monitoring
+1. **Start the Database**
 
-Sentry provides error tracking, performance monitoring, and more.
+   Run this command to start a local PostgreSQL instance:
 
-To enable Sentry:
+   ```bash
+   pnpm docker:db:up
+   ```
 
-1. Create a Sentry account and project at [Sentry.io](https://sentry.io)
-2. Add your DSN to the `.env` file: `NEXT_PUBLIC_SENTRY_DSN=https://your-dsn-url`
-3. For source map uploads, add: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT`
+   This creates a database with:
+   - Name: `invoicemanager`
+   - Username: `postgres`
+   - Password: `postgres`
+   - Port: `5432`
 
-To disable Sentry:
+2. **Set Up Database Connection**
 
-- Simply leave the `NEXT_PUBLIC_SENTRY_DSN` empty in your `.env` file
+   Make sure your database connection string is in `.env` file.
 
-### Testing Error Monitoring
+   For local development use:
 
-To test Sentry integration, visit the `/sentry-example-page` route in your application, which includes buttons to trigger test errors.
+   ```
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/invoicemanager"
+   ```
+
+3. **Database Commands**
+   - **Set up database tables**:
+
+     ```bash
+     pnpm db:push
+     ```
+
+   - **Create migration files** (after schema changes):
+
+     ```bash
+     pnpm db:generate
+     ```
+
+   - **Apply migrations**:
+
+     ```bash
+     pnpm db:migrate
+     ```
+
+## Contribute
+
+Please refer to the contributing guide.
