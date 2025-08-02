@@ -112,7 +112,7 @@ const Help = () => {
         if (error) {
           console.error("Error fetching session:", error);
         } else {
-          setUser(session?.user!);
+          setUser(session?.user || null);
         }
       } catch (error) {
         console.error("Error fetching session:", error);
