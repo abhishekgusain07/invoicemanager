@@ -1,9 +1,7 @@
 "use client";
 
-import { Sentry } from "@/utils/sentry";
 import NextError from "next/error";
 import { useEffect } from "react";
-import config from "@/config";
 
 export default function GlobalError({
   error,
@@ -11,13 +9,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
 }) {
   useEffect(() => {
-    // Will safely handle both enabled and disabled states
-    Sentry.captureException(error);
-
-    // Log to console when Sentry is disabled
-    if (!config.monitoring.sentry.enabled) {
-      console.error("Global error (Sentry disabled):", error);
-    }
+    console.error("Global error:", error);
   }, [error]);
 
   return (

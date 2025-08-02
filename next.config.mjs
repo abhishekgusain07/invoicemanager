@@ -1,5 +1,3 @@
-import { withSentryConfig } from "@sentry/nextjs";
-
 // Define config inline since we can't directly import TypeScript files in ESM
 const config = {
   auth: {
@@ -14,14 +12,6 @@ const config = {
       apiKey: process.env.NEXT_PUBLIC_POSTHOG_KEY,
       apiHost:
         process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://app.posthog.com",
-    },
-  },
-  monitoring: {
-    sentry: {
-      enabled: process.env.NEXT_PUBLIC_SENTRY_DSN ? true : false,
-      dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-      tracesSampleRate: 1.0,
-      profilesSampleRate: 1.0,
     },
   },
 };
@@ -59,33 +49,4 @@ const nextConfig = {
   skipTrailingSlashRedirect: config.analytics.posthog.enabled,
 };
 
-// Sentry configuration options
-const sentryWebpackPluginOptions = {
-  org: process.env.SENTRY_ORG || "your-org",
-  project: process.env.SENTRY_PROJECT || "javascript-nextjs",
-
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
-
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
-
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  tunnelRoute: "/monitoring",
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-
-  // Enables automatic instrumentation of Vercel Cron Monitors.
-  automaticVercelMonitors: true,
-};
-
-// Only apply Sentry configuration if enabled
-const finalConfig = config.monitoring.sentry.enabled
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig;
-
-export default finalConfig;
+export default nextConfig;

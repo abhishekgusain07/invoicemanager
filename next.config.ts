@@ -1,4 +1,3 @@
-import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import config from "./src/config";
 
@@ -31,30 +30,4 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: config.analytics.posthog.enabled,
 };
 
-// Sentry configuration options
-const sentryWebpackPluginOptions = {
-  org: process.env.SENTRY_ORG || "buildingfullthrotle",
-  project: process.env.SENTRY_PROJECT || "javascript-nextjs",
-
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
-
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  tunnelRoute: "/monitoring",
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-
-  // Enables automatic instrumentation of Vercel Cron Monitors
-  automaticVercelMonitors: true,
-};
-
-// Only apply Sentry configuration if enabled
-const finalConfig = config.monitoring.sentry.enabled
-  ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
-  : nextConfig;
-
-export default finalConfig;
+export default nextConfig;
