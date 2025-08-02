@@ -1,0 +1,203 @@
+name: Scheduled Invoice Reminders
+
+on:
+  # Run daily at 9:00 AM UTC (adjust timezone as needed)
+  schedule:
+    - cron: '0 9 * * *'
+  
+  # Allow manual triggering for testing and troubleshooting
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Run in dry-run mode (logs only, no actual processing)'
+        required: false
+        default: 'false'
+        type: boolean
+      log_level:
+        description: 'Log level for debugging'
+        required: false
+        default: 'info'
+        type: choice
+        options:
+          - 'error'
+          - 'warn'
+          - 'info'
+          - 'debug'
+
+# Security: Limit permissions to minimum required
+permissions:
+  contents: read
+
+jobs:
+  send_reminders:
+    name: Process Scheduled Invoice Reminders
+    runs-on: ubuntu-latest
+    
+    # Timeout to prevent runaway jobs (adjust as needed)
+    timeout-minutes: 15
+    
+    # Environment-specific configuration
+    environment: 
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    
+    steps:
+      - name: Set environment variables
+        run: |
+          echo "WORKFLOW_START_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+          echo "DRY_RUN=${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_ENV
+          echo "LOG_LEVEL=${{ github.event.inputs.log_level || 'info' }}" >> $GITHUB_ENV
+          
+          # Set deployment URL based on branch
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "DEPLOYMENT_URL=${{ secrets.PRODUCTION_URL }}" >> $GITHUB_ENV
+            echo "ENVIRONMENT=production" >> $GITHUB_ENV
+          else
+            echo "DEPLOYMENT_URL=${{ secrets.STAGING_URL }}" >> $GITHUB_ENV
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+          fi
+
+      - name: Validate environment configuration
+        run: |
+          echo "🔍 Validating environment configuration..."
+          echo "Environment: $ENVIRONMENT"
+          echo "Deployment URL: ${DEPLOYMENT_URL:0:30}..." # Only show first 30 chars for security
+          echo "Dry Run: $DRY_RUN"
+          echo "Log Level: $LOG_LEVEL"
+          echo "Workflow triggered by: ${{ github.event_name }}"
+          echo "Git ref: ${{ github.ref }}"
+          echo "Workflow start time: $WORKFLOW_START_TIME"
+          
+          # Validate required secrets are set
+          if [[ -z "${{ secrets.CRON_SECRET }}" ]]; then
+            echo "❌ CRON_SECRET is not configured"
+            exit 1
+          fi
+          
+          if [[ -z "$DEPLOYMENT_URL" ]]; then
+            echo "❌ Deployment URL is not configured for $ENVIRONMENT"
+            exit 1
+          fi
+          
+          echo "✅ Environment validation passed"
+
+      - name: Health check endpoint
+        run: |
+          echo "🏥 Performing health check on $DEPLOYMENT_URL..."
+          
+          # Check if the application is healthy before triggering reminders
+          health_response=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            --retry 3 \
+            --retry-delay 5 \
+            "$DEPLOYMENT_URL/api/health" || echo "000")
+          
+          if [[ "$health_response" =~ ^2[0-9][0-9]$ ]]; then
+            echo "✅ Health check passed (HTTP $health_response)"
+          else
+            echo "❌ Health check failed (HTTP $health_response)"
+            echo "Application may be unavailable, aborting reminder processing"
+            exit 1
+          fi
+
+      - name: Send scheduled reminder request
+        run: |
+          echo "📧 Triggering scheduled reminders..."
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          
+          # Prepare the API endpoint
+          REMINDER_ENDPOINT="$DEPLOYMENT_URL/api/cron/reminders"
+          
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "🧪 DRY RUN MODE - Would call: $REMINDER_ENDPOINT"
+            echo "Authorization: Bearer [REDACTED]"
+            exit 0
+          fi
+          
+          # Make the API call with comprehensive error handling
+          echo "Making request to: $REMINDER_ENDPOINT"
+          
+          response=$(curl -s -w "\n%{http_code}\n%{time_total}" \
+            --max-time 300 \
+            --retry 3 \
+            --retry-delay 10 \
+            --retry-connrefused \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -H "User-Agent: GitHub-Actions-Scheduled-Reminders/1.0" \
+            -H "X-GitHub-Workflow: ${{ github.workflow }}" \
+            -H "X-GitHub-Run-ID: ${{ github.run_id }}" \
+            "$REMINDER_ENDPOINT")
+          
+          # Parse response
+          response_body=$(echo "$response" | head -n -2)
+          http_code=$(echo "$response" | tail -n 2 | head -n 1)
+          time_total=$(echo "$response" | tail -n 1)
+          
+          echo "HTTP Status: $http_code"
+          echo "Response Time: ${time_total}s"
+          echo "Response Body: $response_body"
+
+      - name: Validate response and handle errors
+        run: |
+          echo "🔍 Validating API response..."
+          
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "✅ Dry run completed successfully"
+            exit 0
+          fi
+          
+          # Check if HTTP status code is in 2xx range
+          if [[ "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "✅ Reminder request successful (HTTP $http_code)"
+            
+            # Parse and log response details if JSON
+            if echo "$response_body" | jq empty 2>/dev/null; then
+              success=$(echo "$response_body" | jq -r '.success // "unknown"')
+              processed_count=$(echo "$response_body" | jq -r '.processedCount // "unknown"')
+              execution_time=$(echo "$response_body" | jq -r '.metadata.executionTimeMs // "unknown"')
+              
+              echo "Success: $success"
+              echo "Processed Count: $processed_count"
+              echo "Execution Time: ${execution_time}ms"
+            fi
+          else
+            echo "❌ Reminder request failed (HTTP $http_code)"
+            echo "Response: $response_body"
+            
+            # Exit with error to mark workflow as failed
+            exit 1
+          fi
+
+      - name: Workflow summary
+        if: always()
+        run: |
+          echo "📊 Workflow Summary"
+          echo "=================="
+          echo "Environment: $ENVIRONMENT"
+          echo "Dry Run: $DRY_RUN"
+          echo "Started: $WORKFLOW_START_TIME"
+          echo "Completed: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Duration: $(($(date +%s) - $(date -d "$WORKFLOW_START_TIME" +%s)))s"
+          echo "Status: ${{ job.status }}"
+          
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "✅ Scheduled reminders workflow completed successfully"
+          else
+            echo "❌ Scheduled reminders workflow failed"
+          fi
+
+      - name: Notify on failure (Optional)
+        if: failure()
+        run: |
+          echo "🚨 Workflow failed - consider adding notification integrations"
+          echo "You can integrate with:"
+          echo "- Slack notifications"
+          echo "- Email alerts"
+          echo "- Discord webhooks"
+          echo "- Microsoft Teams"
+          echo "- PagerDuty"
+          
+          # Example: Send to webhook (uncomment and configure as needed)
+          # curl -X POST "${{ secrets.FAILURE_WEBHOOK_URL }}" \
+          #   -H "Content-Type: application/json" \
+          #   -d '{"text":"🚨 Scheduled reminders workflow failed in ${{ github.repository }}"}'
