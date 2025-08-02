@@ -47,21 +47,6 @@ const statusIcons = {
 export default function GitHubActionPage() {
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-  // Only show this page when waitlist mode is false (testing mode)
-  if (!isFullAppMode()) {
-    return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardContent className="flex items-center justify-center py-8">
-            <p className="text-muted-foreground">
-              This page is only available when not in waitlist mode.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   // Use tRPC query for fetching logs
   const {
     data: logsData,
