@@ -1,6 +1,5 @@
 "use client";
 import { usePostHog } from "posthog-js/react";
-import { useSearchParams } from "next/navigation";
 import { isWaitlistMode } from "@/lib/feature-flags";
 import config from "@/config";
 
@@ -28,7 +27,12 @@ export interface WaitlistEventProperties {
 // Hook for client-side analytics
 export function useWaitlistAnalytics() {
   const posthog = usePostHog();
-  const searchParams = useSearchParams();
+
+  // Safely get search params only on client side
+  const getSearchParams = () => {
+    if (typeof window === "undefined") return new URLSearchParams();
+    return new URLSearchParams(window.location.search);
+  };
 
   const trackWaitlistEvent = (
     eventName: string,
@@ -40,6 +44,7 @@ export function useWaitlistAnalytics() {
     }
 
     // Extract UTM parameters from search params
+    const searchParams = getSearchParams();
     const utmSource = searchParams.get("utm_source") || params.source;
     const utmMedium = searchParams.get("utm_medium") || params.medium;
     const utmCampaign = searchParams.get("utm_campaign") || params.campaign;
@@ -80,6 +85,7 @@ export function useWaitlistAnalytics() {
       return;
     }
 
+    const searchParams = getSearchParams();
     const utmSource = searchParams.get("utm_source");
     const utmMedium = searchParams.get("utm_medium");
     const utmCampaign = searchParams.get("utm_campaign");
