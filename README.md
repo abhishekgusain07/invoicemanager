@@ -9,6 +9,8 @@
 
 An Open-Source Invoice Management App
 
+![InvoiceManager Banner](https://invoicemanager.abhishekgusain.com/Banner.png)
+
 ## What is Invoice Manager?
 
 Invoice Manager is an open-source AI-powered solution that gives users the power to **self-host** their own invoice management app while also integrating external services like Gmail and other email providers. Our goal is to modernize and improve invoice management through AI agents.
