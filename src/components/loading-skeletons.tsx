@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+import { useState, useEffect } from "react";
 // Base skeleton component
 interface SkeletonProps {
   className?: string;
@@ -57,10 +58,7 @@ export function DashboardChartSkeleton() {
         <div className="h-full w-full flex items-end justify-between gap-2 pb-4 pt-8">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center">
-              <Skeleton
-                className={`w-10 rounded-t-md`}
-                style={{ height: `${Math.random() * 150 + 50}px` }}
-              />
+              <Skeleton className="w-10 h-20 rounded-t-md" />
               <Skeleton className="h-3 w-6 mt-2" />
             </div>
           ))}
@@ -313,9 +311,9 @@ export function ProgressiveLoading({
   children,
   delay = 200,
 }: ProgressiveLoadingProps) {
-  const [showSkeleton, setShowSkeleton] = React.useState(false);
+  const [showSkeleton, setShowSkeleton] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLoading) {
       const timer = setTimeout(() => setShowSkeleton(true), delay);
       return () => clearTimeout(timer);

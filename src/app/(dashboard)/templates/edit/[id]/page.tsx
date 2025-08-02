@@ -23,12 +23,14 @@ export default function EditTemplatePage() {
     { id: templateId },
     {
       enabled: !!templateId,
-      onError: (error) => {
-        toast.error(error.message || "Failed to load template");
-        router.push("/templates");
-      },
     }
   );
+
+  // Handle error separately
+  if (error) {
+    toast.error(error.message || "Failed to load template");
+    router.push("/templates");
+  }
 
   const template = result?.data || null;
 

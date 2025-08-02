@@ -175,7 +175,7 @@ export function TemplateForm({ template, onCancel }: TemplateFormProps) {
     if (isEditMode && template.id) {
       updateTemplateMutation.mutate({
         id: template.id,
-        ...templateData,
+        data: templateData,
       });
     } else {
       createTemplateMutation.mutate(templateData);

@@ -133,7 +133,14 @@ export const feedbackRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string(),
-        status: z.enum(["new", "in_progress", "completed", "rejected"]),
+        status: z.enum([
+          "new",
+          "under_review",
+          "planned",
+          "in_progress",
+          "completed",
+          "declined",
+        ]),
       })
     )
     .mutation(async ({ ctx, input }) => {

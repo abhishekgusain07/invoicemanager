@@ -15,8 +15,19 @@ import { toast } from "sonner";
 import { PlusIcon, RefreshCwIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+type ToneType =
+  | "polite"
+  | "friendly"
+  | "neutral"
+  | "firm"
+  | "direct"
+  | "assertive"
+  | "urgent"
+  | "final"
+  | "serious";
+
 interface TemplateSelectorProps {
-  tone: string;
+  tone: ToneType;
   value: string;
   onChange: (value: string) => void;
   onCreateNew?: () => void;
@@ -32,11 +43,13 @@ export function TemplateSelector({
 
   // tRPC query for templates by tone
   const {
-    data: templates = [],
+    data: templatesResponse,
     isLoading,
     refetch: fetchTemplates,
     error,
   } = api.templates.getByTone.useQuery({ tone });
+
+  const templates = templatesResponse?.data ?? [];
 
   // Show error toast if query fails
   if (error) {

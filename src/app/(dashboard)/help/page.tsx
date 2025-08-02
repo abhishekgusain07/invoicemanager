@@ -112,7 +112,7 @@ const Help = () => {
         if (error) {
           console.error("Error fetching session:", error);
         } else {
-          setUser(session.user);
+          setUser(session?.user!);
         }
       } catch (error) {
         console.error("Error fetching session:", error);
@@ -401,7 +401,15 @@ const Help = () => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                variants={tabVariants}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                  },
+                  exit: { opacity: 0, y: 20, transition: { duration: 0.2 } },
+                }}
               >
                 <TabsContent
                   value="getting-started"
@@ -472,7 +480,15 @@ const Help = () => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                variants={tabVariants}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                  },
+                  exit: { opacity: 0, y: 20, transition: { duration: 0.2 } },
+                }}
               >
                 <TabsContent value="features" forceMount>
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -513,7 +529,15 @@ const Help = () => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                variants={tabVariants}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                  },
+                  exit: { opacity: 0, y: 20, transition: { duration: 0.2 } },
+                }}
               >
                 <TabsContent value="faqs" className="space-y-2" forceMount>
                   {faqs.map((faq) => (
@@ -573,7 +597,15 @@ const Help = () => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                variants={tabVariants}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                  },
+                  exit: { opacity: 0, y: 20, transition: { duration: 0.2 } },
+                }}
               >
                 <TabsContent value="support" forceMount>
                   <div className="grid gap-6 md:grid-cols-2">
@@ -722,7 +754,15 @@ const Help = () => {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                variants={tabVariants}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                  },
+                  exit: { opacity: 0, y: 20, transition: { duration: 0.2 } },
+                }}
               >
                 <TabsContent value="feedback" forceMount>
                   <div className="grid gap-6 md:grid-cols-2">

@@ -20,11 +20,13 @@ import { toast } from "sonner";
 export default function TemplatesPage() {
   // tRPC query for templates
   const {
-    data: templates = [],
+    data: templatesResponse,
     isLoading,
     refetch: fetchTemplates,
     error,
   } = api.templates.getAll.useQuery();
+
+  const templates = templatesResponse?.data ?? [];
 
   const [isTemplateFormOpen, setIsTemplateFormOpen] = useState(false);
   const [editTemplate, setEditTemplate] = useState<EmailTemplate | undefined>(

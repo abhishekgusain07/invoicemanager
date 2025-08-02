@@ -404,9 +404,10 @@ export const EmailTemplateModal = ({
                             )}
                           </h4>
 
-                          {customTemplates.length > 0 ? (
+                          {customTemplates &&
+                          customTemplates.data.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {customTemplates.map((template) => (
+                              {customTemplates.data.map((template) => (
                                 <Button
                                   key={template.id}
                                   variant={

@@ -379,7 +379,7 @@ export const reminderRouter = createTRPCRouter({
           emailSignature: user.emailSignature || "Best regards,",
         };
 
-        const processed = await this.processUserReminders(safeUser, ctx);
+        const processed = await processUserReminders(safeUser, ctx);
         totalProcessed += processed;
       }
 

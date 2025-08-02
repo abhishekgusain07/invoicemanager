@@ -186,9 +186,9 @@ export default function ReminderHistoryTRPC({
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className={getStatusColor(reminder.status)}
+                    className={getStatusColor(reminder.status || "failed")}
                   >
-                    {getStatusIcon(reminder.status)}
+                    {getStatusIcon(reminder.status || "failed")}
                     <span className="ml-1 capitalize">{reminder.status}</span>
                   </Badge>
                 </div>
