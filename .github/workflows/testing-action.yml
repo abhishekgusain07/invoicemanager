@@ -1,9 +1,9 @@
 name: Testing Action (Waitlist Mode Off)
 
 on:
-  # Run every 30 minutes for testing purposes
+  # Run every hour for testing purposes
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 * * * *"
 
   # Allow manual triggering for testing
   workflow_dispatch:
@@ -103,23 +103,52 @@ jobs:
         if: steps.validate_env.outputs.env_valid == 'true'
         run: |
           echo "🔍 Checking application health and waitlist mode status..."
+          echo "This workflow should only run when NEXT_PUBLIC_WAITLIST_MODE = false (full app mode)"
 
-          # Check the current application health
-          response=$(curl -s -o /dev/null -w "%{http_code}" \
-            --max-time 30 \
-            --retry 2 \
-            --retry-delay 5 \
+          # Call the health endpoint to get both health status and waitlist mode
+          health_response=$(curl -s --max-time 30 --retry 2 --retry-delay 5 \
+            "$DEPLOYMENT_URL/api/health" || echo '{"error": "failed_to_fetch"}')
+
+          # Extract HTTP status from a separate call for health checking
+          http_status=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 --retry 2 --retry-delay 5 \
             "$DEPLOYMENT_URL/api/health" || echo "000")
 
-          if [[ "$response" =~ ^2[0-9][0-9]$ ]]; then
-            echo "✅ Application is healthy (HTTP $response)"
+          echo "Health check HTTP status: $http_status"
+
+          if [[ "$http_status" =~ ^2[0-9][0-9]$ ]]; then
+            echo "✅ Application is healthy (HTTP $http_status)"
             
-            # For this testing action, we want to run when NEXT_PUBLIC_WAITLIST_MODE = false
-            # The API endpoint will handle the actual waitlist mode checking
-            echo "should_run=true" >> $GITHUB_OUTPUT
+            # Parse the waitlist mode from the response
+            waitlist_mode=$(echo "$health_response" | jq -r '.environment.waitlistMode // "null"' 2>/dev/null || echo "null")
+            
+            echo "Current waitlist mode: $waitlist_mode"
+
+            # Check waitlist mode status
+            if [[ "$waitlist_mode" == "null" || "$waitlist_mode" == "" ]]; then
+              echo "⚠️ Could not determine waitlist mode from health endpoint"
+              echo "Response: $health_response"
+              echo "Aborting workflow execution for safety"
+              echo "should_run=false" >> $GITHUB_OUTPUT
+            elif [[ "$waitlist_mode" == "false" ]]; then
+              echo "✅ Waitlist mode is disabled (false) - proceeding with testing action"
+              echo "This is the correct mode for the testing workflow"
+              echo "should_run=true" >> $GITHUB_OUTPUT
+            elif [[ "$waitlist_mode" == "true" ]]; then
+              echo "⏭️ Waitlist mode is enabled (true) - skipping testing action"
+              echo "Testing action should only run when waitlist mode is disabled"
+              echo "The scheduled-reminders workflow should handle this scenario instead"
+              echo "should_run=false" >> $GITHUB_OUTPUT
+            else
+              echo "❌ Unexpected waitlist mode value: $waitlist_mode"
+              echo "Expected 'true' or 'false', got: $waitlist_mode"
+              echo "Aborting workflow execution for safety"
+              echo "should_run=false" >> $GITHUB_OUTPUT
+            fi
           else
-            echo "❌ Application health check failed (HTTP $response)"
+            echo "❌ Application health check failed (HTTP $http_status)"
             echo "Application may be unavailable or misconfigured"
+            echo "Cannot proceed with testing when application is unhealthy"
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
 
@@ -231,10 +260,12 @@ jobs:
 
           if [[ "${{ steps.check_mode.outputs.should_run }}" == "true" ]]; then
             echo "✅ Testing action executed successfully"
-            echo "This workflow only runs when NEXT_PUBLIC_WAITLIST_MODE = false"
+            echo "Waitlist mode was disabled (false) - testing workflow ran"
             echo "Check the /githubaction page to see this run logged"
           else
-            echo "⏭️ Skipped - conditions not met for execution"
+            echo "⏭️ Skipped - waitlist mode check failed or mode was enabled"
+            echo "This workflow only runs when NEXT_PUBLIC_WAITLIST_MODE = false"
+            echo "Current waitlist mode status prevented execution"
           fi
 
       - name: Notify on failure (Optional)

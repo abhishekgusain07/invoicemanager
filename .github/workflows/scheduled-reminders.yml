@@ -148,15 +148,41 @@ jobs:
         id: check_waitlist
         if: steps.validate_env.outputs.env_valid == 'true'
         run: |
-          echo "🔍 Checking waitlist mode status..."
+          echo "🔍 Checking waitlist mode status from deployed application..."
           echo "This workflow should only run when NEXT_PUBLIC_WAITLIST_MODE = true (production mode)"
 
-          # For scheduled reminders, we want to run in production mode (waitlist mode = true)
-          # We'll proceed and let the reminder endpoint handle the actual processing logic
-          # The endpoint can check the waitlist mode and decide whether to process reminders
+          # Call the health endpoint to get the current waitlist mode status
+          health_response=$(curl -s --max-time 30 --retry 2 --retry-delay 5 \
+            "$DEPLOYMENT_URL/api/health" || echo '{"error": "failed_to_fetch"}')
 
-          echo "✅ Proceeding with reminder processing"
-          echo "should_process=true" >> $GITHUB_OUTPUT
+          echo "Health endpoint response received"
+
+          # Parse the waitlist mode from the response
+          waitlist_mode=$(echo "$health_response" | jq -r '.environment.waitlistMode // "null"' 2>/dev/null || echo "null")
+
+          echo "Current waitlist mode: $waitlist_mode"
+
+          # Check if we can determine the waitlist mode
+          if [[ "$waitlist_mode" == "null" || "$waitlist_mode" == "" ]]; then
+            echo "⚠️ Could not determine waitlist mode from health endpoint"
+            echo "Response: $health_response"
+            echo "Aborting workflow execution for safety"
+            echo "should_process=false" >> $GITHUB_OUTPUT
+          elif [[ "$waitlist_mode" == "true" ]]; then
+            echo "✅ Waitlist mode is enabled (true) - proceeding with reminder processing"
+            echo "This is the correct mode for scheduled reminders"
+            echo "should_process=true" >> $GITHUB_OUTPUT
+          elif [[ "$waitlist_mode" == "false" ]]; then
+            echo "⏭️ Waitlist mode is disabled (false) - skipping reminder processing"
+            echo "Scheduled reminders should only run when waitlist mode is enabled"
+            echo "The testing-action workflow should handle this scenario instead"
+            echo "should_process=false" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Unexpected waitlist mode value: $waitlist_mode"
+            echo "Expected 'true' or 'false', got: $waitlist_mode"
+            echo "Aborting workflow execution for safety"
+            echo "should_process=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Enhanced health check
         if: steps.validate_env.outputs.env_valid == 'true' && steps.check_waitlist.outputs.should_process == 'true'
@@ -286,13 +312,14 @@ jobs:
           if [[ "${{ steps.check_waitlist.outputs.should_process }}" == "true" ]]; then
             if [[ "${{ job.status }}" == "success" ]]; then
               echo "✅ Scheduled reminders workflow completed successfully"
-              echo "This workflow only runs when NEXT_PUBLIC_WAITLIST_MODE = true (production mode)"
+              echo "Waitlist mode was enabled (true) - reminders were processed"
             else
               echo "❌ Scheduled reminders workflow failed"
             fi
           else
-            echo "⏭️ Skipped - conditions not met for reminder processing"
-            echo "This workflow only runs when NEXT_PUBLIC_WAITLIST_MODE = true (production mode)"
+            echo "⏭️ Skipped - waitlist mode check failed or mode was disabled"
+            echo "This workflow only runs when NEXT_PUBLIC_WAITLIST_MODE = true"
+            echo "Current waitlist mode status prevented execution"
           fi
 
       - name: Notify on failure (Optional)
