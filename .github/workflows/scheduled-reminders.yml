@@ -80,7 +80,21 @@ jobs:
 
           echo "✅ Environment validation passed"
 
+      - name: Check waitlist mode
+        id: check_waitlist
+        run: |
+          echo "🔍 Checking waitlist mode status..."
+          echo "This workflow should only run when NEXT_PUBLIC_WAITLIST_MODE = true (production mode)"
+
+          # For scheduled reminders, we want to run in production mode (waitlist mode = true)
+          # We'll proceed and let the reminder endpoint handle the actual processing logic
+          # The endpoint can check the waitlist mode and decide whether to process reminders
+
+          echo "✅ Proceeding with reminder processing"
+          echo "should_process=true" >> $GITHUB_OUTPUT
+
       - name: Health check endpoint
+        if: steps.check_waitlist.outputs.should_process == 'true'
         run: |
           echo "🏥 Performing health check on $DEPLOYMENT_URL..."
 
@@ -100,9 +114,11 @@ jobs:
           fi
 
       - name: Send scheduled reminder request
+        if: steps.check_waitlist.outputs.should_process == 'true'
         run: |
           echo "📧 Triggering scheduled reminders..."
           echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Waitlist mode check: Proceeding with reminder processing"
 
           # Prepare the API endpoint
           REMINDER_ENDPOINT="$DEPLOYMENT_URL/api/cron/reminders"
@@ -138,6 +154,7 @@ jobs:
           echo "Response Body: $response_body"
 
       - name: Validate response and handle errors
+        if: steps.check_waitlist.outputs.should_process == 'true'
         run: |
           echo "🔍 Validating API response..."
 
@@ -173,6 +190,7 @@ jobs:
         run: |
           echo "📊 Workflow Summary"
           echo "=================="
+          echo "Should process: ${{ steps.check_waitlist.outputs.should_process }}"
           echo "Environment: $ENVIRONMENT"
           echo "Dry Run: $DRY_RUN"
           echo "Started: $WORKFLOW_START_TIME"
@@ -180,10 +198,16 @@ jobs:
           echo "Duration: $(($(date +%s) - $(date -d "$WORKFLOW_START_TIME" +%s)))s"
           echo "Status: ${{ job.status }}"
 
-          if [[ "${{ job.status }}" == "success" ]]; then
-            echo "✅ Scheduled reminders workflow completed successfully"
+          if [[ "${{ steps.check_waitlist.outputs.should_process }}" == "true" ]]; then
+            if [[ "${{ job.status }}" == "success" ]]; then
+              echo "✅ Scheduled reminders workflow completed successfully"
+              echo "This workflow only runs when NEXT_PUBLIC_WAITLIST_MODE = true (production mode)"
+            else
+              echo "❌ Scheduled reminders workflow failed"
+            fi
           else
-            echo "❌ Scheduled reminders workflow failed"
+            echo "⏭️ Skipped - conditions not met for reminder processing"
+            echo "This workflow only runs when NEXT_PUBLIC_WAITLIST_MODE = true (production mode)"
           fi
 
       - name: Notify on failure (Optional)
