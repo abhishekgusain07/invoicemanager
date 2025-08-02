@@ -91,15 +91,17 @@ export class GitHubActionsService {
   }
 
   static async getLogs(limit: number = 50, actionName?: string) {
-    let query = db.select().from(githubActionLogs);
+    // Build query conditionally without reassigning
+    const baseQuery = db.select().from(githubActionLogs);
 
-    if (actionName) {
-      query = query.where(eq(githubActionLogs.actionName, actionName));
-    }
-
-    const logs = await query
-      .orderBy(desc(githubActionLogs.createdAt))
-      .limit(Math.min(limit, 100));
+    const logs = actionName
+      ? await baseQuery
+          .where(eq(githubActionLogs.actionName, actionName))
+          .orderBy(desc(githubActionLogs.createdAt))
+          .limit(Math.min(limit, 100))
+      : await baseQuery
+          .orderBy(desc(githubActionLogs.createdAt))
+          .limit(Math.min(limit, 100));
 
     const parsedLogs = logs.map((log) => ({
       ...log,

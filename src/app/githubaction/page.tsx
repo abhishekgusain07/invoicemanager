@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw, Clock, GitBranch, User, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc";
 
 interface GitHubActionLog {
   id: string;
@@ -68,7 +68,7 @@ export default function GitHubActionPage() {
     isLoading: loading,
     error,
     refetch,
-  } = trpc.githubActions.list.useQuery(
+  } = api.githubActions.list.useQuery(
     { limit: 50 },
     {
       refetchOnWindowFocus: false,
@@ -232,10 +232,10 @@ export default function GitHubActionPage() {
                     )}
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>{formatDuration(log.durationMs)}</span>
+                      <span>{formatDuration(log.durationMs!)}</span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {getRelativeTime(log.startTime)}
+                      {getRelativeTime(log.startTime.toISOString())}
                     </div>
                   </div>
 
@@ -247,12 +247,13 @@ export default function GitHubActionPage() {
                       <strong>Trigger:</strong> {log.triggerEvent}
                     </div>
                     <div>
-                      <strong>Started:</strong> {formatDateTime(log.startTime)}
+                      <strong>Started:</strong>{" "}
+                      {formatDateTime(log.startTime.toISOString())}
                     </div>
                     {log.endTime && (
                       <div>
                         <strong>Completed:</strong>{" "}
-                        {formatDateTime(log.endTime)}
+                        {formatDateTime(log.endTime.toISOString())}
                       </div>
                     )}
                   </div>
