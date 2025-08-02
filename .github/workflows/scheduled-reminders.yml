@@ -38,7 +38,7 @@ jobs:
 
     # Environment-specific configuration
     environment:
-      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+      name: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
 
     steps:
       - name: Set environment variables
@@ -48,7 +48,7 @@ jobs:
           echo "LOG_LEVEL=${{ github.event.inputs.log_level || 'info' }}" >> $GITHUB_ENV
 
           # Set deployment URL based on branch
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             echo "DEPLOYMENT_URL=${{ secrets.PRODUCTION_URL }}" >> $GITHUB_ENV
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
           else

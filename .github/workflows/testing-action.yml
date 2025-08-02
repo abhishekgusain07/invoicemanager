@@ -1,9 +1,9 @@
 name: Testing Action (Waitlist Mode Off)
 
 on:
-  # Run every hour for testing purposes
+  # Run every 20 minutes for testing purposes
   schedule:
-    - cron: "0 * * * *"
+    - cron: "*/20 * * * *"
 
   # Allow manual triggering for testing
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
           echo "TEST_MESSAGE=${{ github.event.inputs.test_message || 'Scheduled test run' }}" >> $GITHUB_ENV
 
           # Set deployment URL based on branch
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
             echo "DEPLOYMENT_URL=${{ secrets.PRODUCTION_URL }}" >> $GITHUB_ENV
             echo "ENVIRONMENT=production" >> $GITHUB_ENV
           else
