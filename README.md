@@ -177,6 +177,156 @@ Invoice Manager uses PostgreSQL for storing data. Here'''s how to set it up:
      pnpm db:migrate
      ```
 
+## Automated Invoice Reminders
+
+Invoice Manager includes a powerful automated reminder system that uses GitHub Actions as a serverless cron job provider to send scheduled invoice reminders.
+
+### How It Works
+
+The system automatically processes overdue invoices and sends reminders based on your configured settings:
+
+- **Secure Endpoint**: Uses bearer token authentication to protect the reminder API
+- **Flexible Scheduling**: Runs daily at 9:00 AM UTC (configurable)
+- **Environment Aware**: Supports both staging and production environments
+- **Comprehensive Logging**: Detailed execution logs and error reporting
+- **Health Checks**: Validates application availability before processing
+- **Retry Logic**: Built-in error handling with exponential backoff
+
+### Setup Instructions
+
+#### 1. Configure GitHub Repository Secrets
+
+Add these secrets in your GitHub repository (Settings → Secrets and variables → Actions):
+
+**Required Secrets:**
+
+- `CRON_SECRET`: A secure random string (minimum 16 characters) for authenticating the cron endpoint
+  ```bash
+  # Generate a secure secret
+  openssl rand -hex 32
+  ```
+- `PRODUCTION_URL`: Your production application URL (e.g., `https://your-app.vercel.app`)
+- `STAGING_URL`: Your staging application URL (optional, for staging deployments)
+
+#### 2. Environment Variables
+
+Add the `CRON_SECRET` to your application's environment variables:
+
+```env
+# .env or your deployment platform
+CRON_SECRET=your_generated_secret_here
+```
+
+#### 3. Workflow Configuration
+
+The GitHub Actions workflow is located at `.github/workflows/scheduled-reminders.yml` and includes:
+
+- **Daily Schedule**: Runs at 9:00 AM UTC
+- **Manual Triggering**: Can be run manually from GitHub Actions UI
+- **Dry Run Mode**: Test the workflow without processing actual reminders
+- **Environment Detection**: Automatically uses staging or production URLs based on branch
+
+### Managing the Automated System
+
+#### View Workflow Run History
+
+1. Go to your repository on GitHub
+2. Click the **"Actions"** tab
+3. Select **"Scheduled Invoice Reminders"** workflow
+4. View execution logs and status for each run
+
+#### Manually Trigger a Run
+
+1. Go to **Actions** → **"Scheduled Invoice Reminders"**
+2. Click **"Run workflow"** button
+3. Optionally enable **"Dry run mode"** for testing
+4. Click **"Run workflow"** to execute
+
+#### Modify the Schedule
+
+Edit `.github/workflows/scheduled-reminders.yml`:
+
+```yaml
+schedule:
+  # Change to run at different times (uses UTC)
+  - cron: "0 9 * * *" # 9:00 AM UTC daily
+  - cron: "0 */6 * * *" # Every 6 hours
+  - cron: "0 9 * * 1" # 9:00 AM UTC on Mondays only
+```
+
+#### Update the CRON_SECRET
+
+1. Generate a new secret: `openssl rand -hex 32`
+2. Update GitHub repository secret
+3. Update your application's environment variables
+4. Redeploy your application
+
+### Troubleshooting
+
+#### Common Issues
+
+**Authentication Errors (401)**
+
+- Verify `CRON_SECRET` matches between GitHub secrets and application environment
+- Ensure the secret is at least 16 characters long
+- Check that the secret doesn't contain special characters that might be escaped
+
+**Health Check Failures**
+
+- Verify your application URL is correct and accessible
+- Check that `/api/health` endpoint exists and returns 2xx status
+- Ensure your application is not sleeping (common with free hosting tiers)
+
+**Workflow Not Running**
+
+- Verify the repository has GitHub Actions enabled
+- Check that the schedule syntax is correct (uses cron format)
+- Ensure the workflow file is in the correct path: `.github/workflows/scheduled-reminders.yml`
+
+**No Reminders Being Sent**
+
+- Verify users have automated reminders enabled in their settings
+- Check that invoices have valid due dates and are in "pending" status
+- Review application logs for processing details
+
+#### Debugging Steps
+
+1. **Test the endpoint manually:**
+
+   ```bash
+   curl -H "Authorization: Bearer your_secret" \
+        https://your-app.com/api/cron/reminders
+   ```
+
+2. **Check workflow logs:**
+   - Go to Actions tab → Select failed workflow run
+   - Review each step's output for detailed error messages
+
+3. **Enable dry run mode:**
+   - Manually trigger workflow with dry run enabled
+   - This shows what would happen without actual processing
+
+4. **Monitor application logs:**
+   - Check your hosting platform's logs during workflow execution
+   - Look for authentication and processing messages
+
+### Security Considerations
+
+- **Secret Management**: Never commit secrets to your repository
+- **Token Rotation**: Regularly rotate your `CRON_SECRET`
+- **Access Control**: The endpoint is only accessible with proper authentication
+- **Rate Limiting**: Consider implementing rate limiting for additional security
+- **Monitoring**: Set up failure notifications for production environments
+
+### Performance Notes
+
+- **Execution Time**: Typical runs complete in under 2 minutes
+- **Timeout**: Workflows timeout after 15 minutes to prevent runaway jobs
+- **Concurrency**: Only one reminder workflow runs at a time
+- **Resource Usage**: Minimal impact on your application resources
+
+For more advanced configuration or custom notification integrations, refer to the workflow file comments or open an issue for support.
+
 ## Contribute
 
 Please refer to the contributing guide.
