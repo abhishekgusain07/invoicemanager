@@ -10,6 +10,7 @@ import { settingsRouter } from "./routers/settings";
 import { waitlistRouter } from "./routers/waitlist";
 import { reminderRouter } from "./routers/reminder";
 import { feedbackRouter } from "./routers/feedback";
+import { githubActionsRouter } from "./routers/github-actions";
 
 /**
  * This is the primary router for your server.
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
   waitlist: waitlistRouter,
   reminder: reminderRouter,
   feedback: feedbackRouter,
+  githubActions: githubActionsRouter,
 });
 
 // Export type definition of API

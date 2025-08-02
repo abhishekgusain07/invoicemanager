@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { db } from "@/db/drizzle";
-import { githubActionLogs, type GithubActionLogInsert } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
-import { v4 as uuidv4 } from "uuid";
+import { GitHubActionsService } from "@/lib/services/github-actions-service";
 
 /**
  * API route for GitHub Action logging
@@ -51,39 +48,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create log entry
-    const logEntry: GithubActionLogInsert = {
-      id: uuidv4(),
-      actionName: body.actionName,
-      runId: body.runId,
-      workflowName: body.workflowName,
-      gitRef: body.gitRef,
-      environment: body.environment,
-      startTime: new Date(body.startTime),
-      endTime: body.endTime ? new Date(body.endTime) : null,
-      durationMs: body.durationMs || null,
-      status: body.status,
-      triggerEvent: body.triggerEvent,
-      actor: body.actor || null,
-      metadata: body.metadata ? JSON.stringify(body.metadata) : null,
-      errorDetails: body.errorDetails || null,
-    };
+    // Create log entry using service
+    const result = await GitHubActionsService.createLog(body);
 
-    // Insert into database
-    const result = await db.insert(githubActionLogs).values(logEntry);
-
-    console.log("✅ GitHub Action log recorded", {
-      actionName: logEntry.actionName,
-      runId: logEntry.runId,
-      status: logEntry.status,
-      environment: logEntry.environment,
-    });
-
-    return NextResponse.json({
-      success: true,
-      id: logEntry.id,
-      message: "GitHub Action log recorded successfully",
-    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("❌ Error logging GitHub Action:", error);
 
@@ -105,30 +73,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const actionName = searchParams.get("actionName");
 
-    // Build query
-    let query = db.select().from(githubActionLogs);
+    // Use service to get logs
+    const result = await GitHubActionsService.getLogs(limit, actionName!);
 
-    // Filter by action name if provided
-    if (actionName) {
-      query = query.where(eq(githubActionLogs.actionName, actionName));
-    }
-
-    // Order by creation date and limit results
-    const logs = await query
-      .orderBy(desc(githubActionLogs.createdAt))
-      .limit(Math.min(limit, 100)); // Cap at 100 records
-
-    // Parse metadata for each log
-    const parsedLogs = logs.map((log) => ({
-      ...log,
-      metadata: log.metadata ? JSON.parse(log.metadata) : null,
-    }));
-
-    return NextResponse.json({
-      success: true,
-      logs: parsedLogs,
-      count: parsedLogs.length,
-    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("❌ Error retrieving GitHub Action logs:", error);
 
@@ -170,32 +118,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Update log entry
-    const updateData: Partial<GithubActionLogInsert> = {};
+    // Update log entry using service
+    const result = await GitHubActionsService.updateLog(body);
 
-    if (body.endTime) updateData.endTime = new Date(body.endTime);
-    if (body.durationMs) updateData.durationMs = body.durationMs;
-    if (body.status) updateData.status = body.status;
-    if (body.errorDetails) updateData.errorDetails = body.errorDetails;
-    if (body.metadata) updateData.metadata = JSON.stringify(body.metadata);
-
-    updateData.updatedAt = new Date();
-
-    // Update in database
-    const result = await db
-      .update(githubActionLogs)
-      .set(updateData)
-      .where(eq(githubActionLogs.runId, body.runId));
-
-    console.log("✅ GitHub Action log updated", {
-      runId: body.runId,
-      status: body.status,
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: "GitHub Action log updated successfully",
-    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("❌ Error updating GitHub Action log:", error);
 

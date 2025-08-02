@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw, Clock, GitBranch, User, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { trpc } from "@/lib/trpc";
 
 interface GitHubActionLog {
   id: string;
@@ -44,9 +45,6 @@ const statusIcons = {
 };
 
 export default function GitHubActionPage() {
-  const [logs, setLogs] = useState<GitHubActionLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   // Only show this page when waitlist mode is false (testing mode)
@@ -64,35 +62,26 @@ export default function GitHubActionPage() {
     );
   }
 
-  const fetchLogs = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const response = await fetch("/api/github-action-logs?limit=50");
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch logs: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setLogs(data.logs);
-        setLastRefresh(new Date());
-      } else {
-        throw new Error(data.error || "Failed to fetch logs");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setLoading(false);
+  // Use tRPC query for fetching logs
+  const {
+    data: logsData,
+    isLoading: loading,
+    error,
+    refetch,
+  } = trpc.githubActions.list.useQuery(
+    { limit: 50 },
+    {
+      refetchOnWindowFocus: false,
+      refetchInterval: 30000, // Auto-refresh every 30 seconds
     }
-  };
+  );
 
-  useEffect(() => {
-    fetchLogs();
-  }, []);
+  const logs = logsData?.logs || [];
+
+  const handleRefresh = async () => {
+    await refetch();
+    setLastRefresh(new Date());
+  };
 
   const formatDuration = (ms?: number) => {
     if (!ms) return "N/A";
@@ -134,7 +123,7 @@ export default function GitHubActionPage() {
               Last updated: {getRelativeTime(lastRefresh.toISOString())}
             </p>
           )}
-          <Button onClick={fetchLogs} disabled={loading} variant="outline">
+          <Button onClick={handleRefresh} disabled={loading} variant="outline">
             <RefreshCcw
               className={cn("h-4 w-4 mr-2", loading && "animate-spin")}
             />
@@ -147,9 +136,9 @@ export default function GitHubActionPage() {
         <Card className="border-red-200 bg-red-50">
           <CardContent className="flex items-center gap-2 py-4">
             <AlertCircle className="h-5 w-5 text-red-500" />
-            <p className="text-red-700">{error}</p>
+            <p className="text-red-700">{error.message}</p>
             <Button
-              onClick={fetchLogs}
+              onClick={handleRefresh}
               size="sm"
               variant="outline"
               className="ml-auto"
