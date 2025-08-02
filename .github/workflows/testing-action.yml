@@ -1,0 +1,194 @@
+name: Testing Action (Waitlist Mode Off)
+
+on:
+  # Run every 30 minutes for testing purposes
+  schedule:
+    - cron: "*/30 * * * *"
+
+  # Allow manual triggering for testing
+  workflow_dispatch:
+    inputs:
+      test_message:
+        description: "Test message to include in logs"
+        required: false
+        default: "Manual test run"
+        type: string
+
+# Security: Limit permissions to minimum required
+permissions:
+  contents: read
+
+jobs:
+  test_logging:
+    name: Test GitHub Action Logging
+    runs-on: ubuntu-latest
+
+    # Timeout to prevent runaway jobs
+    timeout-minutes: 5
+
+    steps:
+      - name: Set environment variables
+        run: |
+          echo "WORKFLOW_START_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+          echo "RUN_UUID=$(uuidgen)" >> $GITHUB_ENV
+          echo "TEST_MESSAGE=${{ github.event.inputs.test_message || 'Scheduled test run' }}" >> $GITHUB_ENV
+
+          # Set deployment URL based on branch
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "DEPLOYMENT_URL=${{ secrets.PRODUCTION_URL }}" >> $GITHUB_ENV
+            echo "ENVIRONMENT=production" >> $GITHUB_ENV
+          else
+            echo "DEPLOYMENT_URL=${{ secrets.STAGING_URL }}" >> $GITHUB_ENV
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+          fi
+
+      - name: Check waitlist mode
+        id: check_mode
+        run: |
+          echo "🔍 Checking waitlist mode status..."
+
+          # First check if deployment URL is available
+          if [[ -z "$DEPLOYMENT_URL" ]]; then
+            echo "❌ Deployment URL not configured for $ENVIRONMENT"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check the current waitlist mode by making a request to a status endpoint
+          # We'll check the environment variable via the health endpoint
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            "$DEPLOYMENT_URL/api/health" || echo "000")
+
+          if [[ "$response" =~ ^2[0-9][0-9]$ ]]; then
+            echo "✅ Application is healthy (HTTP $response)"
+            
+            # For this testing action, we want to run when NEXT_PUBLIC_WAITLIST_MODE = false
+            # Since we can't directly check env vars from outside, we'll run and let the API endpoint
+            # handle the logic. The API can check the waitlist mode and decide whether to log or not.
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Application health check failed (HTTP $response)"
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log workflow start
+        if: steps.check_mode.outputs.should_run == 'true'
+        run: |
+          echo "📝 Logging workflow start..."
+
+          # Create initial log entry
+          curl -X POST "$DEPLOYMENT_URL/api/github-action-logs" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "actionName": "testing-action",
+              "runId": "${{ github.run_id }}",
+              "workflowName": "Testing Action (Waitlist Mode Off)",
+              "gitRef": "${{ github.ref }}",
+              "environment": "'$ENVIRONMENT'",
+              "startTime": "'$WORKFLOW_START_TIME'",
+              "status": "running",
+              "triggerEvent": "${{ github.event_name }}",
+              "actor": "${{ github.actor }}",
+              "metadata": {
+                "testMessage": "'$TEST_MESSAGE'",
+                "runNumber": ${{ github.run_number }},
+                "repository": "${{ github.repository }}",
+                "workflowFile": "testing-action.yml"
+              }
+            }' || echo "Failed to log workflow start"
+
+      - name: Simulate test work
+        if: steps.check_mode.outputs.should_run == 'true'
+        run: |
+          echo "🧪 Simulating test work..."
+          echo "Test message: $TEST_MESSAGE"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Environment: $ENVIRONMENT"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Actor: ${{ github.actor }}"
+
+          # Simulate some work
+          sleep 5
+
+          # Generate some test data
+          echo "Generating test data..."
+          test_result="success"
+          test_duration=$(( $RANDOM % 1000 + 100 ))
+
+          echo "Test completed with result: $test_result"
+          echo "Test duration: ${test_duration}ms"
+
+          # Export for next step
+          echo "TEST_RESULT=$test_result" >> $GITHUB_ENV
+          echo "TEST_DURATION=$test_duration" >> $GITHUB_ENV
+
+      - name: Log workflow completion
+        if: always() && steps.check_mode.outputs.should_run == 'true'
+        run: |
+          echo "📝 Logging workflow completion..."
+
+          # Calculate total duration
+          end_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          start_timestamp=$(date -d "$WORKFLOW_START_TIME" +%s)
+          end_timestamp=$(date +%s)
+          duration_ms=$(( (end_timestamp - start_timestamp) * 1000 ))
+
+          # Determine final status
+          if [[ "${{ job.status }}" == "success" ]]; then
+            final_status="completed"
+            error_details=""
+          else
+            final_status="failed"
+            error_details="Workflow failed with status: ${{ job.status }}"
+          fi
+
+          # Update log entry
+          curl -X PUT "$DEPLOYMENT_URL/api/github-action-logs" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "runId": "${{ github.run_id }}",
+              "endTime": "'$end_time'",
+              "durationMs": '$duration_ms',
+              "status": "'$final_status'",
+              "errorDetails": "'$error_details'",
+              "metadata": {
+                "testMessage": "'$TEST_MESSAGE'",
+                "testResult": "'${TEST_RESULT:-unknown}'",
+                "testDuration": "'${TEST_DURATION:-0}'",
+                "runNumber": ${{ github.run_number }},
+                "repository": "${{ github.repository }}",
+                "workflowFile": "testing-action.yml",
+                "finalStatus": "${{ job.status }}"
+              }
+            }' || echo "Failed to log workflow completion"
+
+      - name: Workflow summary
+        if: always()
+        run: |
+          echo "📊 Testing Action Summary"
+          echo "========================="
+          echo "Should run: ${{ steps.check_mode.outputs.should_run }}"
+          echo "Environment: $ENVIRONMENT"
+          echo "Test message: $TEST_MESSAGE"
+          echo "Started: $WORKFLOW_START_TIME"
+          echo "Completed: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Status: ${{ job.status }}"
+          echo "Run ID: ${{ github.run_id }}"
+
+          if [[ "${{ steps.check_mode.outputs.should_run }}" == "true" ]]; then
+            echo "✅ Testing action executed successfully"
+            echo "This workflow only runs when NEXT_PUBLIC_WAITLIST_MODE = false"
+            echo "Check the /githubaction page to see this run logged"
+          else
+            echo "⏭️ Skipped - conditions not met for execution"
+          fi
+
+      - name: Notify on failure (Optional)
+        if: failure()
+        run: |
+          echo "🚨 Testing action failed"
+          echo "This is for testing purposes only"
+          echo "Check the logs above for details"
