@@ -139,6 +139,15 @@ export const emailDeliveryStatusEnum = pgEnum("email_delivery_status", [
   "bounced",
 ]);
 
+// Define GitHub Action status enum
+export const githubActionStatusEnum = pgEnum("github_action_status", [
+  "running",
+  "completed",
+  "failed",
+  "cancelled",
+  "skipped",
+]);
+
 // User Settings schema
 export const userSettings = pgTable("user_settings", {
   id: text("id").primaryKey(),
@@ -370,6 +379,34 @@ export const waitlist = pgTable("waitlist", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// GitHub Action logs schema for tracking workflow runs
+export const githubActionLogs = pgTable("github_action_logs", {
+  id: text("id").primaryKey(),
+  actionName: text("action_name").notNull(), // e.g., "testing-action", "scheduled-reminders"
+  runId: text("run_id").notNull(), // GitHub workflow run ID
+  workflowName: text("workflow_name").notNull(), // Human readable workflow name
+  gitRef: text("git_ref").notNull(), // Branch/tag that triggered the workflow
+  environment: text("environment").notNull(), // "production", "staging", etc.
+
+  // Timing information
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  durationMs: integer("duration_ms"), // Duration in milliseconds
+
+  // Status and metadata
+  status: githubActionStatusEnum("status").notNull().default("running"),
+  triggerEvent: text("trigger_event").notNull(), // "schedule", "workflow_dispatch", "push", etc.
+  actor: text("actor"), // Who triggered the workflow (for manual runs)
+
+  // Additional data stored as JSON
+  metadata: text("metadata"), // JSON string for additional workflow data
+  errorDetails: text("error_details"), // Error information if status is "failed"
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export type ClientInvoices = InferSelectModel<typeof clientInvoices>;
 export type InvoiceReminder = InferSelectModel<typeof invoiceReminders>;
 export type User = InferSelectModel<typeof user>;
@@ -380,5 +417,7 @@ export type SubscriptionPlan = InferSelectModel<typeof subscriptionPlans>;
 export type Invoice = InferSelectModel<typeof invoices>;
 export type Feedback = InferSelectModel<typeof feedback>;
 export type GeneratedInvoice = InferSelectModel<typeof generatedInvoices>;
+export type GithubActionLog = InferSelectModel<typeof githubActionLogs>;
 
 export type InvoiceGenerationData = InferInsertModel<typeof generatedInvoices>;
+export type GithubActionLogInsert = InferInsertModel<typeof githubActionLogs>;
