@@ -42,33 +42,84 @@ jobs:
             echo "ENVIRONMENT=staging" >> $GITHUB_ENV
           fi
 
-      - name: Check waitlist mode
-        id: check_mode
+      - name: Enhanced environment validation
+        id: validate_env
         run: |
-          echo "🔍 Checking waitlist mode status..."
+          echo "🔍 Validating environment configuration..."
 
-          # First check if deployment URL is available
-          if [[ -z "$DEPLOYMENT_URL" ]]; then
-            echo "❌ Deployment URL not configured for $ENVIRONMENT"
-            echo "should_run=false" >> $GITHUB_OUTPUT
-            exit 0
+          # Validate required secrets and environment variables
+          validation_failed=false
+
+          # Check CRON_SECRET
+          if [[ -z "${{ secrets.CRON_SECRET }}" ]]; then
+            echo "❌ CRON_SECRET is not configured"
+            validation_failed=true
+          else
+            echo "✅ CRON_SECRET is configured"
           fi
 
-          # Check the current waitlist mode by making a request to a status endpoint
-          # We'll check the environment variable via the health endpoint
+          # Check deployment URL
+          if [[ -z "$DEPLOYMENT_URL" ]]; then
+            echo "❌ Deployment URL not configured for $ENVIRONMENT"
+            validation_failed=true
+          else
+            echo "✅ Deployment URL configured for $ENVIRONMENT"
+            # Validate URL format
+            if [[ ! "$DEPLOYMENT_URL" =~ ^https?:// ]]; then
+              echo "❌ Invalid deployment URL format: $DEPLOYMENT_URL"
+              validation_failed=true
+            else
+              echo "✅ Deployment URL format is valid"
+            fi
+          fi
+
+          # Check GitHub context variables
+          if [[ -z "${{ github.run_id }}" ]]; then
+            echo "❌ GitHub run ID not available"
+            validation_failed=true
+          else
+            echo "✅ GitHub run ID: ${{ github.run_id }}"
+          fi
+
+          if [[ -z "${{ github.ref }}" ]]; then
+            echo "❌ GitHub ref not available"
+            validation_failed=true
+          else
+            echo "✅ GitHub ref: ${{ github.ref }}"
+          fi
+
+          # Set validation result
+          if [[ "$validation_failed" == "true" ]]; then
+            echo "❌ Environment validation failed"
+            echo "env_valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ Environment validation passed"
+            echo "env_valid=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check waitlist mode and application health
+        id: check_mode
+        if: steps.validate_env.outputs.env_valid == 'true'
+        run: |
+          echo "🔍 Checking application health and waitlist mode status..."
+
+          # Check the current application health
           response=$(curl -s -o /dev/null -w "%{http_code}" \
             --max-time 30 \
+            --retry 2 \
+            --retry-delay 5 \
             "$DEPLOYMENT_URL/api/health" || echo "000")
 
           if [[ "$response" =~ ^2[0-9][0-9]$ ]]; then
             echo "✅ Application is healthy (HTTP $response)"
             
             # For this testing action, we want to run when NEXT_PUBLIC_WAITLIST_MODE = false
-            # Since we can't directly check env vars from outside, we'll run and let the API endpoint
-            # handle the logic. The API can check the waitlist mode and decide whether to log or not.
+            # The API endpoint will handle the actual waitlist mode checking
             echo "should_run=true" >> $GITHUB_OUTPUT
           else
             echo "❌ Application health check failed (HTTP $response)"
+            echo "Application may be unavailable or misconfigured"
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
 
