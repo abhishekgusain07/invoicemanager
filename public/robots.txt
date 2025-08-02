@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /dashboard/
+Disallow: /invoices/
+Disallow: /clients/
+
+# Allow important pages
+Allow: /
+Allow: /about
+Allow: /pricing
+Allow: /contact
+Allow: /features
+
+# Sitemap
+Sitemap: https://invoicemanager.abhishekgusain.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1

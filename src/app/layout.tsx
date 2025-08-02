@@ -72,9 +72,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "your-google-verification-code",
-  },
 };
 
 export default function RootLayout({
@@ -82,6 +79,50 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "InvoiceManager",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              description:
+                "Professional invoice management for freelancers and agencies. Stop chasing payments and focus on what matters. Get paid 75% faster with automated follow-ups and intelligent payment tracking.",
+              url: "https://invoicemanager.abhishekgusain.com",
+              author: {
+                "@type": "Organization",
+                name: "InvoiceManager",
+              },
+              offers: {
+                "@type": "Offer",
+                category: "SaaS",
+                price: "0",
+                priceCurrency: "USD",
+                availability: "https://schema.org/InStock",
+              },
+              featureList: [
+                "Automated invoice generation",
+                "Payment tracking and reminders",
+                "Client management",
+                "Dashboard analytics",
+                "Professional invoice templates",
+                "Automated follow-ups",
+              ],
+              screenshot:
+                "https://invoicemanager.abhishekgusain.com/sshot/ss.png",
+              aggregateRating: {
+                "@type": "AggregateRating",
+                ratingValue: "4.8",
+                ratingCount: "120",
+              },
+            }),
+          }}
+        />
+      </head>
       <body className={`antialiased`}>
         <TRPCReactProvider>
           <PostHogProvider>
