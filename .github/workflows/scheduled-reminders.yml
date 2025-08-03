@@ -224,6 +224,48 @@ jobs:
             exit 1
           fi
 
+      - name: Log workflow start
+        if: steps.check_waitlist.outputs.should_process == 'true'
+        run: |
+          echo "📝 Logging workflow start..."
+
+          # Create initial log entry
+          response=$(curl -s -w "\n%{http_code}" -X POST "$DEPLOYMENT_URL/api/github-action-logs" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"actionName\": \"scheduled-reminders\",
+              \"runId\": \"${{ github.run_id }}\",
+              \"workflowName\": \"Scheduled Invoice Reminders\",
+              \"gitRef\": \"${{ github.ref }}\",
+              \"environment\": \"$ENVIRONMENT\",
+              \"startTime\": \"$WORKFLOW_START_TIME\",
+              \"status\": \"running\",
+              \"triggerEvent\": \"${{ github.event_name }}\",
+              \"actor\": \"${{ github.actor }}\",
+              \"metadata\": {
+                \"dryRun\": \"$DRY_RUN\",
+                \"logLevel\": \"$LOG_LEVEL\",
+                \"runNumber\": ${{ github.run_number }},
+                \"repository\": \"${{ github.repository }}\",
+                \"workflowFile\": \"scheduled-reminders.yml\"
+              }
+            }")
+          
+          # Parse response
+          response_body=$(echo "$response" | head -n -1)
+          http_code=$(echo "$response" | tail -n 1)
+          
+          echo "Log start HTTP status: $http_code"
+          echo "Log start response: $response_body"
+          
+          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "❌ Failed to log workflow start (HTTP $http_code)"
+            echo "Response: $response_body"
+          else
+            echo "✅ Workflow start logged successfully"
+          fi
+
       - name: Send scheduled reminder request
         if: steps.check_waitlist.outputs.should_process == 'true'
         run: |
@@ -237,6 +279,9 @@ jobs:
           if [[ "$DRY_RUN" == "true" ]]; then
             echo "🧪 DRY RUN MODE - Would call: $REMINDER_ENDPOINT"
             echo "Authorization: Bearer [REDACTED]"
+            echo "REMINDER_RESULT=dry_run_completed" >> $GITHUB_ENV
+            echo "REMINDER_HTTP_CODE=200" >> $GITHUB_ENV
+            echo "REMINDER_RESPONSE_BODY={\"success\":true,\"message\":\"Dry run completed\"}" >> $GITHUB_ENV
             exit 0
           fi
 
@@ -263,6 +308,11 @@ jobs:
           echo "HTTP Status: $http_code"
           echo "Response Time: ${time_total}s"
           echo "Response Body: $response_body"
+
+          # Export for next step
+          echo "REMINDER_HTTP_CODE=$http_code" >> $GITHUB_ENV
+          echo "REMINDER_RESPONSE_BODY=$response_body" >> $GITHUB_ENV
+          echo "REMINDER_TIME_TOTAL=$time_total" >> $GITHUB_ENV
 
       - name: Validate response and handle errors
         if: steps.check_waitlist.outputs.should_process == 'true'
@@ -294,6 +344,62 @@ jobs:
             
             # Exit with error to mark workflow as failed
             exit 1
+          fi
+
+      - name: Log workflow completion
+        if: always() && steps.check_waitlist.outputs.should_process == 'true'
+        run: |
+          echo "📝 Logging workflow completion..."
+
+          # Calculate total duration
+          end_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          start_timestamp=$(date -d "$WORKFLOW_START_TIME" +%s)
+          end_timestamp=$(date +%s)
+          duration_ms=$(( (end_timestamp - start_timestamp) * 1000 ))
+
+          # Determine final status
+          if [[ "${{ job.status }}" == "success" ]]; then
+            final_status="completed"
+            error_details=""
+          else
+            final_status="failed"
+            error_details="Workflow failed with status: ${{ job.status }}"
+          fi
+
+          # Update log entry
+          response=$(curl -s -w "\n%{http_code}" -X PUT "$DEPLOYMENT_URL/api/github-action-logs" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"runId\": \"${{ github.run_id }}\",
+              \"endTime\": \"$end_time\",
+              \"durationMs\": $duration_ms,
+              \"status\": \"$final_status\",
+              \"errorDetails\": \"$error_details\",
+              \"metadata\": {
+                \"dryRun\": \"$DRY_RUN\",
+                \"logLevel\": \"$LOG_LEVEL\",
+                \"reminderHttpCode\": \"${REMINDER_HTTP_CODE:-unknown}\",
+                \"reminderResponseTime\": \"${REMINDER_TIME_TOTAL:-unknown}\",
+                \"runNumber\": ${{ github.run_number }},
+                \"repository\": \"${{ github.repository }}\",
+                \"workflowFile\": \"scheduled-reminders.yml\",
+                \"finalStatus\": \"${{ job.status }}\"
+              }
+            }")
+          
+          # Parse response
+          response_body=$(echo "$response" | head -n -1)
+          http_code=$(echo "$response" | tail -n 1)
+          
+          echo "Log completion HTTP status: $http_code"
+          echo "Log completion response: $response_body"
+          
+          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "❌ Failed to log workflow completion (HTTP $http_code)"
+            echo "Response: $response_body"
+          else
+            echo "✅ Workflow completion logged successfully"
           fi
 
       - name: Workflow summary

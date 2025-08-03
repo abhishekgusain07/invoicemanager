@@ -158,26 +158,40 @@ jobs:
           echo "📝 Logging workflow start..."
 
           # Create initial log entry
-          curl -X POST "$DEPLOYMENT_URL/api/github-action-logs" \
+          response=$(curl -s -w "\n%{http_code}" -X POST "$DEPLOYMENT_URL/api/github-action-logs" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "actionName": "testing-action",
-              "runId": "${{ github.run_id }}",
-              "workflowName": "Testing Action (Waitlist Mode Off)",
-              "gitRef": "${{ github.ref }}",
-              "environment": "'$ENVIRONMENT'",
-              "startTime": "'$WORKFLOW_START_TIME'",
-              "status": "running",
-              "triggerEvent": "${{ github.event_name }}",
-              "actor": "${{ github.actor }}",
-              "metadata": {
-                "testMessage": "'$TEST_MESSAGE'",
-                "runNumber": ${{ github.run_number }},
-                "repository": "${{ github.repository }}",
-                "workflowFile": "testing-action.yml"
+            -d "{
+              \"actionName\": \"testing-action\",
+              \"runId\": \"${{ github.run_id }}\",
+              \"workflowName\": \"Testing Action (Waitlist Mode Off)\",
+              \"gitRef\": \"${{ github.ref }}\",
+              \"environment\": \"$ENVIRONMENT\",
+              \"startTime\": \"$WORKFLOW_START_TIME\",
+              \"status\": \"running\",
+              \"triggerEvent\": \"${{ github.event_name }}\",
+              \"actor\": \"${{ github.actor }}\",
+              \"metadata\": {
+                \"testMessage\": \"$TEST_MESSAGE\",
+                \"runNumber\": ${{ github.run_number }},
+                \"repository\": \"${{ github.repository }}\",
+                \"workflowFile\": \"testing-action.yml\"
               }
-            }' || echo "Failed to log workflow start"
+            }")
+          
+          # Parse response
+          response_body=$(echo "$response" | head -n -1)
+          http_code=$(echo "$response" | tail -n 1)
+          
+          echo "Log start HTTP status: $http_code"
+          echo "Log start response: $response_body"
+          
+          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "❌ Failed to log workflow start (HTTP $http_code)"
+            echo "Response: $response_body"
+          else
+            echo "✅ Workflow start logged successfully"
+          fi
 
       - name: Simulate test work
         if: steps.check_mode.outputs.should_run == 'true'
@@ -225,25 +239,39 @@ jobs:
           fi
 
           # Update log entry
-          curl -X PUT "$DEPLOYMENT_URL/api/github-action-logs" \
+          response=$(curl -s -w "\n%{http_code}" -X PUT "$DEPLOYMENT_URL/api/github-action-logs" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "runId": "${{ github.run_id }}",
-              "endTime": "'$end_time'",
-              "durationMs": '$duration_ms',
-              "status": "'$final_status'",
-              "errorDetails": "'$error_details'",
-              "metadata": {
-                "testMessage": "'$TEST_MESSAGE'",
-                "testResult": "'${TEST_RESULT:-unknown}'",
-                "testDuration": "'${TEST_DURATION:-0}'",
-                "runNumber": ${{ github.run_number }},
-                "repository": "${{ github.repository }}",
-                "workflowFile": "testing-action.yml",
-                "finalStatus": "${{ job.status }}"
+            -d "{
+              \"runId\": \"${{ github.run_id }}\",
+              \"endTime\": \"$end_time\",
+              \"durationMs\": $duration_ms,
+              \"status\": \"$final_status\",
+              \"errorDetails\": \"$error_details\",
+              \"metadata\": {
+                \"testMessage\": \"$TEST_MESSAGE\",
+                \"testResult\": \"${TEST_RESULT:-unknown}\",
+                \"testDuration\": \"${TEST_DURATION:-0}\",
+                \"runNumber\": ${{ github.run_number }},
+                \"repository\": \"${{ github.repository }}\",
+                \"workflowFile\": \"testing-action.yml\",
+                \"finalStatus\": \"${{ job.status }}\"
               }
-            }' || echo "Failed to log workflow completion"
+            }")
+          
+          # Parse response
+          response_body=$(echo "$response" | head -n -1)
+          http_code=$(echo "$response" | tail -n 1)
+          
+          echo "Log completion HTTP status: $http_code"
+          echo "Log completion response: $response_body"
+          
+          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "❌ Failed to log workflow completion (HTTP $http_code)"
+            echo "Response: $response_body"
+          else
+            echo "✅ Workflow completion logged successfully"
+          fi
 
       - name: Workflow summary
         if: always()
