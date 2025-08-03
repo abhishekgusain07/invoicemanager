@@ -135,3 +135,51 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+// DELETE - Clean up old GitHub Action logs
+export async function DELETE(request: NextRequest) {
+  try {
+    // Security check
+    const authHeader = headers().get("Authorization");
+    const secretKey = process.env.CRON_SECRET;
+
+    if (!secretKey) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 }
+      );
+    }
+
+    if (!authHeader || authHeader !== `Bearer ${secretKey}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const daysOld = parseInt(searchParams.get("daysOld") || "1");
+    const dryRun = searchParams.get("dryRun") === "true";
+
+    // Validate parameters
+    if (daysOld < 1 || daysOld > 365) {
+      return NextResponse.json(
+        { error: "daysOld must be between 1 and 365" },
+        { status: 400 }
+      );
+    }
+
+    // Use service to clean up logs
+    const result = await GitHubActionsService.cleanupOldLogs(daysOld, dryRun);
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("❌ Error cleaning up GitHub Action logs:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to clean up GitHub Action logs",
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}

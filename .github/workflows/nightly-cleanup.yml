@@ -1,0 +1,340 @@
+name: Nightly Database Cleanup
+
+on:
+  # Run every night at 2:00 AM UTC
+  schedule:
+    - cron: "0 2 * * *"
+
+  # Allow manual triggering for testing
+  workflow_dispatch:
+    inputs:
+      days_old:
+        description: "Delete logs older than X days"
+        required: false
+        default: "7"
+        type: string
+      dry_run:
+        description: "Run in dry-run mode (no actual deletion)"
+        required: false
+        default: "false"
+        type: boolean
+
+# Security: Limit permissions to minimum required
+permissions:
+  contents: read
+
+jobs:
+  cleanup_logs:
+    name: Clean Up GitHub Action Logs
+    runs-on: ubuntu-latest
+
+    # Timeout to prevent runaway jobs
+    timeout-minutes: 10
+
+    # Environment-specific configuration
+    environment:
+      name: ${{ github.ref == 'refs/heads/master' && 'production' || 'staging' }}
+
+    steps:
+      - name: Set environment variables
+        run: |
+          echo "WORKFLOW_START_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+          echo "DAYS_OLD=${{ github.event.inputs.days_old || '7' }}" >> $GITHUB_ENV
+          echo "DRY_RUN=${{ github.event.inputs.dry_run || 'false' }}" >> $GITHUB_ENV
+
+          # Set deployment URL based on branch
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "DEPLOYMENT_URL=${{ secrets.PRODUCTION_URL }}" >> $GITHUB_ENV
+            echo "ENVIRONMENT=production" >> $GITHUB_ENV
+          else
+            echo "DEPLOYMENT_URL=${{ secrets.STAGING_URL }}" >> $GITHUB_ENV
+            echo "ENVIRONMENT=staging" >> $GITHUB_ENV
+          fi
+
+      - name: Environment validation
+        id: validate_env
+        run: |
+          echo "🔍 Validating environment configuration..."
+          echo "Environment: $ENVIRONMENT"
+          echo "Deployment URL: ${DEPLOYMENT_URL:0:30}..." # Only show first 30 chars for security
+          echo "Days Old: $DAYS_OLD"
+          echo "Dry Run: $DRY_RUN"
+          echo "Workflow triggered by: ${{ github.event_name }}"
+
+          # Track validation failures
+          validation_failed=false
+
+          # Validate required secrets are set
+          if [[ -z "${{ secrets.CRON_SECRET }}" ]]; then
+            echo "❌ CRON_SECRET is not configured"
+            validation_failed=true
+          else
+            echo "✅ CRON_SECRET is configured"
+          fi
+
+          # Validate deployment URL
+          if [[ -z "$DEPLOYMENT_URL" ]]; then
+            echo "❌ Deployment URL is not configured for $ENVIRONMENT"
+            validation_failed=true
+          else
+            echo "✅ Deployment URL configured for $ENVIRONMENT"
+            # Validate URL format
+            if [[ ! "$DEPLOYMENT_URL" =~ ^https?:// ]]; then
+              echo "❌ Invalid deployment URL format"
+              validation_failed=true
+            else
+              echo "✅ Deployment URL format is valid"
+            fi
+          fi
+
+          # Validate days old parameter
+          if [[ ! "$DAYS_OLD" =~ ^[0-9]+$ ]] || [[ "$DAYS_OLD" -lt 1 ]] || [[ "$DAYS_OLD" -gt 365 ]]; then
+            echo "❌ Invalid DAYS_OLD value: $DAYS_OLD (must be 1-365)"
+            validation_failed=true
+          else
+            echo "✅ DAYS_OLD value is valid: $DAYS_OLD"
+          fi
+
+          # Set validation result
+          if [[ "$validation_failed" == "true" ]]; then
+            echo "❌ Environment validation failed - aborting workflow"
+            echo "env_valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "✅ Environment validation passed"
+            echo "env_valid=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Application health check
+        if: steps.validate_env.outputs.env_valid == 'true'
+        run: |
+          echo "🏥 Performing health check on $DEPLOYMENT_URL..."
+
+          # Check if the application is healthy
+          health_response=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 30 \
+            --retry 3 \
+            --retry-delay 5 \
+            --retry-connrefused \
+            "$DEPLOYMENT_URL/api/health" || echo "000")
+
+          echo "Health check response: HTTP $health_response"
+
+          if [[ "$health_response" =~ ^2[0-9][0-9]$ ]]; then
+            echo "✅ Health check passed (HTTP $health_response)"
+          else
+            echo "❌ Health check failed (HTTP $health_response)"
+            echo "Application may be unavailable, aborting cleanup"
+            exit 1
+          fi
+
+      - name: Log workflow start
+        if: steps.validate_env.outputs.env_valid == 'true'
+        run: |
+          echo "📝 Logging workflow start..."
+
+          # Create initial log entry
+          response=$(curl -s -w "\n%{http_code}" -X POST "$DEPLOYMENT_URL/api/github-action-logs" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"actionName\": \"nightly-cleanup\",
+              \"runId\": \"${{ github.run_id }}\",
+              \"workflowName\": \"Nightly Database Cleanup\",
+              \"gitRef\": \"${{ github.ref }}\",
+              \"environment\": \"$ENVIRONMENT\",
+              \"startTime\": \"$WORKFLOW_START_TIME\",
+              \"status\": \"running\",
+              \"triggerEvent\": \"${{ github.event_name }}\",
+              \"actor\": \"${{ github.actor }}\",
+              \"metadata\": {
+                \"daysOld\": \"$DAYS_OLD\",
+                \"dryRun\": \"$DRY_RUN\",
+                \"runNumber\": ${{ github.run_number }},
+                \"repository\": \"${{ github.repository }}\",
+                \"workflowFile\": \"nightly-cleanup.yml\"
+              }
+            }")
+
+          # Parse response
+          response_body=$(echo "$response" | head -n -1)
+          http_code=$(echo "$response" | tail -n 1)
+
+          echo "Log start HTTP status: $http_code"
+          echo "Log start response: $response_body"
+
+          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "❌ Failed to log workflow start (HTTP $http_code)"
+            echo "Response: $response_body"
+          else
+            echo "✅ Workflow start logged successfully"
+          fi
+
+      - name: Get database stats (before cleanup)
+        if: steps.validate_env.outputs.env_valid == 'true'
+        run: |
+          echo "📊 Getting database statistics before cleanup..."
+
+          # Call stats endpoint to see current state
+          stats_response=$(curl -s --max-time 30 \
+            "$DEPLOYMENT_URL/api/github-action-logs?stats=true" || echo '{"error": "failed_to_fetch"}')
+
+          echo "Database stats before cleanup:"
+          echo "$stats_response"
+
+      - name: Perform cleanup
+        if: steps.validate_env.outputs.env_valid == 'true'
+        run: |
+          echo "🧹 Starting database cleanup..."
+          echo "Deleting logs older than $DAYS_OLD days"
+          echo "Dry run mode: $DRY_RUN"
+
+          # Prepare the cleanup endpoint
+          CLEANUP_ENDPOINT="$DEPLOYMENT_URL/api/github-action-logs?daysOld=$DAYS_OLD&dryRun=$DRY_RUN"
+
+          if [[ "$DRY_RUN" == "true" ]]; then
+            echo "🧪 DRY RUN MODE - Will simulate cleanup only"
+          else
+            echo "⚠️ LIVE MODE - Will actually delete logs"
+          fi
+
+          # Make the cleanup API call
+          echo "Making cleanup request to: $CLEANUP_ENDPOINT"
+
+          response=$(curl -s -w "\n%{http_code}\n%{time_total}" \
+            --max-time 120 \
+            --retry 2 \
+            --retry-delay 5 \
+            -X DELETE \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -H "User-Agent: GitHub-Actions-Nightly-Cleanup/1.0" \
+            -H "X-GitHub-Workflow: ${{ github.workflow }}" \
+            -H "X-GitHub-Run-ID: ${{ github.run_id }}" \
+            "$CLEANUP_ENDPOINT")
+
+          # Parse response
+          response_body=$(echo "$response" | head -n -2)
+          http_code=$(echo "$response" | tail -n 2 | head -n 1)
+          time_total=$(echo "$response" | tail -n 1)
+
+          echo "Cleanup HTTP Status: $http_code"
+          echo "Response Time: ${time_total}s"
+          echo "Cleanup Response: $response_body"
+
+          # Export for next step
+          echo "CLEANUP_HTTP_CODE=$http_code" >> $GITHUB_ENV
+          echo "CLEANUP_RESPONSE_BODY=$response_body" >> $GITHUB_ENV
+          echo "CLEANUP_TIME_TOTAL=$time_total" >> $GITHUB_ENV
+
+          # Check if cleanup was successful
+          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "❌ Cleanup failed (HTTP $http_code)"
+            echo "Response: $response_body"
+            exit 1
+          else
+            echo "✅ Cleanup completed successfully"
+          fi
+
+      - name: Get database stats (after cleanup)
+        if: steps.validate_env.outputs.env_valid == 'true'
+        run: |
+          echo "📊 Getting database statistics after cleanup..."
+
+          # Call stats endpoint to see post-cleanup state
+          stats_response=$(curl -s --max-time 30 \
+            "$DEPLOYMENT_URL/api/github-action-logs?stats=true" || echo '{"error": "failed_to_fetch"}')
+
+          echo "Database stats after cleanup:"
+          echo "$stats_response"
+
+      - name: Log workflow completion
+        if: always() && steps.validate_env.outputs.env_valid == 'true'
+        run: |
+          echo "📝 Logging workflow completion..."
+
+          # Calculate total duration
+          end_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          start_timestamp=$(date -d "$WORKFLOW_START_TIME" +%s)
+          end_timestamp=$(date +%s)
+          duration_ms=$(( (end_timestamp - start_timestamp) * 1000 ))
+
+          # Determine final status
+          if [[ "${{ job.status }}" == "success" ]]; then
+            final_status="completed"
+            error_details=""
+          else
+            final_status="failed"
+            error_details="Workflow failed with status: ${{ job.status }}"
+          fi
+
+          # Update log entry
+          response=$(curl -s -w "\n%{http_code}" -X PUT "$DEPLOYMENT_URL/api/github-action-logs" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"runId\": \"${{ github.run_id }}\",
+              \"endTime\": \"$end_time\",
+              \"durationMs\": $duration_ms,
+              \"status\": \"$final_status\",
+              \"errorDetails\": \"$error_details\",
+              \"metadata\": {
+                \"daysOld\": \"$DAYS_OLD\",
+                \"dryRun\": \"$DRY_RUN\",
+                \"cleanupHttpCode\": \"${CLEANUP_HTTP_CODE:-unknown}\",
+                \"cleanupResponseTime\": \"${CLEANUP_TIME_TOTAL:-unknown}\",
+                \"runNumber\": ${{ github.run_number }},
+                \"repository\": \"${{ github.repository }}\",
+                \"workflowFile\": \"nightly-cleanup.yml\",
+                \"finalStatus\": \"${{ job.status }}\"
+              }
+            }")
+
+          # Parse response
+          response_body=$(echo "$response" | head -n -1)
+          http_code=$(echo "$response" | tail -n 1)
+
+          echo "Log completion HTTP status: $http_code"
+          echo "Log completion response: $response_body"
+
+          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+            echo "❌ Failed to log workflow completion (HTTP $http_code)"
+            echo "Response: $response_body"
+          else
+            echo "✅ Workflow completion logged successfully"
+          fi
+
+      - name: Workflow summary
+        if: always()
+        run: |
+          echo "📊 Nightly Cleanup Summary"
+          echo "=========================="
+          echo "Environment: $ENVIRONMENT"
+          echo "Days Old: $DAYS_OLD"
+          echo "Dry Run: $DRY_RUN"
+          echo "Started: $WORKFLOW_START_TIME"
+          echo "Completed: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "Status: ${{ job.status }}"
+          echo "Run ID: ${{ github.run_id }}"
+
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "✅ Nightly cleanup completed successfully"
+            if [[ "$DRY_RUN" == "true" ]]; then
+              echo "🧪 Dry run mode - no actual data was deleted"
+            else
+              echo "🧹 Live cleanup - old logs were deleted"
+            fi
+          else
+            echo "❌ Nightly cleanup failed"
+            echo "Check the logs above for details"
+          fi
+
+      - name: Notify on failure (Optional)
+        if: failure()
+        run: |
+          echo "🚨 Nightly cleanup failed"
+          echo "This may indicate issues with:"
+          echo "- Database connectivity"
+          echo "- Application availability"
+          echo "- API authentication"
+          echo "- Database cleanup logic"

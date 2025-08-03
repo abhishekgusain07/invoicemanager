@@ -251,14 +251,14 @@ jobs:
                 \"workflowFile\": \"scheduled-reminders.yml\"
               }
             }")
-          
+
           # Parse response
           response_body=$(echo "$response" | head -n -1)
           http_code=$(echo "$response" | tail -n 1)
-          
+
           echo "Log start HTTP status: $http_code"
           echo "Log start response: $response_body"
-          
+
           if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
             echo "❌ Failed to log workflow start (HTTP $http_code)"
             echo "Response: $response_body"
@@ -387,14 +387,14 @@ jobs:
                 \"finalStatus\": \"${{ job.status }}\"
               }
             }")
-          
+
           # Parse response
           response_body=$(echo "$response" | head -n -1)
           http_code=$(echo "$response" | tail -n 1)
-          
+
           echo "Log completion HTTP status: $http_code"
           echo "Log completion response: $response_body"
-          
+
           if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
             echo "❌ Failed to log workflow completion (HTTP $http_code)"
             echo "Response: $response_body"

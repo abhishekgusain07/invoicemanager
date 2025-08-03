@@ -1,6 +1,6 @@
 import { db } from "@/db/drizzle";
 import { githubActionLogs, type GithubActionLogInsert } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, lt, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 
 export interface CreateGithubActionLogInput {
@@ -134,6 +134,83 @@ export class GitHubActionsService {
     return {
       success: true,
       log: parsedLog,
+    };
+  }
+
+  static async cleanupOldLogs(daysOld: number = 1, dryRun: boolean = false) {
+    // Calculate cutoff date
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysOld);
+
+    console.log(
+      `🧹 Cleaning up GitHub Action logs older than ${daysOld} days (before ${cutoffDate.toISOString()})`
+    );
+
+    if (dryRun) {
+      // In dry run mode, just count what would be deleted
+      const countResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(githubActionLogs)
+        .where(lt(githubActionLogs.createdAt, cutoffDate));
+
+      const count = countResult[0]?.count || 0;
+
+      console.log(
+        `🧪 DRY RUN: Would delete ${count} GitHub Action log entries`
+      );
+
+      return {
+        success: true,
+        dryRun: true,
+        deletedCount: 0,
+        wouldDeleteCount: count,
+        cutoffDate: cutoffDate.toISOString(),
+        message: `Dry run: ${count} logs would be deleted`,
+      };
+    }
+
+    // Actually delete the old logs
+    const deleteResult = await db
+      .delete(githubActionLogs)
+      .where(lt(githubActionLogs.createdAt, cutoffDate));
+
+    const deletedCount = deleteResult.rowCount || 0;
+
+    console.log(`✅ Deleted ${deletedCount} old GitHub Action log entries`);
+
+    return {
+      success: true,
+      dryRun: false,
+      deletedCount,
+      cutoffDate: cutoffDate.toISOString(),
+      message: `Successfully deleted ${deletedCount} old log entries`,
+    };
+  }
+
+  static async getLogStats() {
+    // Get total count and oldest/newest entries
+    const stats = await db
+      .select({
+        totalCount: sql<number>`count(*)`,
+        oldestEntry: sql<string>`min(created_at)`,
+        newestEntry: sql<string>`max(created_at)`,
+      })
+      .from(githubActionLogs);
+
+    // Get counts by action name
+    const actionCounts = await db
+      .select({
+        actionName: githubActionLogs.actionName,
+        count: sql<number>`count(*)`,
+      })
+      .from(githubActionLogs)
+      .groupBy(githubActionLogs.actionName)
+      .orderBy(desc(sql<number>`count(*)`));
+
+    return {
+      success: true,
+      stats: stats[0],
+      actionCounts,
     };
   }
 }
