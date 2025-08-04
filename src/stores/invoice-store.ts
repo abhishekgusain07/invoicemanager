@@ -206,6 +206,7 @@ export const useInvoiceStore = create<InvoiceStore>()(
             invoiceData,
             currentInvoiceId: invoiceId,
             isInitialized: true,
+            isLoading: false, // Fix: Clear loading state when invoice is loaded by ID
           });
         },
 

@@ -11,6 +11,7 @@ import {
   Search,
   Settings,
   Settings2,
+  FolderOpen,
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -35,6 +36,11 @@ const items = [
     title: "Invoices",
     url: "/invoices",
     icon: FileText,
+  },
+  {
+    title: "My Invoices",
+    url: "/myinvoices",
+    icon: FolderOpen,
   },
   {
     title: "Generate Invoice",

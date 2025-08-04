@@ -31,6 +31,8 @@ import { PDFDownloadButton } from "./pdf-download-button";
 import { ShareInvoiceButton } from "./share-invoice-button";
 import { SaveInvoiceButton } from "./save-invoice-button";
 import { SavedInvoicesList } from "./saved-invoices-list";
+import { api } from "@/lib/trpc";
+import { toast } from "sonner";
 
 export function InvoiceClientPage() {
   const searchParams = useSearchParams();
@@ -78,8 +80,40 @@ export function InvoiceClientPage() {
   // Initialize store on mount
   useEffect(() => {
     const compressedInvoiceDataInUrl = searchParams.get("data");
-    initializeStore(compressedInvoiceDataInUrl || undefined);
+    const invoiceIdFromUrl = searchParams.get("id");
+    
+    // Only initialize if not loading an existing invoice by ID
+    if (!invoiceIdFromUrl) {
+      initializeStore(compressedInvoiceDataInUrl || undefined);
+    }
   }, [searchParams, initializeStore]);
+
+  // Function to load existing invoice by ID using tRPC
+  const { data: loadedInvoice, isLoading: isLoadingInvoice, error: loadInvoiceError } = api.invoice.getGeneratedById.useQuery(
+    { id: searchParams.get("id") || "" },
+    { 
+      enabled: !!searchParams.get("id"),
+    }
+  );
+
+  // Handle loaded invoice data
+  useEffect(() => {
+    if (loadedInvoice?.success && loadedInvoice.invoiceData) {
+      handleLoadInvoice(loadedInvoice.invoiceData, loadedInvoice.invoice.id);
+      toast.success("Invoice loaded for editing");
+    }
+  }, [loadedInvoice, handleLoadInvoice]);
+
+  // Handle load error
+  useEffect(() => {
+    if (loadInvoiceError && searchParams.get("id")) {
+      console.error("Failed to load invoice:", loadInvoiceError);
+      toast.error("Failed to load invoice", {
+        description: "Loading default invoice instead"
+      });
+      initializeStore();
+    }
+  }, [loadInvoiceError, searchParams, initializeStore]);
 
   const handleInvoiceDataChange = (updatedData: InvoiceGenerationData) => {
     setInvoiceData(updatedData);
