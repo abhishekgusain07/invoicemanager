@@ -121,9 +121,9 @@ export function SavedInvoicesList({ onLoadInvoice }: SavedInvoicesListProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
-          <FolderOpen className="w-4 h-4 mr-2" />
-          Load Saved Invoice
+        <Button variant="outline" size="sm" className="whitespace-nowrap">
+          <FolderOpen className="w-4 h-4 mr-1" />
+          Load
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[600px] overflow-y-auto">

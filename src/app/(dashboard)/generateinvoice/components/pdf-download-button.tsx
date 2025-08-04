@@ -60,17 +60,18 @@ export function PDFDownloadButton({
     <Button
       onClick={handleDownload}
       disabled={disabled || isGenerating}
-      className="w-full"
+      size="sm"
+      className="whitespace-nowrap"
     >
       {isGenerating ? (
         <>
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          Generating PDF...
+          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+          Downloading...
         </>
       ) : (
         <>
-          <Download className="w-4 h-4 mr-2" />
-          Download PDF
+          <Download className="w-4 h-4 mr-1" />
+          Download
         </>
       )}
     </Button>

@@ -192,7 +192,9 @@ export function InvoiceClientPage() {
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">PDF Preview</h2>
-                <div className="flex gap-2">
+
+                {/* Compact Action Buttons */}
+                <div className="flex gap-2 items-center">
                   <SavedInvoicesList onLoadInvoice={handleLoadSavedInvoice} />
                   <SaveInvoiceButton
                     invoiceData={invoiceData}

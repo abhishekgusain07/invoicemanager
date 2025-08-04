@@ -83,10 +83,11 @@ export function ShareInvoiceButton({
       <Button
         variant="outline"
         disabled
-        className="w-full opacity-50 cursor-not-allowed"
+        size="sm"
+        className="whitespace-nowrap opacity-50 cursor-not-allowed"
       >
-        <Share2 className="w-4 h-4 mr-2" />
-        Cannot Share (Logo Present)
+        <Share2 className="w-4 h-4 mr-1" />
+        Can't Share
       </Button>
     );
   }
@@ -96,22 +97,23 @@ export function ShareInvoiceButton({
       onClick={handleShare}
       disabled={disabled || isSharing}
       variant="outline"
-      className="w-full"
+      size="sm"
+      className="whitespace-nowrap"
     >
       {isSharing ? (
         <>
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          Generating Link...
+          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+          Sharing...
         </>
       ) : isShared ? (
         <>
-          <Check className="w-4 h-4 mr-2 text-green-600" />
-          Link Copied!
+          <Check className="w-4 h-4 mr-1 text-green-600" />
+          Copied!
         </>
       ) : (
         <>
-          <Share2 className="w-4 h-4 mr-2" />
-          Share Invoice
+          <Share2 className="w-4 h-4 mr-1" />
+          Share
         </>
       )}
     </Button>

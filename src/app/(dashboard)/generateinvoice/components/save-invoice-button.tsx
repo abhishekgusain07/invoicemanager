@@ -109,22 +109,23 @@ export function SaveInvoiceButton({
       onClick={handleSave}
       disabled={disabled || isSaving}
       variant="outline"
-      className="w-full"
+      size="sm"
+      className="whitespace-nowrap"
     >
       {isSaving ? (
         <>
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
           {existingInvoiceId ? "Updating..." : "Saving..."}
         </>
       ) : isSaved ? (
         <>
-          <Check className="w-4 h-4 mr-2 text-green-600" />
+          <Check className="w-4 h-4 mr-1 text-green-600" />
           {existingInvoiceId ? "Updated!" : "Saved!"}
         </>
       ) : (
         <>
-          <Save className="w-4 h-4 mr-2" />
-          {existingInvoiceId ? "Update Invoice" : "Save Invoice"}
+          <Save className="w-4 h-4 mr-1" />
+          {existingInvoiceId ? "Update" : "Save"}
         </>
       )}
     </Button>
