@@ -81,7 +81,7 @@ export function InvoiceClientPage() {
   useEffect(() => {
     const compressedInvoiceDataInUrl = searchParams.get("data");
     const invoiceIdFromUrl = searchParams.get("id");
-    
+
     // Only initialize if not loading an existing invoice by ID
     if (!invoiceIdFromUrl) {
       initializeStore(compressedInvoiceDataInUrl || undefined);
@@ -89,9 +89,13 @@ export function InvoiceClientPage() {
   }, [searchParams, initializeStore]);
 
   // Function to load existing invoice by ID using tRPC
-  const { data: loadedInvoice, isLoading: isLoadingInvoice, error: loadInvoiceError } = api.invoice.getGeneratedById.useQuery(
+  const {
+    data: loadedInvoice,
+    isLoading: isLoadingInvoice,
+    error: loadInvoiceError,
+  } = api.invoice.getGeneratedById.useQuery(
     { id: searchParams.get("id") || "" },
-    { 
+    {
       enabled: !!searchParams.get("id"),
     }
   );
@@ -109,7 +113,7 @@ export function InvoiceClientPage() {
     if (loadInvoiceError && searchParams.get("id")) {
       console.error("Failed to load invoice:", loadInvoiceError);
       toast.error("Failed to load invoice", {
-        description: "Loading default invoice instead"
+        description: "Loading default invoice instead",
       });
       initializeStore();
     }

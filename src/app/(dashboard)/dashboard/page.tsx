@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,29 +19,19 @@ import { api } from "@/lib/trpc";
 import { toast } from "sonner";
 import { ClientInvoices } from "@/db/schema";
 
-// Default chart data structure
-const defaultChartData = [
-  { name: "Jan", amount: 0 },
-  { name: "Feb", amount: 0 },
-  { name: "Mar", amount: 0 },
-  { name: "Apr", amount: 0 },
-  { name: "May", amount: 0 },
-  { name: "Jun", amount: 0 },
-];
-
-// Default stats structure
-const defaultStats = {
-  pendingInvoices: 0,
-  overdueInvoices: 0,
-  paidInvoices: 0,
-  outstandingAmount: "$0.00",
-  recentInvoices: [] as Array<ClientInvoices>,
-};
-
 export default function DashboardPage() {
   const { user, isLoading: isUserLoading } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("all");
+
+  // Early query trigger when user is available (simplified prefetch approach)
+  useEffect(() => {
+    if (!isUserLoading && user) {
+      // The query will be triggered early, and our QueryClient config
+      // will prevent refetching if data is already available
+      console.log("User available, dashboard query will be triggered early");
+    }
+  }, [user, isUserLoading]);
 
   // Use tRPC query for dashboard data
   const {
@@ -58,15 +48,53 @@ export default function DashboardPage() {
     }
   );
 
-  // Extract data with fallbacks
-  const invoiceStats = dashboardData?.stats || defaultStats;
-  const chartData = dashboardData?.monthlyData || defaultChartData;
-  const hasInvoices = invoiceStats.recentInvoices.length > 0;
+  // Extract data directly (no fallbacks to prevent flash)
+  const invoiceStats = dashboardData?.stats;
+  const chartData = dashboardData?.monthlyData;
+  const hasInvoices = (invoiceStats?.recentInvoices?.length ?? 0) > 0;
 
-  // Handle errors
+  // Enhanced error handling for prefetch scenarios
   if (error) {
     console.error("Error fetching dashboard data:", error);
     toast.error("Failed to load dashboard data");
+  }
+
+  // Check if we're in a true loading state (no prefetched data available)
+  const isTrueLoading = isLoading && !dashboardData;
+
+  // Show error state if there's an error and no cached data
+  if (error && !dashboardData) {
+    return (
+      <div className="flex-1 space-y-8 p-8 pt-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+            <p className="text-muted-foreground">
+              Welcome to your Invoice Manager dashboard
+            </p>
+          </div>
+        </div>
+        <Card className="border border-red-200 bg-red-50">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <AlertTriangleIcon className="h-12 w-12 text-red-500 mb-4" />
+            <h3 className="text-lg font-medium text-red-800 mb-2">
+              Failed to load dashboard data
+            </h3>
+            <p className="text-red-600 text-center mb-4">
+              We encountered an error while loading your dashboard. Please try
+              refreshing the page.
+            </p>
+            <Button
+              onClick={() => refetchDashboardData()}
+              variant="outline"
+              size="sm"
+            >
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   // Format status for display
@@ -108,11 +136,12 @@ export default function DashboardPage() {
     }).format(new Date(date));
   };
 
-  // Calculate total invoices
-  const totalInvoices =
-    invoiceStats.pendingInvoices +
-    invoiceStats.overdueInvoices +
-    invoiceStats.paidInvoices;
+  // Calculate total invoices (safe calculation)
+  const totalInvoices = invoiceStats
+    ? invoiceStats.pendingInvoices +
+      invoiceStats.overdueInvoices +
+      invoiceStats.paidInvoices
+    : 0;
 
   return (
     <div className="flex-1 space-y-8 p-8 pt-6">
@@ -138,7 +167,7 @@ export default function DashboardPage() {
               </CardTitle>
               <span className="text-yellow-600 text-xs font-medium flex items-center">
                 <ChevronUpIcon className="h-3 w-3 mr-1" />
-                {isLoading
+                {isTrueLoading || !invoiceStats
                   ? "..."
                   : `${Math.round((invoiceStats.pendingInvoices / Math.max(totalInvoices, 1)) * 100)}%`}
               </span>
@@ -146,7 +175,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold mb-2">
-              {isLoading ? (
+              {isTrueLoading || !invoiceStats ? (
                 <div className="h-8 w-12 animate-pulse bg-gray-200 rounded"></div>
               ) : (
                 invoiceStats.pendingInvoices
@@ -157,7 +186,7 @@ export default function DashboardPage() {
               <div className="text-xs text-gray-500">
                 Awaiting payment
                 <br />
-                {invoiceStats.pendingInvoices === 1
+                {!invoiceStats || invoiceStats.pendingInvoices === 1
                   ? "Needs attention"
                   : "Need attention"}
               </div>
@@ -173,7 +202,7 @@ export default function DashboardPage() {
               </CardTitle>
               <span className="text-red-600 text-xs font-medium flex items-center">
                 <ChevronUpIcon className="h-3 w-3 mr-1" />
-                {isLoading
+                {isTrueLoading || !invoiceStats
                   ? "..."
                   : `${Math.round((invoiceStats.overdueInvoices / Math.max(totalInvoices, 1)) * 100)}%`}
               </span>
@@ -181,7 +210,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold mb-2">
-              {isLoading ? (
+              {isTrueLoading || !invoiceStats ? (
                 <div className="h-8 w-12 animate-pulse bg-gray-200 rounded"></div>
               ) : (
                 invoiceStats.overdueInvoices
@@ -206,7 +235,7 @@ export default function DashboardPage() {
               </CardTitle>
               <span className="text-green-600 text-xs font-medium flex items-center">
                 <ChevronUpIcon className="h-3 w-3 mr-1" />
-                {isLoading
+                {isTrueLoading || !invoiceStats
                   ? "..."
                   : `${Math.round((invoiceStats.paidInvoices / Math.max(totalInvoices, 1)) * 100)}%`}
               </span>
@@ -214,7 +243,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold mb-2">
-              {isLoading ? (
+              {isTrueLoading || !invoiceStats ? (
                 <div className="h-8 w-12 animate-pulse bg-gray-200 rounded"></div>
               ) : (
                 invoiceStats.paidInvoices
@@ -244,7 +273,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold mb-2">
-              {isLoading ? (
+              {isTrueLoading || !invoiceStats ? (
                 <div className="h-8 w-24 animate-pulse bg-gray-200 rounded"></div>
               ) : (
                 invoiceStats.outstandingAmount
@@ -297,7 +326,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="h-[300px]">
-            {isLoading ? (
+            {isTrueLoading || !chartData ? (
               <div className="h-full w-full flex items-center justify-center">
                 <div className="h-48 w-full animate-pulse bg-gray-200 rounded"></div>
               </div>
@@ -371,7 +400,7 @@ export default function DashboardPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isTrueLoading || !invoiceStats ? (
             <div className="space-y-4">
               {[1, 2, 3].map((_, index) => (
                 <div

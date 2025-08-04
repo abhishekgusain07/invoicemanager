@@ -30,8 +30,8 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
             refetchOnWindowFocus: false,
             // Retry failed requests 2 times
             retry: 2,
-            // Use stale data while revalidating
-            refetchOnMount: "always",
+            // Only refetch on mount if no data exists (supports prefetching)
+            refetchOnMount: (query) => !query.state.data,
           },
           mutations: {
             // Retry failed mutations once

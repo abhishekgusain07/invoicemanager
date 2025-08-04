@@ -16,7 +16,7 @@ export default function MyInvoicesPage() {
   const {
     data: invoicesResult,
     isLoading,
-    refetch: refetchInvoices
+    refetch: refetchInvoices,
   } = api.invoice.getGenerated.useQuery(
     { limit: 50, offset: 0 },
     {
@@ -27,9 +27,11 @@ export default function MyInvoicesPage() {
   const invoices = invoicesResult?.invoices || [];
 
   // Filter invoices based on search query
-  const filteredInvoices = invoices.filter((invoice) =>
-    invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (invoice.invoiceTitle && invoice.invoiceTitle.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredInvoices = invoices.filter(
+    (invoice) =>
+      invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (invoice.invoiceTitle &&
+        invoice.invoiceTitle.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Handle refresh
@@ -57,9 +59,12 @@ export default function MyInvoicesPage() {
       {/* Header and Actions */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">My Generated Invoices</h2>
+          <h2 className="text-3xl font-bold tracking-tight">
+            My Generated Invoices
+          </h2>
           <p className="text-muted-foreground">
-            View and manage your generated invoices from the advanced invoice generator
+            View and manage your generated invoices from the advanced invoice
+            generator
           </p>
         </div>
         <div className="flex gap-2">
@@ -69,14 +74,13 @@ export default function MyInvoicesPage() {
             disabled={isLoading}
             className="w-full md:w-auto"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
-          <Button
-            onClick={handleCreateInvoice}
-            className="w-full md:w-auto"
-          >
-            <PlusIcon className="h-4 w-4 mr-2" /> 
+          <Button onClick={handleCreateInvoice} className="w-full md:w-auto">
+            <PlusIcon className="h-4 w-4 mr-2" />
             Create New Invoice
           </Button>
         </div>

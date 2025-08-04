@@ -70,7 +70,8 @@ export function GeneratedInvoiceTable({
 
   // Format currency with symbol
   const formatCurrencyWithSymbol = (amount: string, currency: string) => {
-    const symbol = CURRENCY_SYMBOLS[currency as keyof typeof CURRENCY_SYMBOLS] || currency;
+    const symbol =
+      CURRENCY_SYMBOLS[currency as keyof typeof CURRENCY_SYMBOLS] || currency;
     const numAmount = parseFloat(amount);
     return `${symbol}${numAmount.toFixed(2)}`;
   };
@@ -79,11 +80,11 @@ export function GeneratedInvoiceTable({
   const handleDownloadPDF = async (invoice: GeneratedInvoice) => {
     try {
       const invoiceData = JSON.parse(invoice.invoiceData);
-      
+
       const response = await fetch("/api/generate-invoice-pdf", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", 
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(invoiceData),
       });
@@ -94,7 +95,7 @@ export function GeneratedInvoiceTable({
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      
+
       const a = document.createElement("a");
       a.href = url;
       a.download = `${invoice.invoiceNumber}.pdf`;
@@ -102,7 +103,7 @@ export function GeneratedInvoiceTable({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      
+
       toast.success("PDF downloaded successfully");
     } catch (error) {
       toast.error("Failed to download PDF");
@@ -140,7 +141,9 @@ export function GeneratedInvoiceTable({
       <div className="rounded-md border">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <h3 className="text-lg font-semibold mb-2">No generated invoices yet</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              No generated invoices yet
+            </h3>
             <p className="text-muted-foreground mb-4">
               Create your first invoice using the advanced invoice generator
             </p>
@@ -196,7 +199,10 @@ export function GeneratedInvoiceTable({
                 </td>
                 <td className="p-4">
                   <div className="font-medium">
-                    {formatCurrencyWithSymbol(invoice.totalAmount, invoice.currency)}
+                    {formatCurrencyWithSymbol(
+                      invoice.totalAmount,
+                      invoice.currency
+                    )}
                   </div>
                 </td>
                 <td className="p-4">
@@ -258,12 +264,13 @@ export function GeneratedInvoiceTable({
           <DialogHeader>
             <DialogTitle>Delete Invoice</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this invoice? This action cannot be undone.
+              Are you sure you want to delete this invoice? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 mt-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setDeleteModalOpen(false)}
               disabled={deleteInvoiceMutation.isPending}
             >
