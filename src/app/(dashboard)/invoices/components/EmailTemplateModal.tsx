@@ -8,6 +8,13 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   CheckCircleIcon,
   AlertTriangleIcon,
   Clock8Icon,
@@ -21,6 +28,7 @@ import {
   Mail,
   Type,
   Code,
+  Paperclip,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate } from "../utils/invoiceUtils";
@@ -63,6 +71,14 @@ export const EmailTemplateModal = ({
     handleBuiltInTemplateSelect,
     getAvailableTemplates,
     getCurrentEmailSubject,
+    // PDF Attachment properties
+    attachPdf,
+    selectedInvoiceForAttachment,
+    loadingGeneratedInvoices,
+    handleAttachPdfToggle,
+    handleInvoiceForAttachmentSelect,
+    getAvailableInvoicesForAttachment,
+    getAttachmentPreviewText,
   } = useEmailTemplates();
 
   const handleSendReminder = async () => {
@@ -456,6 +472,109 @@ export const EmailTemplateModal = ({
                     </div>
                   )}
 
+                  {/* PDF Attachment Section */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="h-4 w-4 text-purple-600" />
+                        <Label className="text-sm font-medium">
+                          PDF Attachment
+                        </Label>
+                      </div>
+                      <Switch
+                        checked={attachPdf}
+                        onCheckedChange={handleAttachPdfToggle}
+                        disabled={isSendingTemplate}
+                      />
+                    </div>
+
+                    {attachPdf && (
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs font-medium text-gray-500 mb-2 block">
+                            Select Invoice PDF to Attach
+                          </Label>
+                          <Select
+                            value={selectedInvoiceForAttachment?.id || ""}
+                            onValueChange={(value) => {
+                              const invoice =
+                                getAvailableInvoicesForAttachment().find(
+                                  (inv) => inv.id === value
+                                );
+                              if (invoice) {
+                                handleInvoiceForAttachmentSelect(invoice);
+                              }
+                            }}
+                            disabled={
+                              isSendingTemplate || loadingGeneratedInvoices
+                            }
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Choose an invoice to attach..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {loadingGeneratedInvoices ? (
+                                <SelectItem value="loading" disabled>
+                                  Loading invoices...
+                                </SelectItem>
+                              ) : getAvailableInvoicesForAttachment().length ===
+                                0 ? (
+                                <SelectItem value="empty" disabled>
+                                  No generated invoices available
+                                </SelectItem>
+                              ) : (
+                                getAvailableInvoicesForAttachment().map(
+                                  (invoice) => (
+                                    <SelectItem
+                                      key={invoice.id}
+                                      value={invoice.id}
+                                    >
+                                      <div className="flex items-center justify-between w-full">
+                                        <span className="font-medium">
+                                          {invoice.invoiceNumber}
+                                        </span>
+                                        <span className="text-sm text-muted-foreground ml-2">
+                                          {invoice.clientName} -{" "}
+                                          {invoice.currency}
+                                          {invoice.totalAmount}
+                                        </span>
+                                      </div>
+                                    </SelectItem>
+                                  )
+                                )
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {selectedInvoiceForAttachment && (
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Paperclip className="h-4 w-4 text-purple-600" />
+                              <span className="font-medium text-purple-800">
+                                PDF will be attached:
+                              </span>
+                            </div>
+                            <div className="mt-1 text-sm text-purple-700">
+                              <strong>
+                                {selectedInvoiceForAttachment.invoiceNumber}
+                              </strong>{" "}
+                              - {selectedInvoiceForAttachment.clientName} -{" "}
+                              {selectedInvoiceForAttachment.currency}
+                              {selectedInvoiceForAttachment.totalAmount}
+                            </div>
+                            <div className="mt-1 text-xs text-purple-600">
+                              Created:{" "}
+                              {formatDate(
+                                selectedInvoiceForAttachment.createdAt
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Dynamic Subject Line */}
                   <div className="mb-4">
                     <Label className="text-sm font-medium flex items-center gap-2 mb-2">
@@ -564,9 +683,27 @@ export const EmailTemplateModal = ({
                       value="preview"
                       className="flex-grow rounded-md border overflow-hidden bg-white"
                     >
+                      {/* PDF Attachment Indicator */}
+                      {attachPdf && selectedInvoiceForAttachment && (
+                        <div className="bg-purple-50 border-b border-purple-200 px-4 py-2">
+                          <div className="flex items-center gap-2 text-sm text-purple-700">
+                            <Paperclip className="h-4 w-4" />
+                            <span className="font-medium">
+                              PDF Attached:{" "}
+                              {selectedInvoiceForAttachment.invoiceNumber}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
                       <div
                         className="w-full h-full"
-                        style={{ height: "400px" }}
+                        style={{
+                          height:
+                            attachPdf && selectedInvoiceForAttachment
+                              ? "370px"
+                              : "400px",
+                        }}
                       >
                         <iframe
                           key={previewKey}

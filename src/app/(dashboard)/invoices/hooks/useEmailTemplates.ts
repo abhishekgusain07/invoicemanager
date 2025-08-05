@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { formatDate, getDaysOverdue } from "../utils/invoiceUtils";
 import { EmailTemplate } from "@/lib/validations/email-template";
 import { TemplateRenderer } from "@/lib/services/template-renderer";
+import type { GeneratedInvoice } from "@/db/schema";
 
 export const useEmailTemplates = () => {
   const { user } = useUser();
@@ -17,6 +18,12 @@ export const useEmailTemplates = () => {
     isLoading: loadingTemplates,
     refetch: loadCustomTemplates,
   } = api.templates.getAll.useQuery();
+
+  const {
+    data: generatedInvoicesResponse,
+    isLoading: loadingGeneratedInvoices,
+    refetch: loadGeneratedInvoices,
+  } = api.invoice.getGenerated.useQuery({ limit: 50, offset: 0 });
 
   const sendReminderMutation = api.email.sendReminder.useMutation();
 
@@ -36,6 +43,11 @@ export const useEmailTemplates = () => {
   const [customizedEmailContent, setCustomizedEmailContent] =
     useState<string>("");
   const [emailSubject, setEmailSubject] = useState<string>("");
+
+  // PDF Attachment state
+  const [attachPdf, setAttachPdf] = useState<boolean>(false);
+  const [selectedInvoiceForAttachment, setSelectedInvoiceForAttachment] =
+    useState<GeneratedInvoice | null>(null);
 
   // UI state
   const [previewKey, setPreviewKey] = useState<number>(0);
@@ -375,6 +387,9 @@ ${user?.name || "Your Company"}`,
           emailContent,
           tone: selectedTemplateType,
           isHtml: isHtmlMode,
+          // Include PDF attachment data
+          attachPdf,
+          attachmentInvoiceId: selectedInvoiceForAttachment?.id || null,
         });
 
         toast.dismiss(loadingToastId);
@@ -399,6 +414,8 @@ ${user?.name || "Your Company"}`,
       isHtmlMode,
       customizedEmailContent,
       sendReminderMutation,
+      attachPdf,
+      selectedInvoiceForAttachment,
     ]
   );
 
@@ -494,6 +511,32 @@ ${user?.name || "Your Company"}`,
     [useCustomTemplate, selectedCustomTemplate, selectedTemplateType, user]
   );
 
+  // PDF Attachment helpers
+  const handleAttachPdfToggle = useCallback((checked: boolean) => {
+    setAttachPdf(checked);
+    if (!checked) {
+      setSelectedInvoiceForAttachment(null);
+    }
+  }, []);
+
+  const handleInvoiceForAttachmentSelect = useCallback(
+    (invoice: GeneratedInvoice) => {
+      setSelectedInvoiceForAttachment(invoice);
+    },
+    []
+  );
+
+  const getAvailableInvoicesForAttachment = useCallback(() => {
+    return generatedInvoicesResponse?.data || [];
+  }, [generatedInvoicesResponse]);
+
+  const getAttachmentPreviewText = useCallback(() => {
+    if (!attachPdf || !selectedInvoiceForAttachment) {
+      return null;
+    }
+    return `📎 PDF will be attached: ${selectedInvoiceForAttachment.invoiceNumber} - ${selectedInvoiceForAttachment.clientName} - ${selectedInvoiceForAttachment.currency}${selectedInvoiceForAttachment.totalAmount}`;
+  }, [attachPdf, selectedInvoiceForAttachment]);
+
   return {
     // Enhanced State
     selectedTemplateType,
@@ -508,6 +551,12 @@ ${user?.name || "Your Company"}`,
     emailSubject,
     previewKey,
     isSendingTemplate,
+
+    // PDF Attachment State
+    attachPdf,
+    selectedInvoiceForAttachment,
+    generatedInvoicesResponse,
+    loadingGeneratedInvoices,
 
     // Enhanced Actions
     getEmailContent,
@@ -525,6 +574,13 @@ ${user?.name || "Your Company"}`,
     getCurrentEmailSubject,
     loadCustomTemplates,
 
+    // PDF Attachment Actions
+    handleAttachPdfToggle,
+    handleInvoiceForAttachmentSelect,
+    getAvailableInvoicesForAttachment,
+    getAttachmentPreviewText,
+    loadGeneratedInvoices,
+
     // Enhanced Setters
     setSelectedTemplateType,
     setSelectedCustomTemplate,
@@ -535,5 +591,7 @@ ${user?.name || "Your Company"}`,
     setCustomizedEmailContent,
     setEmailSubject,
     setPreviewKey,
+    setAttachPdf,
+    setSelectedInvoiceForAttachment,
   };
 };

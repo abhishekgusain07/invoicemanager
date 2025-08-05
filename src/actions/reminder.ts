@@ -3,7 +3,11 @@
 import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db/drizzle";
-import { invoiceReminders, clientInvoices } from "@/db/schema";
+import {
+  invoiceReminders,
+  clientInvoices,
+  generatedInvoices,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq, desc, and, count } from "drizzle-orm";
@@ -18,13 +22,24 @@ export type ReminderParams = {
   emailContent: string;
   tone: "polite" | "firm" | "urgent";
   isHtml?: boolean; // Add this field to support HTML content
+  // PDF Attachment fields
+  attachPdf?: boolean;
+  attachmentInvoiceId?: string | null;
 };
 
 /**
  * Send a reminder for an invoice and record it in the database
  */
 export async function sendInvoiceReminder(params: ReminderParams) {
-  const { invoiceId, emailSubject, emailContent, tone, isHtml = true } = params;
+  const {
+    invoiceId,
+    emailSubject,
+    emailContent,
+    tone,
+    isHtml = true,
+    attachPdf = false,
+    attachmentInvoiceId,
+  } = params;
 
   // Get authenticated user
   const session = await auth.api.getSession({
@@ -87,6 +102,66 @@ export async function sendInvoiceReminder(params: ReminderParams) {
       };
     }
 
+    // Handle PDF attachment if requested
+    let attachments: Array<{
+      filename: string;
+      content: string;
+      encoding: "base64";
+    }> = [];
+
+    if (attachPdf && attachmentInvoiceId) {
+      try {
+        // Fetch the generated invoice data
+        const generatedInvoice = await db
+          .select()
+          .from(generatedInvoices)
+          .where(
+            and(
+              eq(generatedInvoices.id, attachmentInvoiceId),
+              eq(generatedInvoices.userId, session.user.id)
+            )
+          )
+          .limit(1);
+
+        if (generatedInvoice.length > 0) {
+          const invoiceData = JSON.parse(generatedInvoice[0].invoiceData);
+
+          // Generate PDF using the same API endpoint logic
+          const response = await fetch(
+            `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/generate-invoice-pdf`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(invoiceData),
+            }
+          );
+
+          if (response.ok) {
+            const pdfBuffer = await response.arrayBuffer();
+            const pdfBase64 = Buffer.from(pdfBuffer).toString("base64");
+
+            attachments.push({
+              filename: `${generatedInvoice[0].invoiceNumber}.pdf`,
+              content: pdfBase64,
+              encoding: "base64",
+            });
+
+            serverDebug(
+              "ReminderAction",
+              `PDF attachment prepared for invoice ${generatedInvoice[0].invoiceNumber}`
+            );
+          } else {
+            console.warn("Failed to generate PDF for attachment");
+          }
+        }
+      } catch (error) {
+        console.error("Error generating PDF attachment:", error);
+        // Continue without attachment rather than failing the entire email
+      }
+    }
+
     // Prepare the email data with proper HTML/plain text handling
     const emailData = {
       refreshToken,
@@ -99,6 +174,7 @@ export async function sendInvoiceReminder(params: ReminderParams) {
       subject: emailSubject,
       text: isHtml ? "" : emailContent,
       html: isHtml ? emailContent : undefined,
+      attachments: attachments.length > 0 ? attachments : undefined,
     };
     // TODO: Remove this after testing
     emailData.to[0].email = "valorantgusain@gmail.com";
