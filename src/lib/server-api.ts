@@ -43,6 +43,11 @@ export async function getServerGeneratedInvoices(
   return await api.invoice.getGenerated(options);
 }
 
+export async function getServerTemplates() {
+  const api = await createServerAPI();
+  return await api.templates.getAll();
+}
+
 // Parallel data fetching for invoices page (50% faster multi-query pages)
 export async function getServerInvoicesWithMetadata(status?: string) {
   const api = await createServerAPI();
