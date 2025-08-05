@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { userSettings, user } from "@/db/schema";
-import { eq, leftJoin } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   userSettingsSchema,
   reminderSettingsSchema,
