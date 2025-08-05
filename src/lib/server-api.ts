@@ -9,10 +9,10 @@ async function createServerContext() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  
+
   return await createTRPCContext({
-    req: new Request('http://localhost:3000', { 
-      headers: Object.fromEntries((await headers()).entries())
+    req: new Request("http://localhost:3000", {
+      headers: Object.fromEntries((await headers()).entries()),
     }),
     resHeaders: new Headers(),
     info: {} as any,
@@ -36,7 +36,9 @@ export async function getServerInvoices(status?: string) {
   return await api.invoice.getByStatus({ status: status as any });
 }
 
-export async function getServerGeneratedInvoices(options: { limit?: number; offset?: number } = {}) {
+export async function getServerGeneratedInvoices(
+  options: { limit?: number; offset?: number } = {}
+) {
   const api = await createServerAPI();
   return await api.invoice.getGenerated(options);
 }

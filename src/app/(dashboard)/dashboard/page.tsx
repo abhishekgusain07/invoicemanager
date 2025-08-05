@@ -1,4 +1,8 @@
-import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import {
+  QueryClient,
+  dehydrate,
+  HydrationBoundary,
+} from "@tanstack/react-query";
 import { getServerDashboardData } from "@/lib/server-api";
 import { DashboardClient } from "./DashboardClient";
 
@@ -21,7 +25,7 @@ export default async function DashboardPage() {
     // ✅ CORRECT: Manually set the query data (not using client module)
     const queryKey = [
       ["dashboard", "getAllDashboardData"],
-      { input: undefined, type: "query" }
+      { input: undefined, type: "query" },
     ];
 
     queryClient.setQueryData(queryKey, dashboardData);
@@ -36,7 +40,7 @@ export default async function DashboardPage() {
     );
   } catch (error) {
     console.warn("Server-side dashboard data fetch failed:", error);
-    
+
     // Return client component without prefetched data
     return (
       <HydrationBoundary state={dehydrate(queryClient)}>

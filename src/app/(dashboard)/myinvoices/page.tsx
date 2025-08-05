@@ -1,31 +1,34 @@
-import {
-  QueryClient,
-  dehydrate,
-  HydrationBoundary,
-} from "@tanstack/react-query";
+import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getServerGeneratedInvoices } from "@/lib/server-api";
 import { MyInvoicesClient } from "./MyInvoicesClient";
 
-// Server Component with prefetching following modern data fetching guide
 export default async function MyInvoicesPage() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes for generated invoices data
-        gcTime: 10 * 60 * 1000, // 10 minutes
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
-        refetchOnMount: (query) => !query.state.data, // Only refetch if no data exists
+        refetchOnMount: (query) => !query.state.data,
       },
     },
   });
-
-  // Note: For tRPC queries, the actual prefetching happens through the tRPC integration
-  // The data will be fetched when the client component mounts, but the queryClient
-  // configuration ensures optimal caching behavior
-
-  const dehydratedState = dehydrate(queryClient);
+  
+  try {
+    const generatedInvoices = await getServerGeneratedInvoices({ limit: 50, offset: 0 });
+    
+    const queryKey = [
+      ["invoice", "getGenerated"],
+      { input: { limit: 50, offset: 0 }, type: "query" }
+    ];
+    
+    queryClient.setQueryData(queryKey, generatedInvoices);
+  } catch (error) {
+    console.warn("Server-side generated invoices fetch failed:", error);
+  }
 
   return (
-    <HydrationBoundary state={dehydratedState}>
+    <HydrationBoundary state={dehydrate(queryClient)}>
       <MyInvoicesClient />
     </HydrationBoundary>
   );

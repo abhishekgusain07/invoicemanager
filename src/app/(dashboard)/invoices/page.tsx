@@ -1,38 +1,39 @@
-import {
-  QueryClient,
-  dehydrate,
-  HydrationBoundary,
-} from "@tanstack/react-query";
-import { prefetchInvoiceData } from "@/lib/prefetch";
+import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { getServerInvoices } from "@/lib/server-api";
 import { InvoicesClient } from "./InvoicesClient";
 
-// Server Component with prefetching following modern data fetching guide
-export default async function InvoicesPage() {
+export default async function InvoicesPage({ 
+  searchParams 
+}: { 
+  searchParams: { status?: string } 
+}) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 2 * 60 * 1000, // 2 minutes for invoice data
-        gcTime: 10 * 60 * 1000, // 10 minutes
+        staleTime: 2 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
-        refetchOnMount: (query) => !query.state.data, // Only refetch if no data exists
+        refetchOnMount: (query) => !query.state.data,
       },
     },
   });
-
-  // 🔥 THE MAGIC: Prefetch invoice data on the server
-  // This happens BEFORE the page is sent to the user
+  
   try {
-    await prefetchInvoiceData(queryClient, "all");
+    const invoices = await getServerInvoices(searchParams.status || "all");
+    
+    // Set query data for tRPC
+    const queryKey = [
+      ["invoice", "getByStatus"],
+      { input: { status: searchParams.status || "all" }, type: "query" }
+    ];
+    
+    queryClient.setQueryData(queryKey, invoices);
   } catch (error) {
-    // Log error but don't break the page - client will handle loading state
-    console.warn("Server-side prefetch failed:", error);
+    console.warn("Server-side invoices fetch failed:", error);
   }
 
-  // Dehydrate the query client state and pass to boundary
-  const dehydratedState = dehydrate(queryClient);
-
   return (
-    <HydrationBoundary state={dehydratedState}>
+    <HydrationBoundary state={dehydrate(queryClient)}>
       <InvoicesClient />
     </HydrationBoundary>
   );

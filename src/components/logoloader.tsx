@@ -1,25 +1,22 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 
 type LogoLoaderProps = {
   size?: number | string;
   className?: string;
 };
 
-const LogoLoader: React.FC<LogoLoaderProps> = ({
-  size = 120,
-  className,
-}) => {
+const LogoLoader: React.FC<LogoLoaderProps> = ({ size = 120, className }) => {
   // Container animation
   const containerVariants = {
     initial: { scale: 0.8, opacity: 0 },
-    animate: { 
-      scale: 1, 
+    animate: {
+      scale: 1,
       opacity: 1,
       transition: {
         duration: 0.5,
         staggerChildren: 0.1,
-      }
+      },
     },
   };
 
@@ -27,15 +24,15 @@ const LogoLoader: React.FC<LogoLoaderProps> = ({
   const pathVariants = {
     initial: (direction: string) => {
       switch (direction) {
-        case 'left':
+        case "left":
           return { x: -100, opacity: 0, scale: 0.5 };
-        case 'right':
+        case "right":
           return { x: 100, opacity: 0, scale: 0.5 };
-        case 'top':
+        case "top":
           return { y: -100, opacity: 0, scale: 0.5 };
-        case 'bottom':
+        case "bottom":
           return { y: 100, opacity: 0, scale: 0.5 };
-        case 'center':
+        case "center":
           return { scale: 0, opacity: 0 };
         default:
           return { scale: 0.5, opacity: 0 };
@@ -51,7 +48,7 @@ const LogoLoader: React.FC<LogoLoaderProps> = ({
         stiffness: 100,
         damping: 15,
         duration: 0.8,
-      }
+      },
     },
   };
 
@@ -63,24 +60,21 @@ const LogoLoader: React.FC<LogoLoaderProps> = ({
         duration: 2,
         repeat: Infinity,
         ease: "easeInOut",
-      }
-    }
+      },
+    },
   };
 
   return (
     <motion.div
       className={className}
-      style={{ width: size, height: 'auto', display: 'inline-block' }}
+      style={{ width: size, height: "auto", display: "inline-block" }}
       variants={containerVariants}
       initial="initial"
       animate="animate"
       aria-label="Loading"
       role="img"
     >
-      <motion.div
-        variants={assembledVariants as any}
-        animate="animate"
-      >
+      <motion.div variants={assembledVariants as any} animate="animate">
         <svg
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
@@ -223,7 +217,7 @@ const LogoLoader: React.FC<LogoLoaderProps> = ({
             C1.000000,111.958336 1.000000,109.916664 1.356448,107.357452 
             C4.570930,104.495773 4.175494,99.592377 1.000000,98.000000 z"
           />
-          
+
           {/* Dark accent shape - comes from right */}
           <motion.path
             custom="right"
@@ -369,7 +363,7 @@ const LogoLoader: React.FC<LogoLoaderProps> = ({
           />
 
           <motion.path
-            custom="bottom" 
+            custom="bottom"
             variants={pathVariants as any}
             fill="#1854C9"
             opacity="1.000000"

@@ -10,9 +10,9 @@ export default function GenerateInvoicePage() {
   return (
     <Suspense
       fallback={
-        <div style={{ display: 'grid', placeItems: 'center', height: '100vh' }}>
+        <div style={{ display: "grid", placeItems: "center", height: "100vh" }}>
           <LogoLoader />
-          <div style={{ marginTop: 16, color: '#334155' }}>Loading...</div>
+          <div style={{ marginTop: 16, color: "#334155" }}>Loading...</div>
         </div>
       }
     >

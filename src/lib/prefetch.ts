@@ -1,4 +1,3 @@
-
 import { QueryClient } from "@tanstack/react-query";
 import { getQueryKey } from "@trpc/react-query";
 import { appRouter } from "@/server/root";
@@ -58,11 +57,11 @@ export class DashboardPrefetcher {
     try {
       // Create server-side context and caller
       const ctx = await createTRPCContext({
-        req: new Request('http://localhost'),
+        req: new Request("http://localhost"),
         resHeaders: {} as Headers,
-        info: {} as  TRPCRequestInfo
+        info: {} as TRPCRequestInfo,
       });
-      
+
       // Skip prefetch if user is not authenticated
       if (!ctx.session || !ctx.user) {
         console.warn("Skipping dashboard prefetch - user not authenticated");
@@ -70,7 +69,7 @@ export class DashboardPrefetcher {
       }
 
       const caller = appRouter.createCaller(ctx);
-      
+
       // Get the tRPC query key for the dashboard data
       const queryKey = getQueryKey(
         api.dashboard.getAllDashboardData,
