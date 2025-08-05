@@ -272,11 +272,15 @@ export class AppPrefetcher {
   private queryClient: QueryClient;
   private dashboardPrefetcher: DashboardPrefetcher;
   private invoicePrefetcher: InvoicePrefetcher;
+  private generatedInvoicePrefetcher: GeneratedInvoicePrefetcher;
 
   constructor(queryClient: QueryClient) {
     this.queryClient = queryClient;
     this.dashboardPrefetcher = new DashboardPrefetcher(queryClient);
     this.invoicePrefetcher = new InvoicePrefetcher(queryClient);
+    this.generatedInvoicePrefetcher = new GeneratedInvoicePrefetcher(
+      queryClient
+    );
   }
 
   /**
@@ -296,12 +300,22 @@ export class AppPrefetcher {
   }
 
   /**
+   * Prefetch data for myinvoices page
+   */
+  async prefetchMyInvoicesPage(
+    options: { limit?: number; offset?: number } = { limit: 50, offset: 0 }
+  ): Promise<void> {
+    await this.generatedInvoicePrefetcher.prefetchGeneratedInvoices(options);
+  }
+
+  /**
    * Prefetch data for multiple pages (navigation optimization)
    */
   async prefetchMultiplePages(): Promise<void> {
     const prefetchPromises = [
       this.prefetchDashboardPage(),
       this.prefetchInvoicesPage("all"),
+      this.prefetchMyInvoicesPage(),
     ];
 
     await Promise.allSettled(prefetchPromises);
@@ -314,6 +328,10 @@ export class AppPrefetcher {
 
   get invoices() {
     return this.invoicePrefetcher;
+  }
+
+  get myInvoices() {
+    return this.generatedInvoicePrefetcher;
   }
 }
 
@@ -332,6 +350,83 @@ export const prefetchInvoiceData = async (
   const prefetcher = new InvoicePrefetcher(queryClient);
   await prefetcher.prefetchAllInvoiceData(status);
 };
+
+export const prefetchGeneratedInvoicesData = async (
+  queryClient: QueryClient,
+  options: { limit?: number; offset?: number } = { limit: 50, offset: 0 }
+): Promise<void> => {
+  const prefetcher = new GeneratedInvoicePrefetcher(queryClient);
+  await prefetcher.prefetchGeneratedInvoices(options);
+};
+
+// Generated Invoice Prefetcher Class
+export class GeneratedInvoicePrefetcher {
+  private queryClient: QueryClient;
+
+  constructor(queryClient: QueryClient) {
+    this.queryClient = queryClient;
+  }
+
+  /**
+   * Prefetch generated invoices data
+   */
+  async prefetchGeneratedInvoices(
+    options: { limit?: number; offset?: number } = { limit: 50, offset: 0 }
+  ): Promise<void> {
+    try {
+      const queryKey = getQueryKey(api.invoice.getGenerated, options, "query");
+
+      const existingData = this.queryClient.getQueryData(queryKey);
+      const queryState = this.queryClient.getQueryState(queryKey);
+
+      if (
+        !existingData ||
+        (queryState && Date.now() - queryState.dataUpdatedAt > 5 * 60 * 1000)
+      ) {
+        await this.queryClient.prefetchQuery({
+          queryKey,
+          queryFn: () => this.fetchGeneratedInvoices(options),
+          staleTime: 5 * 60 * 1000, // 5 minutes
+          gcTime: 10 * 60 * 1000, // 10 minutes
+        });
+      }
+    } catch (error) {
+      console.warn("Generated invoices prefetch failed:", error);
+    }
+  }
+
+  /**
+   * Check if generated invoices data is cached
+   */
+  isGeneratedInvoicesDataCached(
+    options: { limit?: number; offset?: number } = { limit: 50, offset: 0 }
+  ): boolean {
+    const queryKey = getQueryKey(api.invoice.getGenerated, options, "query");
+    const data = this.queryClient.getQueryData(queryKey);
+    return !!data;
+  }
+
+  /**
+   * Get cached generated invoices data if available
+   */
+  getCachedGeneratedInvoicesData(
+    options: { limit?: number; offset?: number } = { limit: 50, offset: 0 }
+  ): any | undefined {
+    const queryKey = getQueryKey(api.invoice.getGenerated, options, "query");
+    return this.queryClient.getQueryData(queryKey);
+  }
+
+  /**
+   * Private method to fetch generated invoices
+   */
+  private async fetchGeneratedInvoices(options: {
+    limit?: number;
+    offset?: number;
+  }): Promise<any> {
+    // Placeholder for tRPC server call
+    throw new Error("This should be handled by tRPC React Query integration");
+  }
+}
 
 export const createAppPrefetcher = (queryClient: QueryClient) => {
   return new AppPrefetcher(queryClient);
