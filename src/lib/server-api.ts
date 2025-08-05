@@ -48,6 +48,11 @@ export async function getServerTemplates() {
   return await api.templates.getAll();
 }
 
+export async function getServerGmailConnection() {
+  const api = await createServerAPI();
+  return await api.connections.checkGmailConnection();
+}
+
 // Parallel data fetching for invoices page (50% faster multi-query pages)
 export async function getServerInvoicesWithMetadata(status?: string) {
   const api = await createServerAPI();
