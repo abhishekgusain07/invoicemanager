@@ -15,6 +15,7 @@ export const emailRouter = createTRPCRouter({
         // PDF Attachment fields
         attachPdf: z.boolean().default(false),
         attachmentInvoiceId: z.string().nullable().optional(),
+        attachmentInvoiceType: z.enum(["generated", "client"]).optional(),
       })
     )
     .mutation(async ({ input }) => {
@@ -28,6 +29,7 @@ export const emailRouter = createTRPCRouter({
           // Pass PDF attachment data
           attachPdf: input.attachPdf,
           attachmentInvoiceId: input.attachmentInvoiceId,
+          attachmentInvoiceType: input.attachmentInvoiceType,
         });
 
         if (!result.success) {

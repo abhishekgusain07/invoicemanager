@@ -25,6 +25,7 @@ export type ReminderParams = {
   // PDF Attachment fields
   attachPdf?: boolean;
   attachmentInvoiceId?: string | null;
+  attachmentInvoiceType?: "generated" | "client";
 };
 
 /**
@@ -39,6 +40,7 @@ export async function sendInvoiceReminder(params: ReminderParams) {
     isHtml = true,
     attachPdf = false,
     attachmentInvoiceId,
+    attachmentInvoiceType = "generated",
   } = params;
 
   // Get authenticated user
@@ -111,49 +113,138 @@ export async function sendInvoiceReminder(params: ReminderParams) {
 
     if (attachPdf && attachmentInvoiceId) {
       try {
-        // Fetch the generated invoice data
-        const generatedInvoice = await db
-          .select()
-          .from(generatedInvoices)
-          .where(
-            and(
-              eq(generatedInvoices.id, attachmentInvoiceId),
-              eq(generatedInvoices.userId, session.user.id)
+        if (attachmentInvoiceType === "generated") {
+          // Handle generated invoices (existing logic)
+          const generatedInvoice = await db
+            .select()
+            .from(generatedInvoices)
+            .where(
+              and(
+                eq(generatedInvoices.id, attachmentInvoiceId),
+                eq(generatedInvoices.userId, session.user.id)
+              )
             )
-          )
-          .limit(1);
+            .limit(1);
 
-        if (generatedInvoice.length > 0) {
-          const invoiceData = JSON.parse(generatedInvoice[0].invoiceData);
+          if (generatedInvoice.length > 0) {
+            const invoiceData = JSON.parse(generatedInvoice[0].invoiceData);
 
-          // Generate PDF using the same API endpoint logic
-          const response = await fetch(
-            `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/generate-invoice-pdf`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(invoiceData),
-            }
-          );
-
-          if (response.ok) {
-            const pdfBuffer = await response.arrayBuffer();
-            const pdfBase64 = Buffer.from(pdfBuffer).toString("base64");
-
-            attachments.push({
-              filename: `${generatedInvoice[0].invoiceNumber}.pdf`,
-              content: pdfBase64,
-              encoding: "base64",
-            });
-
-            serverDebug(
-              "ReminderAction",
-              `PDF attachment prepared for invoice ${generatedInvoice[0].invoiceNumber}`
+            // Generate PDF using the same API endpoint logic
+            const response = await fetch(
+              `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/generate-invoice-pdf`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(invoiceData),
+              }
             );
-          } else {
-            console.warn("Failed to generate PDF for attachment");
+
+            if (response.ok) {
+              const pdfBuffer = await response.arrayBuffer();
+              const pdfBase64 = Buffer.from(pdfBuffer).toString("base64");
+
+              attachments.push({
+                filename: `${generatedInvoice[0].invoiceNumber}.pdf`,
+                content: pdfBase64,
+                encoding: "base64",
+              });
+
+              serverDebug(
+                "ReminderAction",
+                `PDF attachment prepared for generated invoice ${generatedInvoice[0].invoiceNumber}`
+              );
+            } else {
+              console.warn(
+                "Failed to generate PDF for generated invoice attachment"
+              );
+            }
+          }
+        } else if (attachmentInvoiceType === "client") {
+          // Handle client invoices - create a basic PDF or use a different approach
+          const clientInvoice = await db
+            .select()
+            .from(clientInvoices)
+            .where(
+              and(
+                eq(clientInvoices.id, attachmentInvoiceId),
+                eq(clientInvoices.userId, session.user.id)
+              )
+            )
+            .limit(1);
+
+          if (clientInvoice.length > 0) {
+            const invoice = clientInvoice[0];
+
+            // Create a basic invoice data structure for PDF generation
+            const basicInvoiceData = {
+              invoiceNumber: invoice.invoiceNumber,
+              dateOfIssue: invoice.issueDate.toISOString().split("T")[0],
+              paymentDue: invoice.dueDate.toISOString().split("T")[0],
+              language: "en",
+              currency: invoice.currency || "USD",
+              template: "basic",
+              from: {
+                name: "Your Company", // TODO: Get from user profile
+                email: session.user.email || "",
+                address: "",
+                phone: "",
+                website: "",
+                customInputs: [],
+              },
+              to: {
+                name: invoice.clientName,
+                email: invoice.clientEmail,
+                address: "",
+                phone: "",
+                website: "",
+                customInputs: [],
+              },
+              items: [
+                {
+                  name: invoice.description || "Service",
+                  amount: 1,
+                  netPrice: parseFloat(invoice.amount),
+                  vat: 0,
+                },
+              ],
+              totalAmount: parseFloat(invoice.amount),
+              notes: invoice.additionalNotes || "",
+              invoiceTitle: `Invoice ${invoice.invoiceNumber}`,
+            };
+
+            // Generate PDF using the same API endpoint
+            const response = await fetch(
+              `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/generate-invoice-pdf`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(basicInvoiceData),
+              }
+            );
+
+            if (response.ok) {
+              const pdfBuffer = await response.arrayBuffer();
+              const pdfBase64 = Buffer.from(pdfBuffer).toString("base64");
+
+              attachments.push({
+                filename: `${invoice.invoiceNumber}.pdf`,
+                content: pdfBase64,
+                encoding: "base64",
+              });
+
+              serverDebug(
+                "ReminderAction",
+                `PDF attachment prepared for client invoice ${invoice.invoiceNumber}`
+              );
+            } else {
+              console.warn(
+                "Failed to generate PDF for client invoice attachment"
+              );
+            }
           }
         }
       } catch (error) {

@@ -520,19 +520,32 @@ export const EmailTemplateModal = ({
                               ) : getAvailableInvoicesForAttachment().length ===
                                 0 ? (
                                 <SelectItem value="empty" disabled>
-                                  No generated invoices available
+                                  No invoices available for attachment
                                 </SelectItem>
                               ) : (
                                 getAvailableInvoicesForAttachment().map(
                                   (invoice) => (
                                     <SelectItem
-                                      key={invoice.id}
+                                      key={`${invoice.type}-${invoice.id}`}
                                       value={invoice.id}
                                     >
                                       <div className="flex items-center justify-between w-full">
-                                        <span className="font-medium">
-                                          {invoice.invoiceNumber}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium">
+                                            {invoice.invoiceNumber}
+                                          </span>
+                                          <span
+                                            className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                              invoice.type === "generated"
+                                                ? "bg-blue-100 text-blue-700"
+                                                : "bg-gray-100 text-gray-700"
+                                            }`}
+                                          >
+                                            {invoice.type === "generated"
+                                              ? "PDF"
+                                              : "Basic"}
+                                          </span>
+                                        </div>
                                         <span className="text-sm text-muted-foreground ml-2">
                                           {invoice.clientName} -{" "}
                                           {invoice.currency}
@@ -562,6 +575,19 @@ export const EmailTemplateModal = ({
                               - {selectedInvoiceForAttachment.clientName} -{" "}
                               {selectedInvoiceForAttachment.currency}
                               {selectedInvoiceForAttachment.totalAmount}
+                              <span
+                                className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+                                  selectedInvoiceForAttachment.type ===
+                                  "generated"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {selectedInvoiceForAttachment.type ===
+                                "generated"
+                                  ? "Generated PDF"
+                                  : "Basic Invoice"}
+                              </span>
                             </div>
                             <div className="mt-1 text-xs text-purple-600">
                               Created:{" "}
@@ -691,6 +717,18 @@ export const EmailTemplateModal = ({
                             <span className="font-medium">
                               PDF Attached:{" "}
                               {selectedInvoiceForAttachment.invoiceNumber}
+                            </span>
+                            <span
+                              className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                selectedInvoiceForAttachment.type ===
+                                "generated"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-gray-100 text-gray-600"
+                              }`}
+                            >
+                              {selectedInvoiceForAttachment.type === "generated"
+                                ? "Generated"
+                                : "Basic"}
                             </span>
                           </div>
                         </div>

@@ -7,7 +7,18 @@ import { toast } from "sonner";
 import { formatDate, getDaysOverdue } from "../utils/invoiceUtils";
 import { EmailTemplate } from "@/lib/validations/email-template";
 import { TemplateRenderer } from "@/lib/services/template-renderer";
-import type { GeneratedInvoice } from "@/db/schema";
+import type { GeneratedInvoice, ClientInvoices } from "@/db/schema";
+
+// Normalized interface for both invoice types
+interface AttachableInvoice {
+  id: string;
+  type: "generated" | "client";
+  invoiceNumber: string;
+  clientName: string;
+  currency: string;
+  totalAmount: string;
+  createdAt: Date;
+}
 
 export const useEmailTemplates = () => {
   const { user } = useUser();
@@ -24,6 +35,10 @@ export const useEmailTemplates = () => {
     isLoading: loadingGeneratedInvoices,
     refetch: loadGeneratedInvoices,
   } = api.invoice.getGenerated.useQuery({ limit: 50, offset: 0 });
+
+  // Also fetch client invoices for attachment options
+  const { data: clientInvoices, isLoading: loadingClientInvoices } =
+    api.invoice.getAll.useQuery({ limit: 50, offset: 0 });
 
   const sendReminderMutation = api.email.sendReminder.useMutation();
 
@@ -47,7 +62,7 @@ export const useEmailTemplates = () => {
   // PDF Attachment state
   const [attachPdf, setAttachPdf] = useState<boolean>(false);
   const [selectedInvoiceForAttachment, setSelectedInvoiceForAttachment] =
-    useState<GeneratedInvoice | null>(null);
+    useState<AttachableInvoice | null>(null);
 
   // UI state
   const [previewKey, setPreviewKey] = useState<number>(0);
@@ -390,6 +405,7 @@ ${user?.name || "Your Company"}`,
           // Include PDF attachment data
           attachPdf,
           attachmentInvoiceId: selectedInvoiceForAttachment?.id || null,
+          attachmentInvoiceType: selectedInvoiceForAttachment?.type,
         });
 
         toast.dismiss(loadingToastId);
@@ -520,15 +536,60 @@ ${user?.name || "Your Company"}`,
   }, []);
 
   const handleInvoiceForAttachmentSelect = useCallback(
-    (invoice: GeneratedInvoice) => {
+    (invoice: AttachableInvoice) => {
       setSelectedInvoiceForAttachment(invoice);
     },
     []
   );
 
   const getAvailableInvoicesForAttachment = useCallback(() => {
-    return generatedInvoicesResponse?.data || [];
-  }, [generatedInvoicesResponse]);
+    const availableInvoices: AttachableInvoice[] = [];
+
+    // Add generated invoices (preferred as they have PDF support)
+    if (generatedInvoicesResponse?.invoices) {
+      const generatedNormalized = generatedInvoicesResponse.invoices.map(
+        (invoice) => {
+          let clientName = "Unknown Client";
+          try {
+            const invoiceData = JSON.parse(invoice.invoiceData);
+            clientName = invoiceData.to?.name || "Unknown Client";
+          } catch (error) {
+            console.warn(
+              "Failed to parse invoice data for client name:",
+              error
+            );
+          }
+
+          return {
+            id: invoice.id,
+            type: "generated" as const,
+            invoiceNumber: invoice.invoiceNumber,
+            clientName,
+            currency: invoice.currency,
+            totalAmount: invoice.totalAmount,
+            createdAt: invoice.createdAt,
+          };
+        }
+      );
+      availableInvoices.push(...generatedNormalized);
+    }
+
+    // Add client invoices
+    if (clientInvoices) {
+      const clientNormalized = clientInvoices.map((invoice) => ({
+        id: invoice.id,
+        type: "client" as const,
+        invoiceNumber: invoice.invoiceNumber,
+        clientName: invoice.clientName || "Unknown Client",
+        currency: invoice.currency || "USD",
+        totalAmount: invoice.amount,
+        createdAt: invoice.createdAt,
+      }));
+      availableInvoices.push(...clientNormalized);
+    }
+
+    return availableInvoices;
+  }, [generatedInvoicesResponse, clientInvoices]);
 
   const getAttachmentPreviewText = useCallback(() => {
     if (!attachPdf || !selectedInvoiceForAttachment) {
@@ -556,7 +617,7 @@ ${user?.name || "Your Company"}`,
     attachPdf,
     selectedInvoiceForAttachment,
     generatedInvoicesResponse,
-    loadingGeneratedInvoices,
+    loadingGeneratedInvoices: loadingGeneratedInvoices || loadingClientInvoices,
 
     // Enhanced Actions
     getEmailContent,
