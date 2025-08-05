@@ -19,7 +19,7 @@ import {
 import { api } from "@/lib/trpc";
 
 interface InvoiceTableProps {
-  filteredInvoices: any[];
+  filteredInvoices: any[] | undefined; // Can be undefined during hydration
   isLoading: boolean;
   sortConfig: SortConfig;
   refreshReminders: number;
@@ -167,7 +167,7 @@ export const InvoiceTable = ({
         </thead>
         <tbody>
           {isLoading ? (
-            // Skeleton loaders
+            // Skeleton loaders - only show when truly loading (no prefetched data)
             Array(5)
               .fill(0)
               .map((_, index) => (
@@ -195,7 +195,7 @@ export const InvoiceTable = ({
                   </td>
                 </tr>
               ))
-          ) : filteredInvoices.length > 0 ? (
+          ) : filteredInvoices && filteredInvoices.length > 0 ? (
             filteredInvoices.map((invoice) => (
               <tr key={invoice.id} className="border-b hover:bg-muted/50">
                 <td className="p-4">
@@ -274,7 +274,8 @@ export const InvoiceTable = ({
                 </td>
               </tr>
             ))
-          ) : (
+          ) : filteredInvoices && filteredInvoices.length === 0 ? (
+            // Only show empty state when we definitively have an empty array (not undefined)
             <tr>
               <td colSpan={7} className="p-8 text-center">
                 <div className="flex flex-col items-center justify-center gap-2">
@@ -289,6 +290,35 @@ export const InvoiceTable = ({
                 </div>
               </td>
             </tr>
+          ) : (
+            // Show loading skeleton when filteredInvoices is undefined (hydrating)
+            Array(3)
+              .fill(0)
+              .map((_, index) => (
+                <tr key={`hydration-${index}`} className="border-b">
+                  <td className="p-4">
+                    <div className="h-5 w-32 animate-pulse bg-muted rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-5 w-24 animate-pulse bg-muted rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-5 w-20 animate-pulse bg-muted rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-5 w-28 animate-pulse bg-muted rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-5 w-20 animate-pulse bg-muted rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-5 w-24 animate-pulse bg-muted rounded"></div>
+                  </td>
+                  <td className="p-4">
+                    <div className="h-5 w-16 animate-pulse bg-muted rounded"></div>
+                  </td>
+                </tr>
+              ))
           )}
         </tbody>
       </table>

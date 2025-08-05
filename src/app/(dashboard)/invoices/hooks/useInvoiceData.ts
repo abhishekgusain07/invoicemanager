@@ -20,9 +20,9 @@ export const useInvoiceData = () => {
   });
   const [refreshReminders, setRefreshReminders] = useState(0);
 
-  // Use tRPC queries for data fetching
+  // Use tRPC queries for data fetching - removed default fallback to prevent flash
   const {
-    data: invoices = [],
+    data: invoices,
     isLoading: isLoadingInvoices,
     error: invoicesError,
     refetch: refetchInvoices,
@@ -32,21 +32,27 @@ export const useInvoiceData = () => {
       enabled: !isUserLoading && !!user,
       staleTime: 2 * 60 * 1000, // 2 minutes for invoice data
       refetchOnWindowFocus: false,
+      refetchOnMount: (query) => !query.state.data, // Only refetch if no prefetched data
     }
   );
 
-  // Use tRPC query for Gmail connection status
+  // Use tRPC query for Gmail connection status - updated for prefetching
   const { data: gmailConnectionData, isLoading: checkingGmailConnection } =
     api.connections.checkGmailConnection.useQuery(undefined, {
       enabled: !isUserLoading && !!user,
       staleTime: 5 * 60 * 1000, // 5 minutes for connection status
       refetchOnWindowFocus: false,
+      refetchOnMount: (query) => !query.state.data, // Only refetch if no prefetched data
     });
 
-  const isGmailConnected = gmailConnectionData?.isConnected ?? false;
+  const isGmailConnected = gmailConnectionData?.isConnected;
 
   // Client-side filtering and sorting with useMemo for performance
   const filteredInvoices = useMemo(() => {
+    // Return undefined if invoices data hasn't loaded yet (prevents flash)
+    if (!invoices) return undefined;
+
+    // Return empty array if invoices is empty (legitimate empty state)
     if (!invoices.length) return [];
 
     const filtered = filterInvoices(invoices, searchQuery);
