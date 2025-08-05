@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -18,6 +19,20 @@ import { AccountSettingsForm } from "./components/account-settings-form";
 import { EmailSettingsForm } from "./components/email-settings-form";
 import { SettingsError } from "./components/settings-error";
 import { SettingsSkeleton } from "./components/settings-skeleton";
+
+const tabVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" },
+  },
+  exit: {
+    opacity: 0,
+    y: -20,
+    transition: { duration: 0.2 },
+  },
+};
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("reminder");
@@ -122,59 +137,91 @@ export default function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="reminder">
-          <Card>
-            <CardHeader>
-              <CardTitle>Reminder Settings</CardTitle>
-              <CardDescription>
-                Configure how and when reminders are sent to your clients
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ReminderSettingsForm
-                data={reminderQuery.data}
-                onSubmit={updateReminder.mutateAsync}
-                isLoading={updateReminder.isPending}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <AnimatePresence mode="wait">
+          {activeTab === "reminder" && (
+            <motion.div
+              key="reminder"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={tabVariants}
+            >
+              <TabsContent value="reminder" forceMount>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reminder Settings</CardTitle>
+                    <CardDescription>
+                      Configure how and when reminders are sent to your clients
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ReminderSettingsForm
+                      data={reminderQuery.data}
+                      onSubmit={updateReminder.mutateAsync}
+                      isLoading={updateReminder.isPending}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </motion.div>
+          )}
 
-        <TabsContent value="account">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Settings</CardTitle>
-              <CardDescription>
-                Update your business information and contact details
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AccountSettingsForm
-                data={accountQuery.data}
-                onSubmit={updateAccount.mutateAsync}
-                isLoading={updateAccount.isPending}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+          {activeTab === "account" && (
+            <motion.div
+              key="account"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={tabVariants}
+            >
+              <TabsContent value="account" forceMount>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Account Settings</CardTitle>
+                    <CardDescription>
+                      Update your business information and contact details
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AccountSettingsForm
+                      data={accountQuery.data}
+                      onSubmit={updateAccount.mutateAsync}
+                      isLoading={updateAccount.isPending}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </motion.div>
+          )}
 
-        <TabsContent value="email">
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Settings</CardTitle>
-              <CardDescription>
-                Customize your email preferences and templates
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EmailSettingsForm
-                data={emailQuery.data}
-                onSubmit={updateEmail.mutateAsync}
-                isLoading={updateEmail.isPending}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
+          {activeTab === "email" && (
+            <motion.div
+              key="email"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={tabVariants}
+            >
+              <TabsContent value="email" forceMount>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Email Settings</CardTitle>
+                    <CardDescription>
+                      Customize your email preferences and templates
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <EmailSettingsForm
+                      data={emailQuery.data}
+                      onSubmit={updateEmail.mutateAsync}
+                      isLoading={updateEmail.isPending}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Tabs>
     </div>
   );
