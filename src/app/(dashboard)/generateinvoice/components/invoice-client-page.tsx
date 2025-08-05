@@ -33,6 +33,7 @@ import { SaveInvoiceButton } from "./save-invoice-button";
 import { SavedInvoicesList } from "./saved-invoices-list";
 import { api } from "@/lib/trpc";
 import { toast } from "sonner";
+import LogoLoader from "@/components/logoloader";
 
 export function InvoiceClientPage() {
   const searchParams = useSearchParams();
@@ -173,8 +174,9 @@ export function InvoiceClientPage() {
 
   if (isLoading || !isInitialized || !invoiceData) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div style={{ display: 'grid', placeItems: 'center', height: '100vh' }}>
+        <LogoLoader />
+        <div style={{ marginTop: 16, color: '#334155' }}>Loading...</div>
       </div>
     );
   }

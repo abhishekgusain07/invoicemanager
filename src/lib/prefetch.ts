@@ -1,9 +1,11 @@
-"use client";
 
 import { QueryClient } from "@tanstack/react-query";
 import { getQueryKey } from "@trpc/react-query";
-import { api } from "./trpc";
+import { appRouter } from "@/server/root";
+import { createTRPCContext } from "@/server/trpc";
 import type { AppRouter } from "@/server/root";
+import { api } from "./trpc";
+import { TRPCRequestInfo } from "@trpc/server/unstable-core-do-not-import";
 
 // Type definitions for dashboard data
 export interface DashboardStats {
@@ -54,6 +56,21 @@ export class DashboardPrefetcher {
    */
   async prefetchDashboardData(): Promise<void> {
     try {
+      // Create server-side context and caller
+      const ctx = await createTRPCContext({
+        req: new Request('http://localhost'),
+        resHeaders: {} as Headers,
+        info: {} as  TRPCRequestInfo
+      });
+      
+      // Skip prefetch if user is not authenticated
+      if (!ctx.session || !ctx.user) {
+        console.warn("Skipping dashboard prefetch - user not authenticated");
+        return;
+      }
+
+      const caller = appRouter.createCaller(ctx);
+      
       // Get the tRPC query key for the dashboard data
       const queryKey = getQueryKey(
         api.dashboard.getAllDashboardData,
@@ -72,7 +89,7 @@ export class DashboardPrefetcher {
       ) {
         await this.queryClient.prefetchQuery({
           queryKey,
-          queryFn: () => this.fetchDashboardData(),
+          queryFn: () => caller.dashboard.getAllDashboardData(),
           staleTime: 5 * 60 * 1000, // 5 minutes
           gcTime: 10 * 60 * 1000, // 10 minutes
         });
@@ -119,17 +136,6 @@ export class DashboardPrefetcher {
       "query"
     );
     return this.queryClient.getQueryData(queryKey) as DashboardData | undefined;
-  }
-
-  /**
-   * Private method to fetch dashboard data
-   * This simulates the tRPC call without going through the React hook
-   */
-  private async fetchDashboardData(): Promise<DashboardData> {
-    // Since we can't easily call tRPC procedures directly from client-side prefetch,
-    // we'll let the React Query mechanism handle this through the normal tRPC flow
-    // This is a placeholder that will be handled by the prefetchQuery mechanism
-    throw new Error("This should be handled by tRPC React Query integration");
   }
 }
 
