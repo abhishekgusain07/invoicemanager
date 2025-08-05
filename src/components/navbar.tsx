@@ -21,6 +21,21 @@ import { useWaitlistAnalytics } from "@/lib/analytics/waitlist";
 export function NavbarDemo({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useUser();
   const isLoggedIn = !!user;
+
+  // Prefetch session data after component mount
+  useEffect(() => {
+    // Only prefetch if not already loading or loaded
+    if (!isLoading && !user) {
+      // Background session refresh with a small delay
+      const timer = setTimeout(() => {
+        authClient.getSession().catch(() => {
+          // Silently ignore errors - this is just for prefetching
+        });
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, user]);
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

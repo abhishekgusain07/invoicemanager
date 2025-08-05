@@ -9,7 +9,7 @@ import { isWaitlistMode } from "@/lib/feature-flags";
 // Import LucideIcon type and components
 import type { LucideIcon } from "lucide-react";
 
-// Lazy load components
+// Lazy load components with higher priority for navbar
 const NavbarDemo = dynamic(
   () => import("@/components/navbar").then((mod) => mod.NavbarDemo),
   {
