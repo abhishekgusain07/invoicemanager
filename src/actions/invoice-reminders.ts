@@ -6,7 +6,7 @@ import { serverDebug } from "@/utils/debug";
 import { v4 as uuidv4 } from "uuid";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { and, eq, desc, leftJoin } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 
 export async function logInvoiceReminder({
   invoiceId,
