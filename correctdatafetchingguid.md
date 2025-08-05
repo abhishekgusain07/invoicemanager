@@ -16,37 +16,37 @@ import { headers } from "next/headers";
 
 // Server-side tRPC caller - NO client module imports
 async function createServerContext() {
-  const { userId } = auth();
-  
-  return await createTRPCContext({
-    req: new Request('http://localhost:3000', { 
-      headers: Object.fromEntries(headers().entries())
-    }),
-    resHeaders: new Headers(),
-    info: {} as any,
-  });
+const { userId } = auth();
+
+return await createTRPCContext({
+req: new Request('http://localhost:3000', {
+headers: Object.fromEntries(headers().entries())
+}),
+resHeaders: new Headers(),
+info: {} as any,
+});
 }
 
 // Create server-side API caller
 export async function createServerAPI() {
-  const ctx = await createServerContext();
-  return appRouter.createCaller(ctx);
+const ctx = await createServerContext();
+return appRouter.createCaller(ctx);
 }
 
 // Utility functions for server components
 export async function getServerDashboardData() {
-  const api = await createServerAPI();
-  return await api.dashboard.getAllDashboardData();
+const api = await createServerAPI();
+return await api.dashboard.getAllDashboardData();
 }
 
 export async function getServerInvoices(status?: string) {
-  const api = await createServerAPI();
-  return await api.invoice.getByStatus({ status: status as any });
+const api = await createServerAPI();
+return await api.invoice.getByStatus({ status: status as any });
 }
 
 export async function getServerGeneratedInvoices(options: { limit?: number; offset?: number } = {}) {
-  const api = await createServerAPI();
-  return await api.invoice.getGenerated(options);
+const api = await createServerAPI();
+return await api.invoice.getGenerated(options);
 }
 Step 2: Update Dashboard Page (Use Server tRPC)
 Update: src/app/dashboard/page.tsx
@@ -57,20 +57,20 @@ import { api } from "@/lib/trpc";
 import { DashboardClient } from "./dashboard-client";
 
 export default async function DashboardPage() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-        refetchOnWindowFocus: false,
-        refetchOnMount: (query) => !query.state.data,
-      },
-    },
-  });
+const queryClient = new QueryClient({
+defaultOptions: {
+queries: {
+staleTime: 5 _ 60 _ 1000,
+gcTime: 10 _ 60 _ 1000,
+refetchOnWindowFocus: false,
+refetchOnMount: (query) => !query.state.data,
+},
+},
+});
 
-  try {
-    // ✅ CORRECT: Server-side tRPC call (no client module access)
-    const dashboardData = await getServerDashboardData();
+try {
+// ✅ CORRECT: Server-side tRPC call (no client module access)
+const dashboardData = await getServerDashboardData();
 
     // ✅ CORRECT: Manually set the query data (not using client module)
     const queryKey = [
@@ -88,16 +88,18 @@ export default async function DashboardPage() {
         <DashboardClient />
       </HydrationBoundary>
     );
-  } catch (error) {
-    console.warn("Server-side dashboard data fetch failed:", error);
-    
+
+} catch (error) {
+console.warn("Server-side dashboard data fetch failed:", error);
+
     // Return client component without prefetched data
     return (
       <HydrationBoundary state={dehydrate(queryClient)}>
         <DashboardClient />
       </HydrationBoundary>
     );
-  }
+
+}
 }
 Step 3: Keep Your Dashboard Client EXACTLY The Same
 Your existing dashboard-client.tsx stays UNCHANGED:
@@ -107,34 +109,34 @@ import { useState, useCallback } from "react";
 // ... all your existing imports
 
 export function DashboardClient() {
-  const { user, isLoading: isUserLoading } = useUser();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const { user, isLoading: isUserLoading } = useUser();
+const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ This stays EXACTLY the same - your tRPC setup works perfectly
-  const {
-    data: dashboardData,
-    isLoading,
-    error,
-    refetch: refetchDashboardData,
-  } = api.dashboard.getAllDashboardData.useQuery(
-    undefined,
-    {
-      enabled: !isUserLoading && !!user,
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-      refetchOnMount: (query) => !query.state.data, // Uses prefetched data if available
-    }
-  );
+// ✅ This stays EXACTLY the same - your tRPC setup works perfectly
+const {
+data: dashboardData,
+isLoading,
+error,
+refetch: refetchDashboardData,
+} = api.dashboard.getAllDashboardData.useQuery(
+undefined,
+{
+enabled: !isUserLoading && !!user,
+staleTime: 5 _ 60 _ 1000,
+refetchOnWindowFocus: false,
+refetchOnMount: (query) => !query.state.data, // Uses prefetched data if available
+}
+);
 
-  // ✅ All your existing logic stays the same
-  const invoiceStats = dashboardData?.stats;
-  const chartData = dashboardData?.monthlyData;
-  const hasInvoices = (invoiceStats?.recentInvoices?.length ?? 0) > 0;
+// ✅ All your existing logic stays the same
+const invoiceStats = dashboardData?.stats;
+const chartData = dashboardData?.monthlyData;
+const hasInvoices = (invoiceStats?.recentInvoices?.length ?? 0) > 0;
 
-  // ✅ All your existing JSX stays exactly the same
-  // The difference: NO loading state on initial render because data is prefetched
-  
-  // Rest of your component unchanged...
+// ✅ All your existing JSX stays exactly the same
+// The difference: NO loading state on initial render because data is prefetched
+
+// Rest of your component unchanged...
 }
 Step 4: Apply Same Pattern to Other Pages
 Update: src/app/invoices/page.tsx
@@ -142,32 +144,33 @@ typescriptimport { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/r
 import { getServerInvoices } from "@/lib/server-api";
 import { InvoicesClient } from "./invoices-client";
 
-export default async function InvoicesPage({ 
-  searchParams 
-}: { 
-  searchParams: { status?: string } 
+export default async function InvoicesPage({
+searchParams
+}: {
+searchParams: { status?: string }
 }) {
-  const queryClient = new QueryClient();
-  
-  try {
-    const invoices = await getServerInvoices(searchParams.status);
-    
+const queryClient = new QueryClient();
+
+try {
+const invoices = await getServerInvoices(searchParams.status);
+
     // Set query data for tRPC
     const queryKey = [
       ["invoice", "getByStatus"],
       { input: { status: searchParams.status || "all" }, type: "query" }
     ];
-    
-    queryClient.setQueryData(queryKey, invoices);
-  } catch (error) {
-    console.warn("Server-side invoices fetch failed:", error);
-  }
 
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <InvoicesClient />
-    </HydrationBoundary>
-  );
+    queryClient.setQueryData(queryKey, invoices);
+
+} catch (error) {
+console.warn("Server-side invoices fetch failed:", error);
+}
+
+return (
+<HydrationBoundary state={dehydrate(queryClient)}>
+<InvoicesClient />
+</HydrationBoundary>
+);
 }
 Update: src/app/myinvoices/page.tsx
 typescriptimport { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
@@ -175,26 +178,27 @@ import { getServerGeneratedInvoices } from "@/lib/server-api";
 import { MyInvoicesClient } from "./myinvoices-client";
 
 export default async function MyInvoicesPage() {
-  const queryClient = new QueryClient();
-  
-  try {
-    const generatedInvoices = await getServerGeneratedInvoices({ limit: 50, offset: 0 });
-    
+const queryClient = new QueryClient();
+
+try {
+const generatedInvoices = await getServerGeneratedInvoices({ limit: 50, offset: 0 });
+
     const queryKey = [
       ["invoice", "getGenerated"],
       { input: { limit: 50, offset: 0 }, type: "query" }
     ];
-    
-    queryClient.setQueryData(queryKey, generatedInvoices);
-  } catch (error) {
-    console.warn("Server-side generated invoices fetch failed:", error);
-  }
 
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <MyInvoicesClient />
-    </HydrationBoundary>
-  );
+    queryClient.setQueryData(queryKey, generatedInvoices);
+
+} catch (error) {
+console.warn("Server-side generated invoices fetch failed:", error);
+}
+
+return (
+<HydrationBoundary state={dehydrate(queryClient)}>
+<MyInvoicesClient />
+</HydrationBoundary>
+);
 }
 Step 5: Delete Only the Problematic Prefetch File
 Delete: src/lib/prefetch.ts - This was the source of the error
@@ -220,6 +224,7 @@ No loading spinners on initial render
 tRPC queries still work for updates/refetching
 
 The Flow Now
+
 1. User visits /dashboard
 2. Server calls tRPC procedure directly (server-side)
 3. Server pre-populates React Query cache
@@ -228,7 +233,7 @@ The Flow Now
 6. Client tRPC query sees data already exists
 7. No loading state - immediate render with data
 8. tRPC queries still work for real-time updates
-Key Changes Summary
+   Key Changes Summary
 
 Delete: src/lib/prefetch.ts (the problematic file)
 Add: src/lib/server-api.ts (proper server-side tRPC calls)

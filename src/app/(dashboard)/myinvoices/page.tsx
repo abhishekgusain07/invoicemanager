@@ -1,4 +1,8 @@
-import { QueryClient, dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import {
+  QueryClient,
+  dehydrate,
+  HydrationBoundary,
+} from "@tanstack/react-query";
 import { getServerGeneratedInvoices } from "@/lib/server-api";
 import { MyInvoicesClient } from "./MyInvoicesClient";
 
@@ -13,15 +17,18 @@ export default async function MyInvoicesPage() {
       },
     },
   });
-  
+
   try {
-    const generatedInvoices = await getServerGeneratedInvoices({ limit: 50, offset: 0 });
-    
+    const generatedInvoices = await getServerGeneratedInvoices({
+      limit: 50,
+      offset: 0,
+    });
+
     const queryKey = [
       ["invoice", "getGenerated"],
-      { input: { limit: 50, offset: 0 }, type: "query" }
+      { input: { limit: 50, offset: 0 }, type: "query" },
     ];
-    
+
     queryClient.setQueryData(queryKey, generatedInvoices);
   } catch (error) {
     console.warn("Server-side generated invoices fetch failed:", error);
